@@ -154,7 +154,11 @@ class MARC:
     # Status, Type, Bib. Level, Type of Ctrl., Enc. Level,
     # Descr. Cat. Form, Linked Rcd Reqt are all part of pseudoentry 0
 
-    def __init__(self, MARC = None):
+    def __init__(self, MARC = None, strict = 1):
+        """Parses MARC data.  According to Bill Oldroyd (Bill.Oldroyd at
+        bl.uk), some servers don't set the character set and/or other
+        bits of the MARC header properly, so it's useful to set strict=0
+        when dealing with such servers."""
         self.fields = {}
         self.ok = 0
         self.marc = MARC
@@ -166,9 +170,10 @@ class MARC:
         zerostr = ""
         for ind in self.hdrbits: zerostr = zerostr + self.marc[ind]
         self.fields [0] = [zerostr]
-        assert (self.marc[9] == ' ') # 'a' would be UCS/Unicode
-        assert (self.marc[10] == '2' and self.marc[11] == '2')
-        assert (self.marc[20:22] == '45')
+        if strict:
+            assert (self.marc[9] == ' ') # 'a' would be UCS/Unicode
+            assert (self.marc[10] == '2' and self.marc[11] == '2')
+            assert (self.marc[20:22] == '45')
         pos = 24
         lastpos = baseaddr
         while pos < baseaddr:
@@ -1141,7 +1146,10 @@ class MARC8_to_Unicode:
     purposes only.  (If you know of either of fonts designed for use
     with LC's private-use Unicode assignments, or of attempts to
     standardize Unicode characters to allow round-trips from EACC,
-    please inform me, asl2@pobox.com.)  """
+    or if you need the private-use Unicode character translations,
+    please inform me, asl2@pobox.com."""
+
+
     
     basic_latin = 0x42
     ansel = 0x45
@@ -1193,8 +1201,11 @@ class MARC8_to_Unicode:
                     combinings = []
         # what to do if combining chars left over?
         uni_str = u"".join (uni_list)
-# unicodedata.normalize not available until Python 2.3        
-#        uni_str = unicodedata.normalize ('NFC', uni_str)
+        
+        # unicodedata.normalize not available until Python 2.3        
+        if hasattr (unicodedata, 'normalize'):
+            uni_str = unicodedata.normalize ('NFC', uni_str)
+            
         return uni_str
 
 def test_convert (s, enc):
