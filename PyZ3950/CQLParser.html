@@ -322,6 +322,8 @@ list(sequence)&nbsp;-&gt;&nbsp;new&nbsp;list&nbsp;initialized&nbsp;from&nbsp;seq
 
 <dl><dt><a name="ModifierClause-__str__"><strong>__str__</strong></a>(self)</dt></dl>
 
+<dl><dt><a name="ModifierClause-resolvePrefix"><strong>resolvePrefix</strong></a>(self, name)</dt></dl>
+
 <dl><dt><a name="ModifierClause-toCQL"><strong>toCQL</strong></a>(self)</dt></dl>
 
 <dl><dt><a name="ModifierClause-toXCQL"><strong>toXCQL</strong></a>(self, depth<font color="#909090">=0</font>)</dt></dl>
@@ -342,6 +344,8 @@ If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;
 &nbsp;<br>
 Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
 If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>parent</strong> = None</dl>
 
 <dl><dt><strong>type</strong> = None</dl>
 
@@ -367,6 +371,13 @@ If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;
 Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
 If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
 
+<dl><dt><strong>parent</strong> = None</dl>
+
+<dl><dt><strong>prefix</strong> = 'cql'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
 <hr>
 Methods inherited from <a href="PyZ3950/CQLParser.html#PrefixedObject">PrefixedObject</a>:<br>
 <dl><dt><a name="ModifierType-__init__"><strong>__init__</strong></a>(self, val)</dt></dl>
@@ -379,13 +390,6 @@ Methods inherited from <a href="PyZ3950/CQLParser.html#PrefixedObject">PrefixedO
 
 <hr>
 Data and non-method functions inherited from <a href="PyZ3950/CQLParser.html#PrefixedObject">PrefixedObject</a>:<br>
-<dl><dt><strong>parent</strong> = None</dl>
-
-<dl><dt><strong>prefix</strong> = ''<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
-&nbsp;<br>
-Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
-If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
-
 <dl><dt><strong>prefixURI</strong> = ''<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
 &nbsp;<br>
 Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
@@ -848,6 +852,8 @@ If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;
 
 <dl><dt><a name="ModifierClause-__str__"><strong>__str__</strong></a>(self)</dt></dl>
 
+<dl><dt><a name="ModifierClause-resolvePrefix"><strong>resolvePrefix</strong></a>(self, name)</dt></dl>
+
 <dl><dt><a name="ModifierClause-toCQL"><strong>toCQL</strong></a>(self)</dt></dl>
 
 <dl><dt><a name="ModifierClause-toXCQL"><strong>toXCQL</strong></a>(self, depth<font color="#909090">=0</font>)</dt></dl>
@@ -868,6 +874,8 @@ If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;
 &nbsp;<br>
 Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
 If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>parent</strong> = None</dl>
 
 <dl><dt><strong>type</strong> = None</dl>
 
@@ -893,6 +901,13 @@ If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;
 Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
 If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
 
+<dl><dt><strong>parent</strong> = None</dl>
+
+<dl><dt><strong>prefix</strong> = 'cql'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
 <hr>
 Methods inherited from <a href="PyZ3950/CQLParser.html#PrefixedObject">PrefixedObject</a>:<br>
 <dl><dt><a name="ModifierType-__init__"><strong>__init__</strong></a>(self, val)</dt></dl>
@@ -905,13 +920,6 @@ Methods inherited from <a href="PyZ3950/CQLParser.html#PrefixedObject">PrefixedO
 
 <hr>
 Data and non-method functions inherited from <a href="PyZ3950/CQLParser.html#PrefixedObject">PrefixedObject</a>:<br>
-<dl><dt><strong>parent</strong> = None</dl>
-
-<dl><dt><strong>prefix</strong> = ''<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
-&nbsp;<br>
-Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
-If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
-
 <dl><dt><strong>prefixURI</strong> = ''<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
 &nbsp;<br>
 Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
@@ -1135,14 +1143,6 @@ dict(seq)&nbsp;-&gt;&nbsp;new&nbsp;dictionary&nbsp;initialized&nbsp;as&nbsp;if&n
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;d[k]&nbsp;=&nbsp;v</tt></dl>
 
 </td></tr></table></td></tr></table>
-<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
-<tr bgcolor="#eeaa77">
-<td colspan=3 valign=bottom>&nbsp;<br>
-<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
-    
-<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;&nbsp;</td>
-<td width="100%"><dl><dt><a name="-StringIO"><strong>StringIO</strong></a>(...)</dt><dd><tt><a href="#-StringIO">StringIO</a>([s])&nbsp;--&nbsp;Return&nbsp;a&nbsp;StringIO-like&nbsp;stream&nbsp;for&nbsp;reading&nbsp;or&nbsp;writing</tt></dd></dl>
-</td></tr></table>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#55aa55">
 <td colspan=3 valign=bottom>&nbsp;<br>

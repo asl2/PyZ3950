@@ -20,9 +20,11 @@ which&nbsp;takes&nbsp;binary&nbsp;<a href="#MARC">MARC</a>&nbsp;data.</tt></p>
 <font color="#fffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;&nbsp;</td>
-<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="string.html">string</a><br>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="marc_to_unicode.html">PyZ3950.marc_to_unicode</a><br>
+</td><td width="25%" valign=top><a href="string.html">string</a><br>
 </td><td width="25%" valign=top><a href="sys.html">sys</a><br>
-</td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table>
+</td><td width="25%" valign=top><a href="unicodedata.html">unicodedata</a><br>
+</td></tr></table></td></tr></table>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
 <td colspan=3 valign=bottom>&nbsp;<br>
@@ -37,6 +39,7 @@ which&nbsp;takes&nbsp;binary&nbsp;<a href="#MARC">MARC</a>&nbsp;data.</tt></p>
 </font></dt></dl>
 </dd>
 <dt><font face="helvetica, arial"><a href="PyZ3950/zmarc.html#MARC">MARC</a>
+</font></dt><dt><font face="helvetica, arial"><a href="PyZ3950/zmarc.html#MARC8_to_Unicode">MARC8_to_Unicode</a>
 </font></dt></dl>
  
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
@@ -55,7 +58,10 @@ used&nbsp;structures,&nbsp;but&nbsp;this&nbsp;was&nbsp;some&nbsp;of&nbsp;the&nbs
 wrote.<br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;&nbsp;</td>
 <td width="100%">Methods defined here:<br>
-<dl><dt><a name="MARC-__init__"><strong>__init__</strong></a>(self, MARC<font color="#909090">=None</font>)</dt></dl>
+<dl><dt><a name="MARC-__init__"><strong>__init__</strong></a>(self, MARC<font color="#909090">=None</font>, strict<font color="#909090">=1</font>)</dt><dd><tt>Parses&nbsp;<a href="#MARC">MARC</a>&nbsp;data.&nbsp;&nbsp;According&nbsp;to&nbsp;Bill&nbsp;Oldroyd&nbsp;(Bill.Oldroyd&nbsp;at<br>
+bl.uk),&nbsp;some&nbsp;servers&nbsp;don't&nbsp;set&nbsp;the&nbsp;character&nbsp;set&nbsp;and/or&nbsp;other<br>
+bits&nbsp;of&nbsp;the&nbsp;<a href="#MARC">MARC</a>&nbsp;header&nbsp;properly,&nbsp;so&nbsp;it's&nbsp;useful&nbsp;to&nbsp;set&nbsp;strict=0<br>
+when&nbsp;dealing&nbsp;with&nbsp;such&nbsp;servers.</tt></dd></dl>
 
 <dl><dt><a name="MARC-__str__"><strong>__str__</strong></a>(self)</dt></dl>
 
@@ -92,6 +98,64 @@ If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;
 
 <dl><dt><strong>hdrbits</strong> = [5, 6, 7, 8, 17, 18, 19]<dd><tt>list()&nbsp;-&gt;&nbsp;new&nbsp;list<br>
 list(sequence)&nbsp;-&gt;&nbsp;new&nbsp;list&nbsp;initialized&nbsp;from&nbsp;sequence's&nbsp;items</tt></dl>
+
+</td></tr></table> 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="MARC8_to_Unicode">class <strong>MARC8_to_Unicode</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Converts&nbsp;<a href="#MARC">MARC</a>-8&nbsp;to&nbsp;Unicode.&nbsp;&nbsp;Note&nbsp;that&nbsp;currently,&nbsp;unicode&nbsp;strings<br>
+aren't&nbsp;normalized,&nbsp;and&nbsp;some&nbsp;codecs&nbsp;(e.g.&nbsp;iso8859-1)&nbsp;will&nbsp;fail&nbsp;on<br>
+such&nbsp;strings.&nbsp;&nbsp;When&nbsp;I&nbsp;can&nbsp;require&nbsp;python&nbsp;2.3,&nbsp;this&nbsp;will&nbsp;go&nbsp;away.<br>
+&nbsp;<br>
+Warning:&nbsp;<a href="#MARC">MARC</a>-8&nbsp;EACC&nbsp;(East&nbsp;Asian&nbsp;characters)&nbsp;makes&nbsp;some<br>
+distinctions&nbsp;which&nbsp;aren't&nbsp;captured&nbsp;in&nbsp;Unicode.&nbsp;&nbsp;The&nbsp;LC&nbsp;tables&nbsp;give<br>
+the&nbsp;option&nbsp;of&nbsp;mapping&nbsp;such&nbsp;characters&nbsp;either&nbsp;to&nbsp;a&nbsp;Unicode&nbsp;private<br>
+use&nbsp;area,&nbsp;or&nbsp;a&nbsp;substitute&nbsp;character&nbsp;which&nbsp;(usually)&nbsp;gives&nbsp;the<br>
+sense.&nbsp;&nbsp;I've&nbsp;picked&nbsp;the&nbsp;second,&nbsp;so&nbsp;this&nbsp;means&nbsp;that&nbsp;the&nbsp;<a href="#MARC">MARC</a>&nbsp;data<br>
+should&nbsp;be&nbsp;treated&nbsp;as&nbsp;primary&nbsp;and&nbsp;the&nbsp;Unicode&nbsp;data&nbsp;used&nbsp;for&nbsp;display<br>
+purposes&nbsp;only.&nbsp;&nbsp;(If&nbsp;you&nbsp;know&nbsp;of&nbsp;either&nbsp;of&nbsp;fonts&nbsp;designed&nbsp;for&nbsp;use<br>
+with&nbsp;LC's&nbsp;private-use&nbsp;Unicode&nbsp;assignments,&nbsp;or&nbsp;of&nbsp;attempts&nbsp;to<br>
+standardize&nbsp;Unicode&nbsp;characters&nbsp;to&nbsp;allow&nbsp;round-trips&nbsp;from&nbsp;EACC,<br>
+or&nbsp;if&nbsp;you&nbsp;need&nbsp;the&nbsp;private-use&nbsp;Unicode&nbsp;character&nbsp;translations,<br>
+please&nbsp;inform&nbsp;me,&nbsp;asl2@pobox.com.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="MARC8_to_Unicode-__init__"><strong>__init__</strong></a>(self, G0<font color="#909090">=66</font>, G1<font color="#909090">=69</font>)</dt></dl>
+
+<dl><dt><a name="MARC8_to_Unicode-is_multibyte"><strong>is_multibyte</strong></a>(self, charset)</dt></dl>
+
+<dl><dt><a name="MARC8_to_Unicode-translate"><strong>translate</strong></a>(self, s)</dt></dl>
+
+<hr>
+Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = 'Converts MARC-8 to Unicode.  Note that currently...anslations,<font color="#c040c0">\n</font>    please inform me, asl2@pobox.com.'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/zmarc'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>ansel</strong> = 69<dd><tt>int(x[,&nbsp;base])&nbsp;-&gt;&nbsp;integer<br>
+&nbsp;<br>
+Convert&nbsp;a&nbsp;string&nbsp;or&nbsp;number&nbsp;to&nbsp;an&nbsp;integer,&nbsp;if&nbsp;possible.&nbsp;&nbsp;A&nbsp;floating&nbsp;point<br>
+argument&nbsp;will&nbsp;be&nbsp;truncated&nbsp;towards&nbsp;zero&nbsp;(this&nbsp;does&nbsp;not&nbsp;include&nbsp;a&nbsp;string<br>
+representation&nbsp;of&nbsp;a&nbsp;floating&nbsp;point&nbsp;number!)&nbsp;&nbsp;When&nbsp;converting&nbsp;a&nbsp;string,&nbsp;use<br>
+the&nbsp;optional&nbsp;base.&nbsp;&nbsp;It&nbsp;is&nbsp;an&nbsp;error&nbsp;to&nbsp;supply&nbsp;a&nbsp;base&nbsp;when&nbsp;converting&nbsp;a<br>
+non-string.</tt></dl>
+
+<dl><dt><strong>basic_latin</strong> = 66<dd><tt>int(x[,&nbsp;base])&nbsp;-&gt;&nbsp;integer<br>
+&nbsp;<br>
+Convert&nbsp;a&nbsp;string&nbsp;or&nbsp;number&nbsp;to&nbsp;an&nbsp;integer,&nbsp;if&nbsp;possible.&nbsp;&nbsp;A&nbsp;floating&nbsp;point<br>
+argument&nbsp;will&nbsp;be&nbsp;truncated&nbsp;towards&nbsp;zero&nbsp;(this&nbsp;does&nbsp;not&nbsp;include&nbsp;a&nbsp;string<br>
+representation&nbsp;of&nbsp;a&nbsp;floating&nbsp;point&nbsp;number!)&nbsp;&nbsp;When&nbsp;converting&nbsp;a&nbsp;string,&nbsp;use<br>
+the&nbsp;optional&nbsp;base.&nbsp;&nbsp;It&nbsp;is&nbsp;an&nbsp;error&nbsp;to&nbsp;supply&nbsp;a&nbsp;base&nbsp;when&nbsp;converting&nbsp;a<br>
+non-string.</tt></dl>
 
 </td></tr></table> 
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
