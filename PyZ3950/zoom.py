@@ -111,6 +111,10 @@ class ProtocolError (ZoomError):
     """Exception for malformatted server response"""
     pass
 
+class UnexpectedCloseError (ProtocolError):
+    """Exception for unexpected (z3950, not tcp) close from server"""
+    pass
+
 class UnknownRecSyn (ZoomError):
     """Exception for unknown record syntax returned from server"""
     pass
@@ -221,6 +225,7 @@ class Connection(_AttrCheck, _ErrHdlr):
             options = [nRS] # don't let user override this for now
             self._cli = z3950.Client (hostname, port,
                                       optionslist = options, **kwauth)
+            self._cli.set_exns (ConnectionError, ProtocolError, UnexpectedCloseError)
             self.xmultipleResultSets = self._cli.get_option (nRS)
         except z3950.ConnectionError, val:
             raise ConnectionError (val)
