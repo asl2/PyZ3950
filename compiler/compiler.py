@@ -11,15 +11,15 @@ We also ignore the {...} syntax for basic values, so we don't need separate
 lexer states.
 """
 
-# handle BITSTRING named bit lists
 # TODO: flatten embedded structures (generating names appropriately)
+# fix "import __main__" so we can import compiler without it blowing up
 # toposort structures
 # handle recursive structures better than PyQuote hack
-# figure out mapping of asn.1 modules to python modules
+# figure out mapping of asn.1 modules to python modules (probably as classes)
 # handle int_2/num_list
 # size constraints subtype
 # handle ANY, ANY DESCRIBED BY
-# we replace '-' in idents w/ '_' during lexing.  Is this OK?
+# we replace '-' in idents w/ '_' during lexing.  Is this OK, or should it be done at output?
 # bogus output for empty def'ns, e.g.
 # ANSI-Z39-50-ObjectIdentifier  DEFINITIONS ::= -- XXX lower-cased
 # BEGIN 
@@ -159,10 +159,10 @@ def t_STRING_T(t):
 t_STRING_T.__doc__ = "(%s)String" % "|".join (map
                                               (lambda x: '(' + x + ')', StringTypes))
 
-import __main__ # XXX blech!
+cur_mod = __import__ (__name__) # XXX blech!
 
 for (k, v) in static_tokens.items ():
-    __main__.__dict__['t_' + v] = k
+    cur_mod.__dict__['t_' + v] = k
 
 def t_BSTRING (t):
     r"'[01]*'B"
@@ -179,12 +179,12 @@ def t_QSTRING (t):
 def t_UCASE_IDENT (t):
     r"[A-Z](-[a-zA-Z0-9]|[a-zA-Z0-9])*" # can't end w/ '-'
     t.type = reserved_words.get (t.value, "UCASE_IDENT")
-    t.value = t.value.replace ('-', '_') # XXX is it OK to do this during lex
+    t.value = t.value.replace ('-', '_') # XXX is it OK to do '-' to '_' during lex
     return t
 
 def t_LCASE_IDENT (t):
     r"[a-z](-[a-zA-Z0-9]|[a-zA-Z0-9])*" # can't end w/ '-'
-    t.value = t.value.replace ('-', '_')  # XXX is it OK to do this during lex
+    t.value = t.value.replace ('-', '_')# XXX is it OK to do '-' to '_' during lex
     return t
 
 def t_NUMBER (t):
@@ -226,9 +226,6 @@ class Node:
             assert (len(args) == 1)
             self.type = args[0]
         self.__dict__.update (kw)
-    def get_child_nodes (self): # XXX not really needed
-        children = [v for (k, v) in self.__dict__.iteritems () if isinstance (v, Node)]
-        return children
     def str_child (self, key, child, depth):
         if key == 'type': # already processed in str_depth
             return ""
@@ -246,6 +243,10 @@ class Node:
         l.append ("".join (map (lambda (k,v): self.str_child (k, v, depth + 1),
                                 self.__dict__.items ())))
         return "\n".join (l)
+    def get_typ (self):
+        return self
+    def set_name (self, name): # only overridden for SEQUENCE
+        pass
     def __str__(self):
         return "\n" + self.str_depth (0)
 
@@ -264,12 +265,11 @@ class Default_Tags (Node):
 class Type_Assign (Node):
     def __init__ (self, *args, **kw):
         Node.__init__ (self, *args, **kw)
-        if isinstance (self.val, Tag): # XXX replace with generalized get_typ_ignoring_tag (no-op for Node, override in Tag)
-            to_test = self.val.typ
-        else:
-            to_test = self.val
-        if isinstance (to_test, Sequence):
-            to_test.sequence_name = self.name.name
+        to_test = self.val.get_typ ()
+        to_test.set_name (self.name.name) # currently only for naming SEQUENCE
+        # XXX should also collect names for SEQUENCE inside SEQUENCE or
+        # CHOICE or SEQUENCE_OF (where should the SEQUENCE_OF name come
+        # from?  for others, element or arm name would be fine)
 
 class PyQuote (Node):
     pass
@@ -281,16 +281,15 @@ class Sequence_Of (Node):
     pass
 
 class Tag (Node):
-    pass
+    def get_typ (self):
+        return self.typ
 
 class ElementType(Node):
     pass
 
 class Sequence (Node):
-    pass
-    # XXX should also collect names for SEQUENCE inside SEQUENCE or
-    # CHOICE or SEQUENCE_OF (where should the SEQUENCE_OF name come
-    # from?  for others, element or arm name would be fine)
+    def set_name (self, name):
+        self.sequence_name = name
     
 class Choice (Node):
     pass
@@ -344,11 +343,11 @@ def p_tag_default_1 (t):
 
 def p_tag_default_2 (t):
     'tag_default : '
-    t[0] = Default_Tags (dfl_tag = 'EXPLICIT') # XXX default is EXPLICIT
+    t[0] = Default_Tags (dfl_tag = 'EXPLICIT')
 
 def p_module_ident (t):
     'module_ident : type_ref assigned_ident' # name, oid
-    # XXX coerce type_ref to module_ref
+    # XXX coerce type_ref to module_ref?
     if t[2] == None:
         t[0] = ModuleIdent (name=t[1].name, assigned_ident = None)
     else:
@@ -573,7 +572,6 @@ def p_bitstring_type_1 (t):
 
 def p_bitstring_type_2 (t):
     'bitstring_type : BIT STRING LBRACE named_bit_list RBRACE'
-    # ignore bit_list XXX fix to define named_bit_list
     t[0] = BitString (named_list = t[4])
 
 def p_named_bit_list (t):
@@ -718,7 +716,7 @@ def p_alternative_type_list_2 (t):
     'alternative_type_list : alternative_type_list COMMA named_type'
     t[0] = t[1] + [t[3]]
 
-def p_selection_type (t): # XXX what is this?
+def p_selection_type (t):
     'selection_type : identifier LT type'
     return Node ('seltype', ident = t[1], typ = t[3])
 
@@ -756,7 +754,7 @@ def p_class_1 (t):
 
 def p_class_2 (t):
     '''class : '''
-    t[0] = 'CONTEXT' # XXX
+    t[0] = 'CONTEXT'
 
 def p_any_type_1 (t):
     'any_type : ANY'
@@ -1057,7 +1055,6 @@ def p_type_ref (t):
     'type_ref : UCASE_IDENT'
     t[0] = Type_Ref (name=t[1])
 
-
 def p_error(t):
     raise ParseError (str(t))
 
@@ -1071,31 +1068,13 @@ def testlex (s, fn, dict):
             break
         print token
 
-import time
-
-def parse_and_output (s, fn, defined_dict, visitor_class):
-    ast = yacc.parse (s)
-    time_str = time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime())
-    print """#!/usr/bin/env python
-# Auto-generated from %s at %s
-from PyZ3950 import asn1""" % (fn, time_str)
-    for module in ast:
-        assert (module.type == 'Module')
-        visit_instance = visitor_class (defined_dict, fn)
-        walker = visitor.ASTWalk ()
-        visit_instance.set_walker (walker)
-        walker.preorder (module, visit_instance)
-        visit_instance.finish ()
-
 import sys
 
 if __name__ == '__main__':
     defined_dict = {}
-    visitor_mod = __import__ ('py_output')
-    visitor_class = visitor_mod.Visitor
     for fn in sys.argv [1:]:
         f = open (fn, "r")
-        parse_and_output (f.read (), fn, defined_dict, visitor_class)
-        f.close ()
+        ast = yacc.parse (f.read())
+        print map (str, ast)
         lexer.lineno = 1
 
