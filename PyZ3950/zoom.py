@@ -257,12 +257,25 @@ class Connection(_AttrCheck, _ErrHdlr):
 
         self.host = host
         self.port = port
+        self._resultSetCtr = 0
         for (k,v) in kw.items ():
             setattr (self, k, v)
         if (connect):
             self.connect()
 
     def connect(self):
+        self._resultSetCtr += 1
+        self._lastConnectCtr = self._resultSetCtr
+        
+        # Bump counters first, since even if we didn't reconnect
+        # this time, we could have, and so any use of old connections
+        # is an error.  (Old cached-and-accessed data is OK to use:
+        # cached but not-yet-accessed data is probably an error, but
+        # a not-yet-caught error.)
+        
+        if self._cli <> None and self._cli.sock <> None:
+            return
+        
         initkw = {}
         for attr in self.init_attrs:
             initkw[attr] = getattr(self, attr)
@@ -279,7 +292,6 @@ class Connection(_AttrCheck, _ErrHdlr):
         self.targetImplementationId = self._cli.initresp.implementationId
         self.targetImplementationName = self._cli.initresp.implementationName
         self.targetImplementationVersion  = self._cli.initresp.implementationVersion
-        self._resultSetCtr = 0
 
     def search (self, query):
         """Search, taking Query object, returning ResultSet"""
@@ -327,6 +339,7 @@ class Connection(_AttrCheck, _ErrHdlr):
         req = z3950.SortRequest()
         req.inputResultSetNames = []
         for s in sets:
+            s._check_stale ()
             req.inputResultSetNames.append(s._resultSetName)
         cur_rsn = self._make_rsn()
         req.sortedResultSetName = cur_rsn
@@ -540,14 +553,20 @@ class ResultSet(_AttrCheck, _ErrHdlr):
     def _get_rec (self, i):
         return self._records [self.preferredRecordSyntax][
             self.elementSetName][i]
+
+    def _check_stale (self):
+        if self._ctr < self._conn._lastConnectCtr:
+            raise ConnectionError ('Stale result set used')
+        # XXX is this right?
+        if (not self._conn.namedResultSets) and \
+           self._ctr <> self._conn._resultSetCtr:
+            raise ServerNotImplError ('Multiple Result Sets')
+        # XXX or this?
     
     def _ensure_present (self, i):
         self._ensure_recs ()
         if self._get_rec (i) == None:
-            if (not self._conn.namedResultSets) and \
-               self._ctr <> self._conn._resultSetCtr:
-                raise ServerNotImplError ('Multiple Result Sets')
-            # XXX is this right?
+            self._check_stale ()
             lbound = (i / self._maxreq) * self._maxreq
             count = min (self._maxreq, len (self) - lbound)
             kw = self._make_keywords ()
