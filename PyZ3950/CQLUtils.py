@@ -12,26 +12,31 @@ asn1.register_oid (oids.Z3950_QUERY_CQL, asn1.GeneralString)
 
 class ZCQLConfig:
 
-    DC = {'title' : 4,
+    dc = {'title' : 4,
           'subject' : 21,
           'creator' : 1003,
           'author' : 1003,
           'editor' : 1020,
+          'contributor' : 1018,
           'publisher' : 1018,
           'description' : 62,
           'date' : 30,
           'resourceType' : 1031,
+          'type' : 1031,
           'format' : 1034,
-          'resourceIdentifier' : 12,
+          'identifier' : 12,
           'source' : 1019,
-          'language' : 54
+          'language' : 54,
+          'relation' : 1016,
+          'coverage' : 1016,
+          'rights' : 1016
           }
 
-    CQL = {'anywhere' : 1016,
+    cql = {'anywhere' : 1016,
            'serverChoice' : 1016}
 
     # The common bib1 points
-    BIB1 = {"personal_name" : 1,
+    bib1 = {"personal_name" : 1,
             "corporate_name" : 2,
             "conference_name" : 3,
             "title" : 4,
@@ -73,7 +78,7 @@ class ZCQLConfig:
             }
     
   
-    XD1 = {"title" : 1,
+    xd1 = {"title" : 1,
           "subject" : 2,
           "name" : 3,
           "description" : 4,
@@ -87,7 +92,7 @@ class ZCQLConfig:
           "coverage" : 12,
           "rights" : 13}
 
-    UTIL = {"record_date" : 1,
+    util = {"record_date" : 1,
             "record_agent" : 2,
             "record_language" : 3,
             "control_number" : 4,
@@ -104,12 +109,11 @@ class ZCQLConfig:
             "wildpath" : 15}
 
     def __init__(self):
-        self.UTIL1 = self.UTIL
-        self.XD = self.XD1
+        self.util1 = self.util
+        self.xd = self.xd1
 
 
 zConfig = ZCQLConfig()
-
 
 class CSearchClause(SearchClause):
 
@@ -240,64 +244,65 @@ class CIndex(Index):
     def toRPN(self, top):
         self.resolvePrefix()
         pf = self.prefix
-        if (not pf or pf in ['cql', 'dc']):
-            pf = "bib1"
-        pf = pf.upper()
-        try:
-            set = oids.oids['Z3950']['ATTRS'][pf]['oid']
-        except:
-            # Can't generate the set directly
-            if (hasattr(top, 'config') and top.config):
-                config = top.config
-                # Check SRW Configuration
-                cql = config.contextSetNamespaces['cql']
-                index = self.value
-                if self.prefixURI == cql and self.value == "serverchoice":
-                    index = config.defaultIndex
-                    pf = config.defaultContextSet
+        # Default BIB1
+        set = oids.oids['Z3950']['ATTRS']['BIB1']['oid']
 
-                pf = pf.lower()  # URGH! Standardise!
-                if config.indexHash.has_key(pf):
-                    if config.indexHash[pf].has_key(index):
-                        idx = config.indexHash[pf][index]
-                        # Need to map from this list to RPN list
-                        attrs = {}
-                        for i in idx:
-                            set = asn1.OidVal(map(int, i[0].split('.')))
-                            type = int(i[1])
-                            if (i[2].isdigit()):
-                                val = int(i[2])
-                            else:
-                                val = i[2]
-                            attrs[(set, type)] = val
-                        return attrs
-                    else:
-                        diag = Diagnostic16()
-                        diag.details = index
-                        diag.message = "Unknown index"
-                        raise diag
+        if (hasattr(top, 'config') and top.config):
+            config = top.config
+            # Check SRW Configuration
+            cql = config.contextSetNamespaces['cql']
+            index = self.value
+            if self.prefixURI == cql and self.value == "serverchoice":
+            # Have to resolve our prefixes etc, so create an index object to do it
+                index = config.defaultIndex
+                cidx = CIndex(index)
+                cidx.config = config
+                cidx.parent = config
+                cidx.resolvePrefix()
+                pf = cidx.prefix
+                index = cidx.value
+
+            if config.indexHash.has_key(pf):
+                if config.indexHash[pf].has_key(index):
+                    idx = config.indexHash[pf][index]
+                    # Need to map from this list to RPN list
+                    attrs = {}
+                    for i in idx:
+                        set = asn1.OidVal(map(int, i[0].split('.')))
+                        type = int(i[1])
+                        if (i[2].isdigit()):
+                            val = int(i[2])
+                        else:
+                            val = i[2]
+                        attrs[(set, type)] = val
+                    return attrs
                 else:
-                    diag = Diagnostic15()
-                    diag.details = pf
-                    diag.message = "Unknown context set"
+                    diag = Diagnostic16()
+                    diag.details = index
+                    diag.message = "Unknown index"
                     raise diag
-
             else:
-                print "Can't resolve %s" % pf
-                raise(ValueError)
-        
-        if (self.value.isdigit()):
-            # bib1.1018
-            val = int(self.value)
+                diag = Diagnostic15()
+                diag.details = pf
+                diag.message = "Unknown context set"
+                raise diag
         elif (hasattr(zConfig, pf)):
             mp = getattr(zConfig, pf)
             if (mp.has_key(self.value)):
                 val = mp[self.value]
             else:
                 val = self.value
+        elif (oids.oids['Z3950']['ATTRS'].has_key(pf.upper())):
+            set = oids.oids['Z3950']['ATTRS'][pf.upper()]['oid']
+            if (self.value.isdigit()):
+                # bib1.1018
+                val = int(self.value)
+            else:
+                # complex attribute for bib1
+                val = self.value
         else:
-            # complex attribute for bib1
-            val = self.value
+            print "Can't resolve %s" % pf
+            raise(ValueError)
             
         return {(set, 1) :  val}
             

@@ -32,7 +32,7 @@ modifierSeparator = "/"
 booleans = ['and', 'or', 'not', 'prox']
 
 reservedPrefixes = {"srw" : "http://www.loc.gov/zing/cql/srw-indexes/v1.0/",
-                    "cql" : "http://www.loc.gov/zing/cql/contextSets/cql/v1.1/"}
+                    "cql" : "info:srw/cql-context-set/1/cql-v1.1"}
 
 # End of 'configurable' stuff
 

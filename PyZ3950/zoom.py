@@ -692,6 +692,8 @@ def render_OPAC (opac_data):
 
 _RecordType ('USMARC', z3950.Z3950_RECSYN_USMARC_ov,
             renderer = lambda v: str(zmarc.MARC(v)))
+_RecordType ('UKMARC', z3950.Z3950_RECSYN_UKMARC_ov,
+            renderer = lambda v: str(zmarc.MARC(v)))
 _RecordType ('SUTRS', z3950.Z3950_RECSYN_SUTRS_ov)
 _RecordType ('XML', z3950.Z3950_RECSYN_MIME_XML_ov)
 _RecordType ('SGML', z3950.Z3950_RECSYN_MIME_SGML_ov)
