@@ -52,6 +52,7 @@ specification for a C-based engine.
 <li>BITSTRING - asn1.BitStringVal</li>
 <li>OCTSTRING - Python string</li>
 <li>NULL - ignore value on encoding, return None on decoding</li>
+<li>REAL - asn1.REAL (I hope to make this look more like python floats someday: read the source if you need this)</li>
 <li>OID - OidVal</li>
 <li>EXTERNAL - as SEQUENCE, see below (or read the source)</li>
 <li>all string types - Python string (no validity checking is done)</li>
@@ -105,8 +106,7 @@ Z39.50 code that should be distributed with this file as part of PyZ3950.
 <p>
 There is not yet support for:
 <ul>
-<li>Constructed encodings for BITSTRINGs</li>
-<li>REAL, UTCTime, ENUM, SET, SET OF, or some more obscure types</li>
+<li>UTCTime, SET, SET OF, or some more obscure types</li>
 </ul>
 <p>Useful ASN.1 references:
 <ul>
@@ -764,6 +764,7 @@ class BERWriteCtx(WriteCtx):
         # array.pop not available in Python 1.5.2.  We could just use a
         # less efficient length encoding (long form w/leading 0 bytes
         # where necessary), but ...
+
         # XXX fix to use more efficient code, now that we don't support 1.5.2!
         
         for i in range (len(l) - lenlen):
