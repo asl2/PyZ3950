@@ -36,6 +36,8 @@
 # 2002/05/23 - fix handling of ANY.  Needed for handling of SUTRS records
 # by Z3950.
 
+from __future__ import nested_scopes
+
 
 """<p>asn1 is a relatively general-purpose ASN.1 BER encoder and decoder.
 Encoding and
@@ -352,7 +354,7 @@ class CtxBase:
         self.codec_dict_stack[-1][defn_inst.base_tag] = (codec, strip_bom)
     def get_codec (self, base_tag):
         def default_enc (x):
-            if isinstance (x, unicode):
+            if isinstance (x, type (u"")):
                 return (x.encode ('ascii'), 0)
             return (x, 0)
         identity = ((default_enc, lambda x:(x,0)), 0)
