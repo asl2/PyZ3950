@@ -257,20 +257,30 @@ class CIndex(Index):
                     pf = config.defaultContextSet
 
                 pf = pf.lower()  # URGH! Standardise!
-                if config.indexHash.has_key(pf) and config.indexHash[pf].has_key(index):
-                    idx = config.indexHash[pf][index]
-                    # Need to map from this list to RPN list
-                    attrs = {}
-                    for i in idx:
-                        
-                        set = oids.oids['Z3950']['ATTRS'][i[0].upper()]['oid']
-                        type = int(i[1])
-                        if (i[2].isdigit()):
-                            val = int(i[2])
-                        else:
-                            val = i[2]
-                        attrs[(set, type)] = val
-                    return attrs
+                if config.indexHash.has_key(pf):
+                    if config.indexHash[pf].has_key(index):
+                        idx = config.indexHash[pf][index]
+                        # Need to map from this list to RPN list
+                        attrs = {}
+                        for i in idx:
+                            set = asn1.OidVal(map(int, i[0].split('.')))
+                            type = int(i[1])
+                            if (i[2].isdigit()):
+                                val = int(i[2])
+                            else:
+                                val = i[2]
+                            attrs[(set, type)] = val
+                        return attrs
+                    else:
+                        diag = Diagnostic16()
+                        diag.details = index
+                        diag.message = "Unknown index"
+                        raise diag
+                else:
+                    diag = Diagnostic15()
+                    diag.details = pf
+                    diag.message = "Unknown context set"
+                    raise diag
 
             else:
                 print "Can't resolve %s" % pf
@@ -280,9 +290,9 @@ class CIndex(Index):
             # bib1.1018
             val = int(self.value)
         elif (hasattr(zConfig, pf)):
-            map = getattr(zConfig, pf)
-            if (map.has_key(self.value)):
-                val = map[self.value]
+            mp = getattr(zConfig, pf)
+            if (mp.has_key(self.value)):
+                val = mp[self.value]
             else:
                 val = self.value
         else:
@@ -296,11 +306,7 @@ class CRelation(Relation):
     def toRPN(self, top):
         rels = ['', '<', '<=', '=', '>=', '>', '<>']
         set = z3950.Z3950_ATTRS_BIB1_ov
-
-
         vals = [None, None, None, None, None, None, None]
-
-
 
         if self.value in rels:
             vals[2] = rels.index(self.value)

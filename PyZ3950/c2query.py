@@ -273,7 +273,7 @@ class C2Parser:
                     attrSet = oidHash[self.currentToken]['ov']
                     self.fetch_token()
                 elif (self.currentToken[:8] == '1.2.840.'):
-                    attrSet = asn1.oidVal(map(int, self.currentToken.split('.')))
+                    attrSet = asn1.OidVal(map(int, self.currentToken.split('.')))
                     self.fetch_token()
                 else:
                     attrSet = None
