@@ -1126,7 +1126,7 @@ class MARC:
         txt = ''.join(xml)
         return txt
 
-import marc_to_unicode
+from PyZ3950 import marc_to_unicode
 
 # see http://www.loc.gov/marc/specifications/speccharmarc8.html
 
