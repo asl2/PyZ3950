@@ -53,6 +53,17 @@ __version__ = '0.9' # XXX
 import getopt
 import sys 
 
+# TODO:
+# implement create-but-don't connect, and connect later
+# implement ImplementationId, implementationName, implementationVersion setting
+# change auth: implement user, group, pass options
+# implement maximumRecordSize, preferredMessageSize
+# implement lang/charset (requires charset normalization, confer w/ Adam)
+# implement namedResultSets as syn for xmultipleResultSets
+# implement piggyback
+# implemet presentChunk
+# implement schema
+# implement setname
 
 from PyZ3950 import z3950
 from PyZ3950 import ccl
@@ -145,8 +156,8 @@ class _AttrCheck:
     attrlist = []
     def __setattr__ (self, attr, val):
         """Ensure attr is in attrlist (list of allowed attributes), or
-        private (begins w/ '_')"""
-        if attr[0] == '_' or attr in self.attrlist:
+        private (begins w/ '_'), or begins with 'X-' (reserved for users)"""
+        if attr[0] == '_' or attr in self.attrlist or attr[0:2] == 'X-':
             self.__dict__[attr] = val
         else:
             raise AttributeError (attr, val)
@@ -171,7 +182,9 @@ class Connection(_AttrCheck, _ErrHdlr):
         'preferredRecordSyntax', # next two inheritable by RecordSet
         'elementSetName',
         'xmultipleResultSets',
-        
+        'targetImplementationId',
+        'targetImplementationName',
+        'targetImplementationVersion'
         ]
     # xmultipleResultSets is my addition to spec.
 
@@ -201,14 +214,19 @@ class Connection(_AttrCheck, _ErrHdlr):
             self.xmultipleResultSets = self._cli.get_option (nRS)
         except z3950.ConnectionError, val:
             raise ConnectionError (val)
+        self.targetImplementationId = self._cli.initresp.implementationId
+        self.targetImplementationName = self._cli.initresp.implementationName
+        self.targetImplementationVersion  = self._cli.initresp.implementationVersion
         self._resultSetCtr = 0
         self.stepSize = 0
         self.numberOfEntries = 20
         self.responsePosition = 1
+        self.databaseName = 'Default'
     def search (self, query):
         """Search, taking Query object, returning ResultSet"""
         assert (query.typ == 'RPN' or query.typ == 'S-CCL')
-        self._cli.set_dbnames ([self.databaseName])
+        dbnames = self.databaseName.split ('+')
+        self._cli.set_dbnames (dbnames)
         cur_rsn = self._make_rsn ()
         recv = self._cli.search_2 (query.query,
                                    rsn = cur_rsn,
@@ -390,6 +408,7 @@ class ResultSet(_AttrCheck, _ErrHdlr):
             raise ProtocolError ("Bad records typ " + str (typ) + str (recs))
         for i,r in my_enumerate (recs):
             r = recs [i]
+            dbname = getattr (r, 'name', '')
             (typ, data) = r.record
             if (typ == 'surrogateDiagnostic'):
                 rec = SurrogateDiagnostic (data)
@@ -402,7 +421,7 @@ class ResultSet(_AttrCheck, _ErrHdlr):
                     if typ <> 'octet-aligned':
                         raise ProtocolError (
                             "Weird record EXTERNAL MARC type: " + typ)
-                rec = Record (oid, dat)
+                rec = Record (oid, dat, dbname)
             else:
                 raise ProtocolError ("Bad typ %s data %s" %
                                      (str (typ), str(data)))
@@ -445,11 +464,12 @@ using this)
       OPAC     -- ditto
       
       Other representations are not yet defined."""
-    def __init__ (self, oid, data):
+    def __init__ (self, oid, data, dbname):
         """Only for use by ResultSet"""
         self.syntax = _oid_to_key (oid)
         self._rt = _record_type_dict [self.syntax]
         self.data = self._rt.preproc (data)
+        self.databaseName = dbname
     def is_surrogate_diag (self):
         return 0
     def get_fieldcount (self):
