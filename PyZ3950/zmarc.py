@@ -1000,7 +1000,7 @@ class MARC:
         if (self.fields.has_key(45)):
             full = self.fields[45][0]
             if (full[0] in ['0', '1']):
-                for x in self.fields[2]:
+                for x in full[2]:
                     if (x[0] == 'b'):
                         xml.append('  <subject><temporal encoding="iso8601">%s</temporal></subject>\n' % (escape(x[1])))
                         
@@ -1168,7 +1168,12 @@ class MARC8_to_Unicode:
             if s[pos] == '\x1b':
                 if (s[pos +1] == s[pos+2] and
                     (s[pos +1] == '$' or s[pos+1] == '(')):
+                    # '$' for multiple bytes/char, '(' for single
+                    # XXX note that ',' is also acceptable for single, and
+                    # '$' for double.
                     self.g0 = ord (s[pos+3])
+                    # XXX or !E two-char seq for ANSEL?
+                    # XXX or ')', '-', 1-char or '$)', '$-' for G1
                     pos = pos + 4
                     continue
             mb_flag = self.is_multibyte (self.g0)
