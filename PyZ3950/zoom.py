@@ -74,8 +74,8 @@ from PyZ3950 import grs1
 from PyZ3950 import oids
 
 # Azaroth 2003-12-04:
-from PyZ3950 import zcql, CQLParser, SRWDiagnostics
-
+from PyZ3950 import zcql, CQLParser, SRWDiagnostics, pqf
+from PyZ3950 import c2query as c2
 
 def my_enumerate (l): # replace w/ enumerate when we go to Python 2.3
     return zip (range (len (l)), l)
@@ -192,7 +192,7 @@ class Connection(_AttrCheck, _ErrHdlr):
         ]
     # xmultipleResultSets is my addition to spec.
 
-    _queryTypes = ['CQL', 'S-CQL', 'CCL', 'S-CCL', 'RPN']
+    _queryTypes = ['CQL', 'S-CQL', 'CCL', 'S-CCL', 'RPN', 'PQF', 'C2']
 
     # and now, some defaults
     elementSetName = 'F' 
@@ -293,7 +293,20 @@ class Query:
                 self.query = ('type_1', rpnq)
             except SRWDiagnostics.SRWDiagnostic, err:
                 raise QuerySyntaxError
+        elif typ == 'PQF':  # PQF to RPN transformation
+            self.typ = 'RPN'
+            try:
+                self.query = pqf.parse(query)
+            except:
+                raise QuerySyntaxError
 
+        elif typ == 'C2': # Cheshire2 Syntax
+            self.typ = 'RPN'
+            try:
+                q = c2.parse(query)
+                self.query = q[0]
+            except:
+                raise QuerySyntaxError
         else:
             raise ClientNotImplError ('%s queries not supported')
 

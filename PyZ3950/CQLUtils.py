@@ -10,9 +10,9 @@ from SRWDiagnostics import *
 from string import  replace, count, join
 
 from PyZ3950 import z3950, asn1, oids
-from zcql import ZCQLConfig
+from PyZ3950.zcql import ZCQLConfig
+from PyZ3950.zdefs import make_attr
 zConfig = ZCQLConfig()
-
 
 class CSearchClause(SearchClause):
 
@@ -144,25 +144,16 @@ class CSearchClause(SearchClause):
             # attributes, term
             # AttributeElement: attributeType, attributeValue
             # attributeValue ('numeric', n) or ('complex', struct)
-            clause = z3950.AttributesPlusTerm()
+            if (self.index.value == 'resultsetid'):
+                return ('op', ('resultSet', self.term.value))
 
+            clause = z3950.AttributesPlusTerm()
             attrs = [self.index.toRPN()]
             if (self.term.value.isdigit()):
                 self.relation.modifiers.append(CModifierClause('cql.number'))
             attrs.extend(self.relation.toRPN())
 
-            def make_attr(a):
-                ae = z3950.AttributeElement()
-                ae.attributeType = a[0]
-                if (type(a[1]) == IntType):
-                    ae.attributeValue = ('numeric', a[1])
-                else:
-                    cattr = z3950.AttributeElement['attributeValue']['complex']()
-                    cattr.list = [('string', a[1])]
-                    ae.attributeValue = ('complex', cattr)
-                return ae
-
-            clause.attributes = map(make_attr, attrs)
+            clause.attributes = [make_attr(*e) for e in attrs]
             clause.term = self.term.toRPN()
 
             return ('op', ('attrTerm', clause))
@@ -250,7 +241,7 @@ class CTriple(Triple):
         op.rpn1 = self.leftOperand.toRPN()
         op.rpn2 = self.rightOperand.toRPN()
         op.op = self.boolean.toRPN()
-        return op
+        return ('rpnRpnOp', op)
 
 
 class CIndex(Index):
@@ -278,7 +269,7 @@ class CIndex(Index):
             # complex attribute for bib1
             val = self.value
             
-        return (1, val)
+        return (set, 1, val)
             
 
 class CRelation(Relation):
@@ -320,7 +311,7 @@ class CRelation(Relation):
         attrs = []
         for x in range(1,7):
             if vals[x]:
-                attrs.append((x, vals[x]))
+                attrs.append((z3950.Z3950_ATTRS_BIB1_ov, x, vals[x]))
 
         return attrs
         

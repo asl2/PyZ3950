@@ -25,7 +25,7 @@ fullResultSetNameCheck = 1    # srw.rsn=foo and srw.rsn=foo (mutant!!)
 
 # Base values for CQL
 serverChoiceRelation = "scr"
-serverChoiceIndex = "srw.serverchoice"
+serverChoiceIndex = "cql.serverchoice"
 
 order = ['=', '>', '>=', '<', '<=', '<>']
 modifierSeparator = "/"
@@ -919,15 +919,20 @@ modifierTypeType = ModifierType
 indexType = Index
 termType = Term
 
-from CQLUtils import *
-tripleType = CTriple
-booleanType = CBoolean
-relationType = CRelation
-searchClauseType = CSearchClause
-modifierClauseType = CModifierClause
-modifierTypeType = CModifierType
-indexType = CIndex
-termType = CTerm
+try:
+    from CQLUtils import *
+    tripleType = CTriple
+    booleanType = CBoolean
+    relationType = CRelation
+    searchClauseType = CSearchClause
+    modifierClauseType = CModifierClause
+    modifierTypeType = CModifierType
+    indexType = CIndex
+    termType = CTerm
+except:
+    # Nested scopes. Utils needs our classes to parent
+    # We need its classes to build (maybe)
+    pass
 
 
 if (__name__ == "__main__"):

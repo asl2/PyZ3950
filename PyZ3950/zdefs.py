@@ -33,6 +33,21 @@ trace_charset = 0
 impl_vers = "1.0 beta" # XXX
 implementationId = 'PyZ39.50 - contact asl2@pobox.com' # haven't been assigned an official id, apply XXX
 
+def make_attr(set=None, atype=None, val=None, valType=None):
+    ae = AttributeElement()
+    if (set <> None):
+        ae.attributeSet = set
+    ae.attributeType = atype
+    if (valType == 'numeric' or (valType == None and isinstance(val, int))):
+        ae.attributeValue = ('numeric', val)
+    else:
+        cattr = AttributeElement['attributeValue']['complex']()
+        if (valType == None):
+            valType = 'string'
+        cattr.list = [(valType, val)]
+        ae.attributeValue = ('complex', cattr)
+    return ae
+
 # This list is needed to support recordsInSelectedCharSets == 0 when
 # character set negotiation is in effect.  The reason we don't
 # just iterate over Z3950_RECSYN is that many of those are carried
