@@ -132,8 +132,6 @@ privateBooleans = {'!FUZZY_AND' : 1,
                    '!MERGE_SUM' : 6,
                    '!MERGE_MEAN' : 7,
                    '!MERGE_NORM' : 8}
-                   
-xzconfig = ZCQLConfig()
 
 class C2Parser:
     lexer = None

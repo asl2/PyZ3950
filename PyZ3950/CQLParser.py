@@ -920,12 +920,13 @@ def xcqlparse(query):
         return p.triple(query)
 
 
+import sys
 def parse(query):
     """ API. Return a searchClause/triple object from CQL string"""
 
     try:
         query = query.encode("utf-8")
-    except:
+    except Exception, e:
         diag = Diagnostic10()
         diag.details = "Cannot parse non utf-8 characters"
         raise diag
