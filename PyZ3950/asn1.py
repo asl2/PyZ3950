@@ -830,7 +830,6 @@ class TAG: # base class for IMPLICIT and EXPLICIT
     def fulfill_promises (self, promises):
         if isinstance (self.typ, Promise):
             self.typ = self.typ.get_promised (promises)
-            print self.typ
         else:
             self.typ.fulfill_promises (promises)
 
@@ -1130,6 +1129,10 @@ class CHOICE:
     choice_type = 1
     # No class.tag, tag derives from chosen arm of CHOICE
     def __init__ (self, c):
+        self.promises_fulfilled = 0
+        # XXX self.promises_fulfilled is only needed for CHOICE,
+        # but could speed up by adding checking to SEQUENCE, SEQUENCE_OF, etc.
+        
         self.choice = []
         # XXX rework this to use dict by arm name, dict by tag?
         # but CHOICE of CHOICE constructs mean that a typ can have
@@ -1149,9 +1152,12 @@ class CHOICE:
                 return
         raise KeyError (key)
     def fulfill_promises (self, promises):
+        if self.promises_fulfilled:
+            return
+        self.promises_fulfilled = 1
         for i in range (len (self.choice)):
             if isinstance (self.choice [i][1], Promise):
-                self.choice [i][1] = self.choice[i][1].get_promised ()
+                self.choice [i][1] = self.choice[i][1].get_promised (promises)
             else:
                 self.choice[i][1].fulfill_promises (promises)
                 
@@ -1782,7 +1788,6 @@ class Promise(ELTBASE):
     def __init__ (self, type_name):
         self.type_name = type_name
     def get_promised (self, promises_dict):
-        print "getting promised", self.type_name, promises_dict[self.type_name]
         return promises_dict[self.type_name]
     def __str__ (self):
         return 'Promise: ' + self.type_name
