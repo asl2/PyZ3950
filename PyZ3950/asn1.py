@@ -218,7 +218,7 @@ NULL_TAG = 0x5
 OID_TAG = 0x6
 OBJECTDESCRIPTOR_TAG = 0x7
 EXTERNAL_TAG = 0x8
-
+REAL_TAG = 0x9
 SEQUENCE_TAG = 0x10
 UTF8STRING_TAG = 0xC
 NUMERICSTRING_TAG = 0x12
@@ -1088,7 +1088,6 @@ class ANY_class(OCTSTRING_class): # inherit decode_val
         return (ctx.decoded_tag, v, 0) # only called for primitive def-len encoding, thus "0"
 
 ANY = ANY_class ()
-REAL = ANY_class () # XXX quick hack so defn's don't barf
 
 class BitStringVal:
     def __init__ (self, top, bits = 0, defn = None):
@@ -1414,11 +1413,16 @@ class EXTERNAL_class (SEQUENCE_BASE):
             typ.encode (ctx, v)
         if new_codec_fn <> None:
             ctx.pop_codec ()
-    
-def SEQUENCE (spec, base_typ = SEQUENCE_BASE, seq_name = None):
+
+# XXX rename all these
+def SEQUENCE (spec, base_typ = SEQUENCE_BASE, seq_name = None,
+              extra_bases = None):
     if seq_name == None:
         seq_name = mk_seq_class_name ()
-    klass = new.classobj (seq_name, (StructBase,), {})
+    bases = [StructBase]
+    if extra_bases <> None:
+        bases = extra_bases + bases
+    klass = new.classobj (seq_name, tuple (bases), {})
     seq = base_typ (klass, spec)
     klass._allowed_attrib_list = seq.get_attribs ()
     seq.klass = klass
@@ -1435,7 +1439,48 @@ EXTERNAL = SEQUENCE ([('direct_reference', None, OID, 1),
                                ('arbitrary', 2, BITSTRING)]))],
                      EXTERNAL_class,
                      seq_name = 'EXTERNAL')
-_oid_to_asn1_dict = {} 
+
+
+import math
+
+class REAL_class (SEQUENCE_BASE):
+    tag = (CONS_FLAG, REAL_TAG)
+
+
+
+# note clients are allowed to treat equal numbers in different bases as
+# different, so keep mantissa/base/exponent
+
+
+class REAL_val:
+    _mantissa_bits = 20 # XXX is there no way to auto-determine correct val?
+    def __repr__ (self):
+        return 'REAL %f' % (self.get_val ())
+    
+    def set_val (self, val):
+        m, e = math.frexp (val)
+        self.mantissa = int (m * pow (2, self._mantissa_bits))
+        self.base = 2
+        self.exponent = e - self._mantissa_bits
+        return self
+
+    def get_val (self):
+        return self.mantissa * pow (self.base, self.exponent)
+
+
+REAL = SEQUENCE([('mantissa', None, INTEGER),
+                 ('base', None, INTEGER),
+                 ('exponent', None, INTEGER)],
+                REAL_class,
+                seq_name='REAL',
+                extra_bases = [REAL_val])
+
+REAL.get_val = lambda self: (self.mantissa * 1.0 / self.base) * pow (self.base, self.exponent)
+REAL.__str__ = lambda self: "REAL %f" % (self.get_val (),)
+
+_oid_to_asn1_dict = {}
+
+
 
 def register_oid (oid, asn):
     tmp = EXPLICIT(0) # b/c ANY is EXPLICIT 0 arm of EXTERNAL CHOICE
@@ -1579,11 +1624,19 @@ class Tester:
 
 
     def run (self):
+        real_spec = TYPE(3,REAL)
+        real_spec2 = REAL
+        rval = REAL ()
+        rval.set_val (4.0)
+        assert 4.0 == rval.get_val ()
+        self.test (real_spec, rval)
+        self.test (real_spec2, rval)
         int_spec = TYPE (EXPLICIT(3), INTEGER)
         string_spec = TYPE (5, GeneralString)
         bitstring_spec = TYPE (5, BITSTRING)
         octstring_spec = TYPE (5, OCTSTRING)
         bool_spec = TYPE(100, BOOLEAN)
+
 
         self.test (bool_spec, 0)
         self.test (bool_spec, 1)
