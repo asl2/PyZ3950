@@ -5,8 +5,7 @@ to generate parsetab at install time)
 Fixed asn1.py to be backward compatible w/Python 2.1
 
 2.0
-[Note: superseded by CVS change tracking.  Or at least that's available,
-and a distilled version isn't yet.  Sorry.]
+[Note: major rewrites, no fix-by-fix description available.]
 
 Fix spelling of "license" in setup.py to be US, not UK, so distutils
 recognizes it.
