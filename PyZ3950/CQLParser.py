@@ -286,8 +286,12 @@ class Index(PrefixedObject):
 class Relation(PrefixedObject, ModifiableObject):
     "Object to represent a CQL relation"
     def __init__(self, rel, mods=[]):
+        self.prefix = "cql"
         PrefixedObject.__init__(self, rel)
         self.modifiers = mods
+        for m in mods:
+            m.parent = self
+
     def toXCQL(self, depth=0):
         "Create XCQL representation of object"
         if (depth == 0):
@@ -402,16 +406,19 @@ class Boolean(ModifiableObject):
 
 class ModifierType(PrefixedObject):
     # Same as index, but we'll XCQLify in ModifierClause
-    pass
+    parent = None
+    prefix = "cql"
 
 class ModifierClause:
     "Object to represent a relation modifier"
+    parent = None
     type = None
     comparison = ""
     value = ""
 
     def __init__(self, type, comp="", val=""):
         self.type = ModifierType(type)
+        self.type.parent = self
         self.comparison = comp
         self.value = val
 
@@ -429,6 +436,12 @@ class ModifierClause:
 
     def toCQL(self):
         return str(self)
+
+    def resolvePrefix(self, name):
+        # Need to skip parent, which has its own resolvePrefix
+        # eg boolean or relation, neither of which is prefixable
+        return self.parent.parent.resolvePrefix(name)
+
 
 
 # Requires changes for:  <= >= <>, and escaped \" in "
@@ -742,6 +755,8 @@ class CQLParser:
             bool = booleanType(self.currentToken)
             self.fetch_token()
             bool.modifiers = self.modifiers()
+            for b in bool.modifiers:
+                b.parent = bool
             
         else:
             diag = Diagnostic37()
@@ -756,6 +771,8 @@ class CQLParser:
         rel = relationType(self.currentToken)
         self.fetch_token()
         rel.modifiers = self.modifiers()
+        for r in rel.modifiers:
+            r.parent = rel
 
         return rel
 
