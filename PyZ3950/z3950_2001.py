@@ -1,10 +1,7 @@
 #!/usr/bin/env python
-# Auto-generated from ../compiler/tests/z3950-2001.txt at Mon, 21 Jul 2003 20:41:24 +0000
+# Auto-generated from ../compiler/tests/z3950-2001.txt at Wed, 22 Oct 2003 20:49:05 +0000
 from PyZ3950 import asn1
-#
 #module Module None
-
-
 KnownProximityUnit=asn1.INTEGER_class ([('character',1),('word',2),('sentence',3),('paragraph',4),('section',5),('chapter',6),('document',7),('element',8),('subelement',9),('elementType',10),('byte',11)])
 InternationalString=asn1.GeneralString
 Specification=asn1.SEQUENCE ([('schema',None,    asn1.CHOICE ([('oid',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.OBJECT_IDENTIFIER)),
@@ -367,16 +364,12 @@ APDU=asn1.CHOICE ([('initRequest',None,asn1.TYPE(asn1.IMPLICIT(20,cls=asn1.CONTE
     ('duplicateDetectionResponse',None,asn1.TYPE(asn1.IMPLICIT(50,cls=asn1.CONTEXT_FLAG),DuplicateDetectionResponse))])
 RPNStructure['rpnRpnOp'] =  ('rpnRpnOp', 1, RpnRpnOp)
 
-#
+
 #module GeneralDiagnosticContainer None
-
-
 DiagnosticContainer=asn1.SEQUENCE_OF (DiagRec)
 
-#
+
 #module Explain None
-
-
 PrimitiveDataType=asn1.INTEGER_class ([('octetString',0),('numeric',1),('date',2),('external',3),('string',4),('trueOrFalse',5),('oid',6),('intUnit',7),('empty',8),('noneOfTheAbove',100)])
 NetworkAddress=asn1.CHOICE ([('internetAddress',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('hostAddress',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),InternationalString),0),
         ('port',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),0)], seq_name = None))),
@@ -712,16 +705,12 @@ Explain_Record=asn1.CHOICE ([('targetInfo',None,asn1.TYPE(asn1.IMPLICIT(0,cls=as
     ('categoryList',None,asn1.TYPE(asn1.IMPLICIT(100,cls=asn1.CONTEXT_FLAG),CategoryList))])
 ElementDataType['structured'] = ('structured', 1, asn1.SEQUENCE_OF(ElementInfo))
 
-#
-#module RecordSyntax_SUTRS [<__main__.Type_Ref instance at 0x8168664>, <__main__.Node instance at 0x82da48c>]
 
-
+#module RecordSyntax_SUTRS None
 SutrsRecord=InternationalString
 
-#
-#module RecordSyntax_generic [<__main__.Type_Ref instance at 0x812690c>, <__main__.Node instance at 0x82da48c>]
 
-
+#module RecordSyntax_generic None
 Usage=asn1.SEQUENCE ([('type',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('redistributable',1),('restricted',2),('licensePointer',3)])),0),
     ('restriction',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString),1)], seq_name = 'Usage')
 TagPath=asn1.SEQUENCE_OF (asn1.SEQUENCE ([('tagType',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),1),
@@ -778,10 +767,8 @@ TaggedElement=asn1.SEQUENCE ([('tagType',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1
 GenericRecord=asn1.SEQUENCE_OF (TaggedElement)
 ElementData['subtree'] = ('subtree', asn1.EXPLICIT(6), asn1.SEQUENCE_OF(TaggedElement))
 
-#
-#module RecordSyntax_ESTaskPackage [<__main__.Type_Ref instance at 0x82e4f84>, <__main__.Node instance at 0x82efe94>]
 
-
+#module RecordSyntax_ESTaskPackage None
 TaskPackage=asn1.SEQUENCE ([('packageType',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.OBJECT_IDENTIFIER),0),
     ('packageName',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString),1),
     ('userId',None,asn1.TYPE(asn1.IMPLICIT(3,cls=asn1.CONTEXT_FLAG),InternationalString),1),
@@ -794,19 +781,15 @@ TaskPackage=asn1.SEQUENCE ([('packageType',None,asn1.TYPE(asn1.IMPLICIT(1,cls=as
     ('packageDiagnostics',None,asn1.TYPE(asn1.IMPLICIT(10,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE_OF (DiagRec)),1),
     ('taskSpecificParameters',None,asn1.TYPE(asn1.IMPLICIT(11,cls=asn1.CONTEXT_FLAG),asn1.EXTERNAL),0)], seq_name = 'TaskPackage')
 
-#
+
 #module ResourceReport_Format_Resource_2 None
-
-
 Estimate=asn1.SEQUENCE ([('type',None,asn1.TYPE(asn1.EXPLICIT(1,cls=asn1.CONTEXT_FLAG),StringOrNumeric),0),
     ('value',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),IntUnit),0)], seq_name = 'Estimate')
 ResourceReport_2=asn1.SEQUENCE ([('estimates',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE_OF (Estimate)),1),
     ('message',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString),1)], seq_name = 'ResourceReport_2')
 
-#
-#module AccessControlFormat_prompt_1 [<__main__.Type_Ref instance at 0x82ee6cc>, <__main__.Node instance at 0x82f3214>]
 
-
+#module AccessControlFormat_prompt_1 None
 PromptId=asn1.CHOICE ([('enummeratedPrompt',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('type',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('groupId',0),('userId',1),('password',2),('newPassword',3),('copyright',4),('sessionId',5)])),0),
         ('suggestedString',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString),1)], seq_name = None))),
     ('nonEnumeratedPrompt',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString))])
@@ -832,20 +815,16 @@ Response=asn1.SEQUENCE_OF (asn1.SEQUENCE ([('promptId',None,asn1.TYPE(asn1.EXPLI
 PromptObject=asn1.CHOICE ([('challenge',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),Challenge)),
     ('response',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),Response))])
 
-#
-#module AccessControlFormat_des_1 [<__main__.Type_Ref instance at 0x82f545c>, <__main__.Node instance at 0x82f585c>]
 
-
+#module AccessControlFormat_des_1 None
 DRNType=asn1.SEQUENCE ([('userId',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING),1),
     ('salt',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING),1),
     ('randomNumber',None,asn1.TYPE(asn1.IMPLICIT(3,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING),0)], seq_name = 'DRNType')
 DES_RN_Object=asn1.CHOICE ([('challenge',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),DRNType)),
     ('response',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),DRNType))])
 
-#
-#module AccessControlFormat_krb_1 [<__main__.Type_Ref instance at 0x82fea6c>, <__main__.Node instance at 0x8300c9c>]
 
-
+#module AccessControlFormat_krb_1 None
 KRBRequest=asn1.SEQUENCE ([('service',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),0),
     ('instance',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString),1),
     ('realm',None,asn1.TYPE(asn1.IMPLICIT(3,cls=asn1.CONTEXT_FLAG),InternationalString),1)], seq_name = 'KRBRequest')
@@ -854,10 +833,8 @@ KRBResponse=asn1.SEQUENCE ([('userid',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CO
 KRBObject=asn1.CHOICE ([('challenge',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),KRBRequest)),
     ('response',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),KRBResponse))])
 
-#
-#module ESFormat_PersistentResultSet [<__main__.Type_Ref instance at 0x82f545c>, <__main__.Node instance at 0x81c9e94>]
 
-
+#module ESFormat_PersistentResultSet None
 ClientPartNotToKeep_prs=asn1.SEQUENCE ([('clientSuppliedResultSet',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),1),
     ('replaceOrAppend',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('replace',1),('append',2)])),1)], seq_name = 'ClientPartNotToKeep_prs')
 ServerPart_prs=asn1.SEQUENCE ([('serverSuppliedResultSet',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),1),
@@ -867,10 +844,8 @@ PersistentResultSet=asn1.CHOICE ([('esRequest',None,asn1.TYPE(asn1.IMPLICIT(1,cl
     ('taskPackage',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('clientPart',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.NULL),0),
         ('serverPart',None,asn1.TYPE(asn1.EXPLICIT(2,cls=asn1.CONTEXT_FLAG),ServerPart_prs),1)], seq_name = None)))])
 
-#
-#module ESFormat_PersistentQuery [<__main__.Type_Ref instance at 0x82f545c>, <__main__.Node instance at 0x83080f4>]
 
-
+#module ESFormat_PersistentQuery None
 ClientPartToKeep_pq=asn1.SEQUENCE ([('dbNames',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE_OF (InternationalString)),1),
     ('additionalSearchInfo',None,asn1.TYPE(asn1.EXPLICIT(3,cls=asn1.CONTEXT_FLAG),OtherInformation),1)], seq_name = 'ClientPartToKeep_pq')
 ServerPart_pq=Query
@@ -881,10 +856,8 @@ PersistentQuery=asn1.CHOICE ([('esRequest',None,asn1.TYPE(asn1.IMPLICIT(1,cls=as
     ('taskPackage',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('clientPart',None,asn1.TYPE(asn1.EXPLICIT(1,cls=asn1.CONTEXT_FLAG),ClientPartToKeep_pq),1),
         ('serverPart',None,asn1.TYPE(asn1.EXPLICIT(2,cls=asn1.CONTEXT_FLAG),ServerPart_pq),0)], seq_name = None)))])
 
-#
-#module ESFormat_ExportSpecification [<__main__.Type_Ref instance at 0x8305764>, <__main__.Node instance at 0x8303ac4>]
 
-
+#module ESFormat_ExportSpecification None
 Destination=asn1.CHOICE ([('phoneNumber',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString)),
     ('faxNumber',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString)),
     ('x400address',None,asn1.TYPE(asn1.IMPLICIT(3,cls=asn1.CONTEXT_FLAG),InternationalString)),
@@ -902,10 +875,8 @@ ExportSpecification=asn1.CHOICE ([('esRequest',None,asn1.TYPE(asn1.IMPLICIT(1,cl
     ('taskPackage',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('clientPart',None,asn1.TYPE(asn1.EXPLICIT(1,cls=asn1.CONTEXT_FLAG),ClientPartToKeep_es),0),
         ('serverPart',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.NULL),0)], seq_name = None)))])
 
-#
-#module ESFormat_PeriodicQuerySchedule [<__main__.Type_Ref instance at 0x8308454>, <__main__.Node instance at 0x8310974>]
 
-
+#module ESFormat_PeriodicQuerySchedule None
 Period=asn1.CHOICE ([('unit',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),IntUnit)),
     ('businessDaily',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.NULL)),
     ('continuous',None,asn1.TYPE(asn1.IMPLICIT(3,cls=asn1.CONTEXT_FLAG),asn1.NULL)),
@@ -937,10 +908,8 @@ PeriodicQuerySchedule=asn1.CHOICE ([('esRequest',None,asn1.TYPE(asn1.IMPLICIT(1,
     ('taskPackage',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('clientPart',None,asn1.TYPE(asn1.EXPLICIT(1,cls=asn1.CONTEXT_FLAG),ClientPartToKeep_pqs),0),
         ('serverPart',None,asn1.TYPE(asn1.EXPLICIT(2,cls=asn1.CONTEXT_FLAG),ServerPart_pqs),0)], seq_name = None)))])
 
-#
-#module ESFormat_ItemOrder [<__main__.Type_Ref instance at 0x82ee4f4>, <__main__.Node instance at 0x83186f4>]
 
-
+#module ESFormat_ItemOrder None
 ClientPartNotToKeep_io=asn1.SEQUENCE ([('resultSetItem',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('resultSetId',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),0),
         ('item',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),0)], seq_name = None)),1),
     ('itemRequest',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.EXTERNAL),1)], seq_name = 'ClientPartNotToKeep_io')
@@ -968,10 +937,8 @@ ItemOrder=asn1.CHOICE ([('esRequest',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CON
     ('taskPackage',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('clientPart',None,asn1.TYPE(asn1.EXPLICIT(1,cls=asn1.CONTEXT_FLAG),ClientPartToKeep_io),1),
         ('serverPart',None,asn1.TYPE(asn1.EXPLICIT(2,cls=asn1.CONTEXT_FLAG),ServerPart_io),0)], seq_name = None)))])
 
-#
-#module ESFormat_Update [<__main__.Type_Ref instance at 0x8311784>, <__main__.Node instance at 0x83236ec>]
 
-
+#module ESFormat_Update None
 ClientPartToKeep_upd=asn1.SEQUENCE ([('action',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('recordInsert',1),('recordReplace',2),('recordDelete',3),('elementUpdate',4)])),0),
     ('databaseName',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString),0),
     ('schema',None,asn1.TYPE(asn1.IMPLICIT(3,cls=asn1.CONTEXT_FLAG),asn1.OBJECT_IDENTIFIER),1),
@@ -999,10 +966,8 @@ Update=asn1.CHOICE ([('esRequest',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEX
     ('taskPackage',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('clientPart',None,asn1.TYPE(asn1.EXPLICIT(1,cls=asn1.CONTEXT_FLAG),ClientPartToKeep_upd),0),
         ('serverPart',None,asn1.TYPE(asn1.EXPLICIT(2,cls=asn1.CONTEXT_FLAG),ServerPart_upd),0)], seq_name = None)))])
 
-#
-#module ESFormat_ExportInvocation [<__main__.Type_Ref instance at 0x8310e04>, <__main__.Node instance at 0x83186f4>]
 
-
+#module ESFormat_ExportInvocation None
 ClientPartToKeep_ei=asn1.SEQUENCE ([('exportSpec',None,asn1.TYPE(asn1.EXPLICIT(1,cls=asn1.CONTEXT_FLAG),    asn1.CHOICE ([('packageName',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString)),
         ('packageSpec',None,asn1.TYPE(asn1.EXPLICIT(2,cls=asn1.CONTEXT_FLAG),ExportSpecification))])),0),
     ('numberOfCopies',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),0)], seq_name = 'ClientPartToKeep_ei')
@@ -1019,10 +984,8 @@ ExportInvocation=asn1.CHOICE ([('esRequest',None,asn1.TYPE(asn1.IMPLICIT(1,cls=a
     ('taskPackage',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('clientPart',None,asn1.TYPE(asn1.EXPLICIT(1,cls=asn1.CONTEXT_FLAG),ClientPartToKeep_ei),0),
         ('serverPart',None,asn1.TYPE(asn1.EXPLICIT(2,cls=asn1.CONTEXT_FLAG),ServerPart_ei),1)], seq_name = None)))])
 
-#
-#module UserInfoFormat_searchResult_1 [<__main__.Type_Ref instance at 0x8333184>, <__main__.Node instance at 0x8310e04>]
 
-
+#module UserInfoFormat_searchResult_1 None
 ResultsByDB=asn1.SEQUENCE_OF (asn1.SEQUENCE ([('databases',None,asn1.TYPE(asn1.EXPLICIT(1,cls=asn1.CONTEXT_FLAG),    asn1.CHOICE ([('all',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.NULL)),
         ('list',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),        asn1.SEQUENCE_OF (DatabaseName)))])),0),
     ('count',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),1),
@@ -1039,16 +1002,12 @@ SearchInfoReport=asn1.SEQUENCE_OF (asn1.SEQUENCE ([('subqueryId',None,asn1.TYPE(
     ('subqueryWeight',None,asn1.TYPE(asn1.IMPLICIT(7,cls=asn1.CONTEXT_FLAG),IntUnit),1),
     ('resultsByDB',None,asn1.TYPE(asn1.IMPLICIT(8,cls=asn1.CONTEXT_FLAG),ResultsByDB),1)], seq_name = None))
 
-#
-#module UserInfoFormat_userInfo_1 [<__main__.Type_Ref instance at 0x8325f6c>, <__main__.Node instance at 0x8338284>]
 
-
+#module UserInfoFormat_userInfo_1 None
 UserInfo_1=OtherInformation
 
-#
-#module ESpec_2 [<__main__.Type_Ref instance at 0x832d47c>, <__main__.Node instance at 0x830e1ac>]
 
-
+#module ESpec_2 None
 Occurrences=asn1.CHOICE ([('all',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.NULL)),
     ('last',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.NULL)),
     ('values',None,asn1.TYPE(asn1.IMPLICIT(3,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('start',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),0),
@@ -1072,10 +1031,8 @@ Espec_2=asn1.SEQUENCE ([('elementSetNames',None,asn1.TYPE(asn1.IMPLICIT(1,cls=as
     ('defaultTagType',None,asn1.TYPE(asn1.IMPLICIT(4,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),1),
     ('elements',None,asn1.TYPE(asn1.IMPLICIT(5,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE_OF (ElementRequest)),1)], seq_name = 'Espec_2')
 
-#
-#module ESpec_q [<__main__.Type_Ref instance at 0x834142c>, <__main__.Node instance at 0x8339cec>]
 
-
+#module ESpec_q None
 Espec_q_RPNStructure=asn1.CHOICE ([('op',None,asn1.TYPE(asn1.EXPLICIT(0,cls=asn1.CONTEXT_FLAG),AttributesPlusTerm)),
     ('rpnRpnOp',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.NULL))])
 Espec_q_RpnRpnOp=asn1.SEQUENCE ([('rpn1',None,Espec_q_RPNStructure,0),
@@ -1091,24 +1048,20 @@ Espec_q=asn1.SEQUENCE ([('valueRestrictor',None,asn1.TYPE(asn1.IMPLICIT(1,cls=as
     ('elementSelector',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.EXTERNAL),1)], seq_name = 'Espec_q')
 Espec_q_RPNStructure['rpnRpnOp'] =  ('rpnRpnOp', 1, Espec_q_RpnRpnOp)
 
+
 #!/usr/bin/env python
-# Auto-generated from auth_file_info.asn at Mon, 21 Jul 2003 20:41:25 +0000
+# Auto-generated from auth_file_info.asn at Wed, 22 Oct 2003 20:49:06 +0000
 from PyZ3950 import asn1
-#
-#module UserInfoFormat_authorityFileInfo [<__main__.Type_Ref instance at 0x82754c4>, <__main__.Node instance at 0x826e7b4>]
-
-
+#module UserInfoFormat_authorityFileInfo None
 AuthorityFileInfo=asn1.SEQUENCE ([('name',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),HumanString),0),
     ('database',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString),0),
     ('exclusive',None,asn1.TYPE(asn1.IMPLICIT(3,cls=asn1.CONTEXT_FLAG),asn1.NULL),1)], seq_name = 'AuthorityFileInfo')
 
+
 #!/usr/bin/env python
-# Auto-generated from charset_1.asn at Mon, 21 Jul 2003 20:41:25 +0000
+# Auto-generated from charset_1.asn at Wed, 22 Oct 2003 20:49:06 +0000
 from PyZ3950 import asn1
-#
-#module UserInfoFormat_charSetandLanguageNegotiation_1 [<__main__.Type_Ref instance at 0x8126534>, <__main__.Node instance at 0x8155214>]
-
-
+#module UserInfoFormat_charSetandLanguageNegotiation_1 None
 Environment=asn1.CHOICE ([('sevenBit',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.NULL)),
     ('eightBit',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.NULL))])
 Iso10646=asn1.SEQUENCE ([('collections',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.OBJECT_IDENTIFIER),0),
@@ -1147,13 +1100,11 @@ TargetResponse=asn1.SEQUENCE ([('selectedCharSets',None,asn1.TYPE(asn1.EXPLICIT(
 CharSetandLanguageNegotiation=asn1.CHOICE ([('proposal',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),OriginProposal)),
     ('response',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),TargetResponse))])
 
+
 #!/usr/bin/env python
-# Auto-generated from charset_2.asn at Mon, 21 Jul 2003 20:41:25 +0000
+# Auto-generated from charset_2.asn at Wed, 22 Oct 2003 20:49:06 +0000
 from PyZ3950 import asn1
-#
-#module NegotiationRecordDefinition_charSetandLanguageNegotiation_2 [<__main__.Type_Ref instance at 0x816563c>, <__main__.Node instance at 0x82727cc>]
-
-
+#module NegotiationRecordDefinition_charSetandLanguageNegotiation_2 None
 InitialSet_2=asn1.SEQUENCE ([('g0',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),1),
     ('g1',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),1),
     ('g2',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),1),
@@ -1192,13 +1143,11 @@ OriginProposal2=asn1.SEQUENCE ([('proposedCharSets',None,asn1.TYPE(asn1.IMPLICIT
 CharSetandLanguageNegotiation2=asn1.CHOICE ([('proposal',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),OriginProposal2)),
     ('response',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),TargetResponse2))])
 
+
 #!/usr/bin/env python
-# Auto-generated from charset_3.asn at Mon, 21 Jul 2003 20:41:25 +0000
+# Auto-generated from charset_3.asn at Wed, 22 Oct 2003 20:49:07 +0000
 from PyZ3950 import asn1
-#
-#module NegotiationRecordDefinition_charSetandLanguageNegotiation_3 [<__main__.Type_Ref instance at 0x8246ec4>, <__main__.Node instance at 0x815c574>]
-
-
+#module NegotiationRecordDefinition_charSetandLanguageNegotiation_3 None
 Environment_3=asn1.CHOICE ([('sevenBit',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.NULL)),
     ('eightBit',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.NULL))])
 LeftAndRight_3=asn1.SEQUENCE ([('gLeft',None,asn1.TYPE(asn1.IMPLICIT(3,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('g0',0),('g1',1),('g2',2),('g3',3)])),0),
@@ -1237,13 +1186,11 @@ OriginProposal_3=asn1.SEQUENCE ([('proposedCharSets',None,asn1.TYPE(asn1.IMPLICI
 CharSetandLanguageNegotiation_3=asn1.CHOICE ([('proposal',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),OriginProposal_3)),
     ('response',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),TargetResponse_3))])
 
+
 #!/usr/bin/env python
-# Auto-generated from edit_replace_qual.asn at Mon, 21 Jul 2003 20:41:26 +0000
+# Auto-generated from edit_replace_qual.asn at Wed, 22 Oct 2003 20:49:07 +0000
 from PyZ3950 import asn1
-#
-#module ERAQ [<__main__.Type_Ref instance at 0x812690c>, <__main__.Node instance at 0x823cbb4>]
-
-
+#module ERAQ None
 EditReplaceActionQualifier=asn1.SEQUENCE ([('persistentResultSetPackageName',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),0),
     ('numberOfRecords',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),0),
     ('creationDateTime',None,asn1.TYPE(asn1.IMPLICIT(3,cls=asn1.CONTEXT_FLAG),asn1.EXTERNAL),0),
@@ -1259,65 +1206,53 @@ EditReplaceActionQualifier=asn1.SEQUENCE ([('persistentResultSetPackageName',Non
         ('editReplaceType',None,asn1.TYPE(asn1.IMPLICIT(8,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('fieldInsert',0),('fieldDelete',1),('fieldReplace',2),('subfieldInsert',3),('subfieldDelete',4),('subfieldReplace',5),('subfieldMerge',6),('indicatorChange',7),('dataStringChange',8)])),0),
         ('case',None,asn1.TYPE(asn1.IMPLICIT(9,cls=asn1.CONTEXT_FLAG),asn1.BOOLEAN),1)], seq_name = None))),0)], seq_name = 'EditReplaceActionQualifier')
 
+
 #!/usr/bin/env python
-# Auto-generated from frag.asn at Mon, 21 Jul 2003 20:41:26 +0000
+# Auto-generated from frag.asn at Wed, 22 Oct 2003 20:49:07 +0000
 from PyZ3950 import asn1
-#
-#module FragmentSyntax [<__main__.Type_Ref instance at 0x81542fc>, <__main__.Node instance at 0x82727cc>]
-
-
+#module FragmentSyntax None
 Fragment=asn1.SEQUENCE ([('realSyntax',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.OBJECT_IDENTIFIER),1),
     ('remainingOctets',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),1),
     ('fragment',None,asn1.TYPE(asn1.IMPLICIT(3,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING),0)], seq_name = 'Fragment')
 
+
 #!/usr/bin/env python
-# Auto-generated from ins_qualifier.asn at Mon, 21 Jul 2003 20:41:26 +0000
+# Auto-generated from ins_qualifier.asn at Wed, 22 Oct 2003 20:49:07 +0000
 from PyZ3950 import asn1
-#
-#module RIAQ [<__main__.Type_Ref instance at 0x8244894>, <__main__.Node instance at 0x81542fc>]
-
-
+#module RIAQ None
 RecordInsertActionQualifier=asn1.SEQUENCE ([('idsOrCode',None,asn1.TYPE(asn1.EXPLICIT(1,cls=asn1.CONTEXT_FLAG),    asn1.CHOICE ([('nonDupRecordIds',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),        asn1.SEQUENCE_OF (InternationalString))),
         ('recordReviewCode',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString))])),0),
     ('recordReviewNote',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString),1)], seq_name = 'RecordInsertActionQualifier')
 
+
 #!/usr/bin/env python
-# Auto-generated from multiple_search_term_1.asn at Mon, 21 Jul 2003 20:41:26 +0000
+# Auto-generated from multiple_search_term_1.asn at Wed, 22 Oct 2003 20:49:07 +0000
 from PyZ3950 import asn1
-#
-#module UserInfoFormat_multipleSearchTerms_1 [<__main__.Type_Ref instance at 0x82441dc>, <__main__.Node instance at 0x82331b4>]
-
-
+#module UserInfoFormat_multipleSearchTerms_1 None
 MultipleSearchTerms_1=asn1.SEQUENCE_OF (Term)
 
+
 #!/usr/bin/env python
-# Auto-generated from multiple_search_term_2.asn at Mon, 21 Jul 2003 20:41:26 +0000
+# Auto-generated from multiple_search_term_2.asn at Wed, 22 Oct 2003 20:49:07 +0000
 from PyZ3950 import asn1
-#
-#module UserInfoFormat_multipleSearchTerms_2 [<__main__.Type_Ref instance at 0x82441dc>, <__main__.Node instance at 0x8152234>]
-
-
+#module UserInfoFormat_multipleSearchTerms_2 None
 MultipleSearchTerms_2=asn1.SEQUENCE_OF (asn1.SEQUENCE ([('term',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),Term),0),
     ('flag',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.BOOLEAN),1)], seq_name = None))
 
+
 #!/usr/bin/env python
-# Auto-generated from negot_es_size.asn at Mon, 21 Jul 2003 20:41:26 +0000
+# Auto-generated from negot_es_size.asn at Wed, 22 Oct 2003 20:49:07 +0000
 from PyZ3950 import asn1
-#
-#module NegotiationRecordDefinition_NegotiateEsSizes [<__main__.Type_Ref instance at 0x82441dc>, <__main__.Node instance at 0x8153cb4>]
-
-
+#module NegotiationRecordDefinition_NegotiateEsSizes None
 NegotiateEsSizes=asn1.SEQUENCE ([('maxMsgSize',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),1),
     ('maxTaskPackageSize',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),1),
     ('maxRecordSize',None,asn1.TYPE(asn1.IMPLICIT(3,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),1)], seq_name = 'NegotiateEsSizes')
 
+
 #!/usr/bin/env python
-# Auto-generated from opac.asn at Mon, 21 Jul 2003 20:41:26 +0000
+# Auto-generated from opac.asn at Wed, 22 Oct 2003 20:49:07 +0000
 from PyZ3950 import asn1
-#
 #module RecordSyntax_opac None
-
-
 Volume=asn1.SEQUENCE ([('enumeration',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),1),
     ('chronology',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString),1),
     ('enumAndChron',None,asn1.TYPE(asn1.IMPLICIT(3,cls=asn1.CONTEXT_FLAG),InternationalString),1)], seq_name = 'Volume')
@@ -1355,13 +1290,11 @@ HoldingsRecord=asn1.CHOICE ([('marcHoldingsRecord',None,asn1.TYPE(asn1.IMPLICIT(
 OPACRecord=asn1.SEQUENCE ([('bibliographicRecord',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.EXTERNAL),1),
     ('holdingsData',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE_OF (HoldingsRecord)),1)], seq_name = 'OPACRecord')
 
+
 #!/usr/bin/env python
-# Auto-generated from update_es_rev1.asn at Mon, 21 Jul 2003 20:41:26 +0000
+# Auto-generated from update_es_rev1.asn at Wed, 22 Oct 2003 20:49:07 +0000
 from PyZ3950 import asn1
-#
-#module ESFormat_Update [<__main__.Type_Ref instance at 0x823cbb4>, <__main__.Node instance at 0x827e13c>, <__main__.Node instance at 0x81542fc>, <__main__.Node instance at 0x815c97c>]
-
-
+#module ESFormat_Update None
 CorrelationInfo_updrev1=asn1.SEQUENCE ([('note',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),1),
     ('id',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),1)], seq_name = 'CorrelationInfo_updrev1')
 OriginPartToKeep_updrev1=asn1.SEQUENCE ([('action',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('recordInsert',1),('recordReplace',2),('recordDelete',3),('elementUpdate',4),('specialUpdate',5)])),0),
@@ -1390,4 +1323,5 @@ Update_updrev1=asn1.CHOICE ([('esRequest',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn
         ('notToKeep',None,asn1.TYPE(asn1.EXPLICIT(2,cls=asn1.CONTEXT_FLAG),OriginPartNotToKeep_updrev1),0)], seq_name = None))),
     ('taskPackage',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('originPart',None,asn1.TYPE(asn1.EXPLICIT(1,cls=asn1.CONTEXT_FLAG),OriginPartToKeep_updrev1),0),
         ('targetPart',None,asn1.TYPE(asn1.EXPLICIT(2,cls=asn1.CONTEXT_FLAG),TargetPart_updrev1),0)], seq_name = None)))])
+
 
