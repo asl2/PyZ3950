@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Implements the ZOOM 1.1 API (http://zoom.z3950.org/api)
+"""Implements the ZOOM 1.4 API (http://zoom.z3950.org/api)
 for Z39.50.
 
 Some global notes on the binding (these will only make sense when read
@@ -24,7 +24,17 @@ exception.
 
 For Record, Render_Record is implemented as Python __str__.  The
 'syntax' member contains the string-format record syntax, and the
-'data' member contains the raw data. 
+'data' member contains the raw data.
+
+The following query types are supported:
+- "CCL", ISO 8777, (http://www.indexdata.dk/yaz/doc/tools.tkl#CCL)
+- "S-CCL", the same, but interpreted on the server side
+- "CQL", the Common Query Language, (http://www.loc.gov/z3950/agency/zing/cql/)
+- "S-CQL", the same, but interpreted on the server side
+- "PQF", Index Data's Prefix Query Format, (http://www.indexdata.dk/yaz/doc/tools.tkl#PQF)
+- "C2", Cheshire II query syntax, (http://cheshire.berkeley.edu/cheshire2.html#zfind)
+- "ZSQL", Z-SQL, see (http://archive.dstc.edu.au/DDU/projects/Z3950/Z+SQL/)
+- "CQL-TREE", a general-purpose escape allowing any object with a toRPN method to be used, e.g. the CQL tree objects
 
 ScanSet, like ResultSet, has a sequence interface.  The i-th element
 is a dictionary.  See the ScanSet documentation for supported keys.
@@ -56,7 +66,6 @@ import sys
 # TODO:
 # finish lang/charset (requires charset normalization, confer w/ Adam)
 # implement piggyback   
-# implement presentChunk
 # implement schema    (Non useful)
 # implement setname   (Impossible?)
 
@@ -292,9 +301,24 @@ class Connection(_AttrCheck, _ErrHdlr):
         self._cli = z3950.Client (self.host, self.port,
                                   optionslist = options, **initkw)
         self.namedResultSets = self._cli.get_option ('namedResultSets')
-        self.targetImplementationId = self._cli.initresp.implementationId
-        self.targetImplementationName = self._cli.initresp.implementationName
-        self.targetImplementationVersion  = self._cli.initresp.implementationVersion
+        self.targetImplementationId = getattr (self._cli.initresp, 'implementationId', None)
+        self.targetImplementationName = getattr (self._cli.initresp, 'implementationName', None)
+        self.targetImplementationVersion  = getattr (self._cli.initresp, 'implementationVersion', None)
+        if (hasattr (self._cli.initresp, 'userInformationField')):
+            if (self._cli.initresp.userInformationField.direct_reference ==
+                oids.Z3950_USR_PRIVATE_OCLC_INFO_ov):
+# see http://www.oclc.org/support/documentation/firstsearch/z3950/fs_z39_config_guide/ for docs                
+                oclc_info = self._cli.initresp.userInformationField.encoding [1]
+                # the docs are a little unclear, but I presume we're
+                # supposed to report failure whenever a failReason is given.
+                
+                if hasattr (oclc_info, 'failReason'):
+                    raise UnexpectedCloseError ('OCLC_Info ',
+                                                oclc_info.failReason,
+                                                getattr (oclc_info, 'text',
+                                                         ' no text given '))
+            
+        
 
     def search (self, query):
         """Search, taking Query object, returning ResultSet"""
@@ -419,6 +443,7 @@ class Query:
 Supported query types:  CCL, S-CCL, CQL, S-CQL, PQF, C2, ZSQL, CQL-TREE
 """
         typ = typ.upper()
+# XXX maybe replace if ... elif ...  with dict mapping querytype to func
         if typ == 'CCL':
            self.typ = 'RPN'
            try:
