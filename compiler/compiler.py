@@ -1063,6 +1063,28 @@ def p_error(t):
 
 yacc.yacc ()
 
+# XXX should just calculate dependencies as we go along.  Should be part of prepass, not
+# a utility function all back-ends have to call.
+
+def calc_dependencies (node, dict, trace = 0):
+    if not hasattr (node, '__dict__'):
+        if trace: print "#returning, node=", node
+        return
+    if node.type == 'Type_Ref': # XXX
+        dict [node.name] = 1
+        if trace: print "#Setting", node.name
+        return
+    for (a, val) in node.__dict__.items ():
+        if trace: print "# Testing node ", node, "attr", a, " val", val
+        if a[0] == '_':
+            continue
+        elif isinstance (val, type ([])):
+            for v in val:
+               calc_dependencies (v, dict, trace)
+        elif isinstance (val, Node):
+            calc_dependencies (val, dict, trace)
+
+
 def testlex (s, fn, dict):
     lexer.input (s)
     while 1:
