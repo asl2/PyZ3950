@@ -453,7 +453,8 @@ Supported query types:  CCL, S-CCL, CQL, S-CQL, PQF, C2, ZSQL, CQL-TREE
            try:
                self.query = ccl.mk_rpn_query (query)
            except ccl.QuerySyntaxError, err:
-               raise QuerySyntaxError
+               print "zoom raising", str (err), " for", query
+               raise QuerySyntaxError (str(err))
         elif typ == 'S-CCL': # server-side ccl
             self.typ = typ
             self.query =  ('type-2', query)
