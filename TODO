@@ -1,7 +1,22 @@
-compiler hackery (modules, proxy hack to avoid need for PYQUOTE hack)?
+- Check in hacked_pydoc.py
+- clear text with Rob
+- proofread text, add URLs
 
-manually extract appropriate asn.1 from
-http://archive.dstc.edu.au/DDU/projects/Z3950/Z+SQL/Z+SQL_profile.html
+For PER:
+ - SIZE constraints (for OCTET STRING, etc.), both SIZE(num), SIZE(lo..hi)
+ - implement CHOICE
+ - handle extensibility in SEQUENCE, CHOICE
+ - SEQUENCE OF
+ - BIT STRING
+ - IA5String, other strings (incl. FROM constraint)
+
+
+Clean up py_output, factor out common code.
+
+Handle TYPE-IDENTIFIER.&Type syntax, parametrized types.
+
+compiler hackery (support modules directly)
+
 
 
 
