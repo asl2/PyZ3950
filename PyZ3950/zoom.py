@@ -74,7 +74,7 @@ from PyZ3950 import grs1
 from PyZ3950 import oids
 
 # Azaroth 2003-12-04:
-from PyZ3950 import zcql, CQLParser, SRWDiagnostics, pqf
+from PyZ3950 import CQLParser, SRWDiagnostics, pqf
 from PyZ3950 import c2query as c2
 asn1.register_oid (oids.Z3950_QUERY_SQL, z3950.SQLQuery)
 
