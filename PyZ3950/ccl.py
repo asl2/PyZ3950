@@ -130,13 +130,16 @@ class Node:
     def __str__(self):
         return "\n" + self.str_depth (0)
 
-
-def p_top_1 (t):
-    'top : cclfind'
+def p_top (t):
+    'top : cclfind_or_attrset'
+    t[0] = t[1]
+    
+def p_cclfind_or_attrset_1 (t):
+    'cclfind_or_attrset : cclfind'
     t[0] = t[1]
 
-def p_top_2 (t):
-    'top : ATTRSET LPAREN WORD SLASH cclfind RPAREN'
+def p_cclfind_or_attrset_2 (t):
+    'cclfind_or_attrset : ATTRSET LPAREN WORD SLASH cclfind RPAREN'
     t[0] = Node ('attrset', [t[5]], t[3])
         
 def p_ccl_find_1(t):
