@@ -1711,7 +1711,7 @@ string  [1] IMPLICIT InternationalString,
 numeric  [2] IMPLICIT INTEGER} 
 
 
-IdAuthentication ::= [7] CHOICE { 
+IdAuthentication ::= CHOICE { 
 open   VisibleString,  --  for compatibility with 1992 version 
 idPass  SEQUENCE { 
 groupId   [0] IMPLICIT InternationalString OPTIONAL, 
