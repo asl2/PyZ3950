@@ -320,6 +320,9 @@ class BitString (NamedNumListBase):
 
 class NamedType (Node):
     pass
+
+class BaseType (Node):
+    pass
     
 def p_module_list_1 (t):
     'module_list : module_list module_def'
@@ -509,7 +512,7 @@ def p_builtin_type_1 (t):
 
 def p_builtin_type_2 (t):
     'builtin_type : OCTET STRING'
-    t[0] = Literal (val = 'asn1.OCTSTRING')
+    t[0] = BaseType (val = 'OCTSTRING')
 
 
 def p_named_type_1 (t):
@@ -522,7 +525,7 @@ def p_named_type_2 (t):
 
 def p_boolean_type (t):
     'boolean_type : BOOLEAN'
-    t[0] = Literal (val = 'asn1.BOOLEAN')
+    t[0] = BaseType (val = 'BOOLEAN')
 
 def p_integer_type_1 (t):
     'integer_type : INTEGER'
@@ -564,7 +567,7 @@ def p_enum_type_2 (t):
 
 def p_real_type (t):
     'real_type : REAL'
-    t[0] = Literal (val = 'asn1.REAL')
+    t[0] = BaseType (val = 'REAL')
 
 def p_bitstring_type_1 (t):
     'bitstring_type : BIT STRING'
@@ -580,7 +583,7 @@ def p_named_bit_list (t):
 
 def p_null_type (t):
     'null_type : NULL'
-    t[0] = Literal (val='asn1.NULL')
+    t[0] = BaseType (val='NULL')
 
 def p_sequence_type (t):
     'sequence_type : SEQUENCE LBRACE component_type_lists RBRACE'
@@ -758,7 +761,7 @@ def p_class_2 (t):
 
 def p_any_type_1 (t):
     'any_type : ANY'
-    t[0] = Literal (val='asn1.ANY')
+    t[0] = BaseType (val='ANY')
 
 def p_any_type_2 (t):
     'any_type : ANY DEFINED BY identifier'
@@ -766,18 +769,18 @@ def p_any_type_2 (t):
 
 def p_oid_type (t):
     'oid_type : OBJECT_IDENTIFIER'
-    t[0] = Literal (val='asn1.OBJECT_IDENTIFIER') # XXX
+    t[0] = BaseType (val='OBJECT_IDENTIFIER') # XXX
 
 def p_useful_type (t):
     '''useful_type : GENERALIZEDTIME
     | UTCTIME
     | OBJECTDESCRIPTOR
     | EXTERNAL'''
-    t[0] = Literal (val = "asn1.%s" % t[1])
+    t[0] = BaseType (val = t[1])
 
 def p_char_str_type (t):
     'char_str_type : STRING_T'
-    t[0] = Literal (val = 'asn1.' + t[1])
+    t[0] = BaseType (val = t[1])
 
 def p_sub_type_1 (t):
     'sub_type : type subtype_spec'
