@@ -143,12 +143,144 @@ class ZCQLConfig:
             "wildcard" : 14,
             "wildpath" : 15}
 
+    defaultAttrSet = z3950.Z3950_ATTRS_BIB1_ov
+
     def __init__(self):
         self.util1 = self.util
         self.xd = self.xd1
 
+    def attrsToCql(self, attrs):
+        hash = {}
+        for c in attrs:
+            if (not c[0]):
+                c[0] = self.defaultAttrSet
+            hash[(c[0], c[1])] = c[2]
+        bib1 = z3950.Z3950_ATTRS_BIB1_ov
+        use = hash.get((bib1, 1), 4)
+        rel = hash.get((bib1, 2), 3)
+        posn = hash.get((bib1, 3), None)
+        struct = hash.get((bib1, 4), None)
+        trunc = hash.get((bib1, 5), None)
+        comp = hash.get((bib1, 6), None)
+
+        index = None
+        if (not isinstance(use, int)):
+            index = indexType(use)
+        else:
+            for v in self.dc.items():
+                if use == v[1]:
+                    index = indexType("dc.%s" % (v[0]))
+                    break
+            if not index:
+                for v in self.bib1.items():
+                    if (use == v[1]):
+                        index = indexType("bib1.%s" % (v[0]))
+                        break
+            if not index:
+                    index  = indexType("bib1.%i" % (use))
+
+        relations = ['', '<', '<=', '=', '>=', '>', '<>']
+        if (comp == 3):
+            relation = relationType("exact")
+        elif (rel > 6):
+            if struct in [2, 6]:
+                relation = relationType('any')
+            else:
+                relation = relationType('=')
+        else:
+            relation = relationType(relations[rel])
+
+        if (rel == 100):
+            relation.modifiers.append(modifierClauseType('phonetic'))
+        elif (rel == 101):
+            relation.modifiers.append(modifierClauseType('stem'))
+        elif (rel == 102):
+            relation.modifiers.append(modifierClauseType('relevant'))
+
+        if (struct in [2, 6]):
+            relation.modifiers.append(modifierClauseType('word'))
+        elif (struct in [4, 5, 100]):
+            relation.modifiers.append(modifierClauseType('date'))
+        elif (struct == 109):
+            relation.modifiers.append(modifierClauseType('number'))
+        elif (struct in [1, 108]):
+            relation.modifiers.append(modifierClauseType('string'))
+        elif (struct == 104):
+            relation.modifiers.append(modifierClauseType('uri'))
+            
+        return (index, relation)
 
 zConfig = ZCQLConfig()
+
+def rpn2cql(rpn, config=zConfig, attrSet=None):
+    if rpn[0] == 'op':
+        # single search clause
+        op = rpn[1]
+        type = op[0]
+        if type == 'attrTerm':
+            attrs = op[1].attributes
+            term = op[1].term
+            combs = []
+            for comb in attrs:
+                if hasattr(comb, 'attributeSet'):
+                    attrSet = comb.attributeSet
+                if hasattr(comb, 'attributeType'):
+                    aType = comb.attributeType
+                else:
+                    # Broken!
+                    aType = 1
+                vstruct = comb.attributeValue
+                if (vstruct[0] == 'numeric'):
+                    aValue = vstruct[1]
+                else:
+                    # Complex attr value
+                    vstruct = vstruct[1]
+                    if (hasattr(vstruct, 'list')):
+                        aValue = vstruct.list[0][1]
+                    else:
+                        # semanticAction?
+                        aValue = vstruct.semanticAction[0][1]
+                combs.append([attrSet, aType, aValue])
+            # Now let config do its thing
+            (index, relation) = config.attrsToCql(combs)
+            return searchClauseType(index, relation, termType(term[1]))
+
+        elif type == 'resultSet':
+            return searchClauseType(indexType('cql.resultSetId'), relationType('='), termType(op[0]))
+
+    elif rpn[0] == 'rpnRpnOp':
+        triple = rpn[1]
+        bool = triple.op
+        lhs = triple.rpn1
+        rhs = triple.rpn2
+        ctrip = tripleType()
+        ctrip.leftOperation = rpn2cql(lhs, config)
+        ctrip.rightOperand = rpn2cql(rhs, config)
+        ctrip.boolean = booleanType(bool[0])
+        if bool[0] == 'prox':
+            distance = bool[1].distance
+            order = bool[1].ordered
+            if order:
+                order = "ordered"
+            else:
+                order = "unordered"
+            relation = bool[1].relationType
+            rels = ["", "<", "<=", "=", ">=", ">", "<>"]
+            relation = rels[relation]
+            unit = bool[1].proximityUnitCode
+            units = ["", "character", "word", "sentence", "paragraph", "section", "chapter", "document", "element", "subelement", "elementType", "byte"]
+            if unit[0] == "known":
+                unit = units[unit[1]]
+            mods = [cql.modifierClauseType('distance', relation, str(distance)), cql.modifierClauseType('word', '=', unit), cql.modifierClauseType(order)]
+            ctrip.boolean.modifiers = mods
+        return ctrip
+
+    elif rpn[0] == 'type_1':
+        q = rpn[1]
+        return rpn2cql(q.rpn, config, q.attributeSet)
+    
+
+
 
 class CSearchClause(SearchClause):
 

@@ -2,7 +2,7 @@
 
 # Author:  Rob Sanderson (azaroth@liv.ac.uk)
 # Distributed and Usable under the GPL 
-# Version: 1.5
+# Version: 1.7
 # Most Recent Changes: contexts, new modifier style for 1.1
 #
 # With thanks to Adam from IndexData and Mike Taylor for their valuable input
@@ -129,7 +129,7 @@ class PrefixedObject:
             self.value = self.value[f+1:].lower()
 
     def resolvePrefix(self):
-        if (self.prefixURI == ""):
+        if (not self.prefixURI):
             self.prefixURI = self.parent.resolvePrefix(self.prefix)
         return self.prefixURI
 
@@ -297,9 +297,7 @@ class Relation(PrefixedObject, ModifiableObject):
 
         space = "  " * depth
         
-
-        xml ["%s<relation%s>\n" % (space, ns)]
-
+        xml = ["%s<relation%s>\n" % (space, ns)]
         xml.append("%s  <value>%s</value>\n" % (space, escape(self.value)))
         if self.modifiers:
             xml.append("%s  <modifiers>\n" % (space))
