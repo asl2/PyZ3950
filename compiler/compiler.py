@@ -11,20 +11,12 @@ We also ignore the {...} syntax for basic values, so we don't need separate
 lexer states.
 """
 
-# TODO: flatten embedded structures (generating names appropriately)
-# fix "import __main__" so we can import compiler without it blowing up
-# toposort structures
-# handle recursive structures better than PyQuote hack
+# TODO:
+# toposort structures, handle recursive structures better than PyQuote hack
 # figure out mapping of asn.1 modules to python modules (probably as classes)
 # handle int_2/num_list
-# size constraints subtype
 # handle ANY, ANY DESCRIBED BY
 # we replace '-' in idents w/ '_' during lexing.  Is this OK, or should it be done at output?
-# bogus output for empty def'ns, e.g.
-# ANSI-Z39-50-ObjectIdentifier  DEFINITIONS ::= -- XXX lower-cased
-# BEGIN 
-# -- deleted OID definitions 
-# END 
 
 
 class LexError(Exception): pass
@@ -267,6 +259,7 @@ class Type_Assign (Node):
         Node.__init__ (self, *args, **kw)
         to_test = self.val.get_typ ()
         to_test.set_name (self.name.name) # currently only for naming SEQUENCE
+        # for debugging purposes
         # XXX should also collect names for SEQUENCE inside SEQUENCE or
         # CHOICE or SEQUENCE_OF (where should the SEQUENCE_OF name come
         # from?  for others, element or arm name would be fine)
@@ -278,6 +271,9 @@ class Type_Ref (Node):
     pass
     
 class Sequence_Of (Node):
+    pass
+
+class Set_Of (Node):
     pass
 
 class Tag (Node):
@@ -414,7 +410,6 @@ def p_exp_sym_list_2 (t):
     'exp_sym_list : exp_sym_list COMMA symbol'
     t[0] = t[1] + [t[3]]
     
-
 def p_imports_1(t):
     'imports : IMPORTS syms_imported SEMICOLON'
     t[0] = t[2]
@@ -564,7 +559,7 @@ def p_signed_number_1 (t):
 
 def p_signed_number_2 (t):
     'signed_number : MINUS NUMBER'
-    t[0] = -1 * t[1]
+    t[0] = '-' + t[2]
 
 def p_enum_type_1 (t):
     'enum_type : ENUMERATED LBRACE named_number_list RBRACE'
@@ -596,10 +591,15 @@ def p_null_type (t):
 
 def p_sequence_type (t):
     'sequence_type : SEQUENCE LBRACE component_type_lists RBRACE'
-    if t[3].has_key('ext_list'):
-        t[0] = Sequence (elt_list = t[3]['elt_list'], ext_list = t[3]['ext_list'])
+    # XXX 
+    if isinstance (t[3], list):
+        assert (len (t[3]) == 0)
+        t[0] = Sequence (elt_list=[], ext_list = None)
     else:
-        t[0] = Sequence (elt_list = t[3]['elt_list'], ext_list = None)
+        if t[3].has_key('ext_list'):
+            t[0] = Sequence (elt_list = t[3]['elt_list'], ext_list = t[3]['ext_list'])
+        else:
+            t[0] = Sequence (elt_list = t[3]['elt_list'], ext_list = None)
 
 def p_extension_and_exception_1 (t):
     'extension_and_exception : ELLIPSIS'
@@ -653,6 +653,7 @@ def p_element_type_list_2 (t):
     'element_type_list : element_type_list COMMA element_type'
     t[0] = t[1] + [t[3]]
 
+
 def p_element_type_1 (t):
     'element_type : named_type'
     t[0] = ElementType (val = t[1], optional = 0, default = None)
@@ -683,7 +684,7 @@ def p_set_type (t):
 
 def p_setof_type (t):
     'setof_type : SET OF type'
-    t[0] = Node ('set_of', val = t[3])
+    t[0] = Set_Of (val=t[3])
 
 def p_choice_type (t):
     'choice_type : CHOICE LBRACE alternative_type_lists RBRACE'
@@ -747,7 +748,7 @@ def p_tagged_type_3 (t):
 
 def p_tag (t):
     'tag : LBRACK class class_number RBRACK'
-    t[0] = Node ('tag', cls = t[2], num = t[3])
+    t[0] = Node ('tag', cls = t[2], num = int(t[3]))
 # XXX should verify uniqueness of APPLICATION tags per-module
 
 def p_class_number_1 (t):
@@ -796,18 +797,18 @@ def p_sub_type_1 (t):
     t[0] = t[1]
     t[0].subtype = t[2]
 
-# XXX harmonize sub_type_[2-4] w/ _1
 def p_sub_type_2 (t):
     'sub_type : SET size_constraint OF type'
-    t[0] = Subtype (constr_type = 'set', size_constr = t[2], typ = t[4])
+    t[0] = Set_Of (val=t[4], subtype = t[2])
+    t[0].subtype = t[2]
 
 def p_sub_type_3 (t):
     'sub_type : SEQUENCE size_constraint OF type'
-    t[0] = Sequence_Of (val = t[4], size_constr = t[2])
+    t[0] = Sequence_Of (val = t[4], subtype = t[2])
     
 def p_sub_type_4 (t):
     'sub_type : SEQUENCE LPAREN size_constraint RPAREN OF type'
-    t[0] = Sequence_Of (val = t[6], size_constr = t[3])
+    t[0] = Sequence_Of (val = t[6], subtype = t[3])
 
 def p_subtype_spec_1 (t):
     'subtype_spec : LPAREN subtype_val_set_list RPAREN'
