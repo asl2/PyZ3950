@@ -84,7 +84,7 @@ class Z3950Error(Exception):
     pass
 
 # Note: following 3 exceptions are defaults, but can be changed by
-# calling conn.set_exns
+# calling conn.set_exs
 
 class ConnectionError(Z3950Error): # TCP or other transport error
     pass
@@ -575,13 +575,17 @@ class Client (Conn):
                  count = None, recsyn = None, esn = None):
         # don't check for support in init resp: see search for reasoning
 
-        sresp = self.search_results [rsn]
-        if start == None:
-            start = sresp.nextResultSetPosition
-        if count == None:
-            count = sresp.resultCount
-            if self.max_to_request > 0:
-                count = min (self.max_to_request, count)
+        # XXX Azaroth 2004-01-08. This does work when rs is result of sort.
+        try:
+            sresp = self.search_results [rsn]
+            if start == None:
+                start = sresp.nextResultSetPosition
+                if count == None:
+                    count = sresp.resultCount
+                    if self.max_to_request > 0:
+                        count = min (self.max_to_request, count)
+        except:
+            pass
         if recsyn == None:
             recsyn = self.default_recordSyntax
         preq = PresentRequest ()
@@ -613,6 +617,7 @@ class Client (Conn):
             rv = None
         self.sock.close ()
         return rv
+
 
 def mk_compound_query ():
     aelt1 = AttributeElement (attributeType = 1,

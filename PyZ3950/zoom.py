@@ -197,7 +197,8 @@ class Connection(_AttrCheck, _ErrHdlr):
         'targetImplementationId',
         'targetImplementationName',
         'targetImplementationVersion'
-        ]
+        ] + ['errCode','errMsg', 'addtlInfo']
+
     # xmultipleResultSets is my addition to spec.
 
     _queryTypes = ['S-CQL', 'S-CCL', 'RPN', 'ZSQL']
@@ -268,6 +269,85 @@ class Connection(_AttrCheck, _ErrHdlr):
         """Close connection"""
         self._cli.close ()
         
+
+    sorttypes = { 'accessPoint' : 'sortAttributes',
+    'private' : 'privateSortKey',
+    'elementSetName' : 'elementSpec'}
+    sortrelations = ['ascending', 'descending', 'ascendingByFrequency', 'descendingByFrequency']
+    
+    def sort (self, sets, keys):
+        """ Sort sets by keys, return resultset interface """
+
+        # XXX This should probably be shuffled down into z3950.py
+
+        req = z3950.SortRequest()
+        req.inputResultSetNames = []
+        for s in sets:
+            req.inputResultSetNames.append(s._resultSetName)
+        cur_rsn = self._make_rsn()
+        req.sortedResultSetName = cur_rsn
+
+        zkeys = []
+        for k in keys:
+            zk = z3950.SortKeySpec()
+            zk.sortRelation = self.sortrelations.index(k.relation)
+            zk.caseSensitivity = k.caseSensitive
+            value = k.sequence
+            if (k.type == 'accessPoint'):
+                if (value.typ <> 'RPN'):
+                    raise ValueError # XXX
+                l = z3950.SortKey['sortAttributes']()
+                l.id = value.query[1].attributeSet
+                l.list = value.query[1].rpn[1][1].attributes
+                seq = ('sortAttributes', l)
+            elif (k.type == 'private'):
+                seq = ('privateSortKey', value)
+            elif (k.type == 'elementSetName'):
+                spec = z3950.Specification()
+                spec.elementSpec = ('elementSetName', value)
+                seq = ('elementSpec', spec)
+            else:
+                raise ValueError # XXX
+            spec = ('generic', seq)
+            zk.sortElement = spec
+            zkeys.append(zk)
+        req.sortSequence = zkeys
+        recv = self._cli.transact(('sortRequest', req), 'sortResponse')
+        self._resultSetCtr += 1
+        if (hasattr(recv, 'diagnostics')):
+            diag = recv.diagnostics[0][1]
+            self.err(diag.condition, diag.addinfo, diag.diagnosticSetId)            
+
+        if (not hasattr(recv, 'resultCount')):
+            # First guess: sum of all input sets
+            recv.resultCount = 0
+            for set in sets:
+                recv.resultCount += len(set)
+            # Check for addInfo to override
+            try:
+                val = recv.otherInfo[0].information[1]
+                if (val[:14] == 'Result-count: '):
+                    recv.resultCount = int(val[15:])
+            except:
+                pass
+
+        rs = ResultSet (self, recv, cur_rsn, self._resultSetCtr)
+        return rs
+
+
+
+class SortKey(_AttrCheck):
+    attrlist = ['relation', 'caseSensitive', 'missingValueAction', 'missingValueData', 'type', 'sequence']
+    relation = "ascending"
+    caseSensitive = 1
+    missingValueAction = ""
+    missingValueData = ""
+    type = "accessPoint"
+    sequence = ""
+
+    def __init__ (self, **kw):
+        for k in kw.keys():
+            setattr(self, k, kw[k])
 
 class Query:
     def __init__ (self, typ, query):
