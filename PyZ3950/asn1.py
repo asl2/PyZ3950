@@ -347,7 +347,11 @@ class CtxBase:
         # Note: really only need [0] and [1] elements of codec, encoder and decoder
         self.codec_dict_stack[-1][defn_inst.base_tag] = (codec, strip_bom)
     def get_codec (self, base_tag):
-        identity = ((lambda x:(x, 0), lambda x:(x,0)), 0)
+        def default_enc (x):
+            if isinstance (x, unicode):
+                return (x.encode ('ascii'), 0)
+            return (x, 0)
+        identity = ((default_enc, lambda x:(x,0)), 0)
         # we ignore lengths consumed.  I don't think this means
         # we miss out on any error checking, b/c if there were
         # a stray pad byte or something, the codec would complain
