@@ -61,7 +61,7 @@ import sys
 # implement lang/charset (requires charset normalization, confer w/ Adam)
 # implement namedResultSets as syn for xmultipleResultSets
 # implement piggyback
-# implemet presentChunk
+# implement presentChunk
 # implement schema
 # implement setname
 
@@ -125,6 +125,7 @@ class Bib1Err (ZoomError):
 
 class _ErrHdlr:
     """Error-handling services"""
+    err_attrslist = ['errCode','errMsg', 'addtlInfo']
     def err (self, condition, addtlInfo, oid):
         """Translate condition + oid to message, save, and raise exception"""
         self.errCode = condition
@@ -317,7 +318,7 @@ class ResultSet(_AttrCheck, _ErrHdlr):
     appropriate exception will be raised on access to the i-th
     element (either access by itself or as part of a slice)."""
     inherited_elts = ['elementSetName', 'preferredRecordSyntax']
-    attrlist = inherited_elts + ['errCode','errMsg', 'addtlInfo']
+    attrlist = inherited_elts + _ErrHdlr.err_attrslist
     def __init__ (self, conn, searchResult, resultSetName, ctr):
         """Only for creation by Connection object"""
         self._conn = conn # needed for 'option inheritance', see ZOOM spec
@@ -599,9 +600,17 @@ class ScanSet (_AttrCheck, _ErrHdlr):
             'attrs'  :  'suggestedAttributes',
             'alt'    :  'alternativeTerm',
             'other'  :  'otherTermInfo'}
+    attrlist = _ErrHdlr.err_attrslist
+
     def __init__ (self, scanresp):
         """For internal use only!"""
-        self._scanresp = scanresp # XXX check for err!
+        self._scanresp = scanresp
+        if hasattr (scanresp.entries, 'nonsurrogateDiagnostics'):
+            self.err_diagrec (scanresp.entries.nonsurrogateDiagnostics[0])
+        # Note that specification says that both entries and
+        # nonsurrogate diags can be present.  This code will always
+        # raise the exn, and will need to be changed if both are needed.
+
     def __len__ (self):
         """Return number of entries"""
         return self._scanresp.numberOfEntriesReturned
