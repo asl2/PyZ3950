@@ -5,24 +5,7 @@ import visitor
 import compiler
 import time
 
-# XXX should just calculate dependencies as we go along.  Should be part of prepass, not py-specific
-def calc_dependencies (node, dict, trace = 0):
-    if not hasattr (node, '__dict__'):
-        if trace: print "#returning, node=", node
-        return
-    if node.type == 'Type_Ref': # XXX
-        dict [node.name] = 1
-        if trace: print "#Setting", node.name
-        return
-    for (a, val) in node.__dict__.items ():
-        if trace: print "# Testing node ", node, "attr", a, " val", val
-        if a[0] == '_':
-            continue
-        elif isinstance (val, type ([])):
-            for v in val:
-               calc_dependencies (v, dict, trace)
-        else: # XXX should be subclass of node
-            calc_dependencies (val, dict, trace)
+
     
 class Visitor:
     def __init__ (self, defined_dict, source_name, indent = 0):
@@ -131,7 +114,7 @@ class Visitor:
         return node.assign_list
     def visitType_Assign (self, node):
         dep_dict = {}
-        calc_dependencies (node.val, dep_dict, 0)
+        compiler.calc_dependencies (node.val, dep_dict, 0)
         depend_list = dep_dict.keys ()
         s = self.visit_saving (node.val)
         self.register_assignment (node.name.name, s,  depend_list)
