@@ -123,6 +123,7 @@ vers = "0.83"
 import array
 import string
 import copy
+import math
 
 
 # - elements should expose a list of possible tags, instead of just one tag,
@@ -132,7 +133,7 @@ import copy
 # - write test cases for asst. character set encodings
 
 
-# Parameters you can tweak
+# Parameters you can tweak for BER encoding
 
 implicit_default = 1
 # Treat bare numeric tags as IMPLICIT if 1, EXPLICIT if 0.  Set at
@@ -634,6 +635,10 @@ def extract_bits (val, lo_bit, hi_bit):
     tmp = tmp & ((1L << (hi_bit - lo_bit + 1)) - 1)
     return tmp
 
+log_of_2 = math.log (2)
+
+def log2 (x):
+    return int(math.log (x) / log_of_2)
     
 class PERWriteCtx(WriteCtx):
     def __init__ (self, aligned = 0, canonical = 0):
@@ -668,6 +673,44 @@ class PERWriteCtx(WriteCtx):
             self.write_bits_unaligned (0, BYTE_BITS - self.bit_offset)
             self.bit_offset = 0
         self.write_bits_unaligned (val, bit_len)
+        
+    # for {read,write}_*_int, see Dubuisson 20.4
+    def write_constrained_int (self, val, lo, hi):
+        assert (hi >= lo)
+        # XXX what if hi = lo + 1
+        rng = hi - lo + 1
+        print rng, val, log2(rng)
+        if not self.aligned:
+            self.write_bits (val, log2(rng))
+            return
+
+        if rng == 1:
+            return # known value, don't encode
+        if rng < 256:
+            return  # calc minimum # of bits
+        if rng == 256:
+            self.write_bits (val - lo, 8)
+            return
+        if rng <= 65536:
+            self.write_bits (val - lo, 16)
+            return
+        assert (0)
+        
+    def write_semiconstrained_int (self, val, lo):
+        # write len field, then len, then min octets log_256(val-lo)
+        assert (0)
+        pass
+    def write_unconstrained_int (self, val): # might have upper bd, but not used
+        assert (0)
+        pass
+    def write_usually_small_int (self, val):
+        assert (val >= 0)
+        if val < 64:
+            self.write_bits_unaligned (0, 1)
+            self.write_bits_unaligned (val, 6)
+        else:
+            self.write_bits_unaligned (1,1)
+            self.write_semiconstrained_int (val, 0)
 
 
                   
@@ -755,6 +798,8 @@ class ELTBASE:
             return str (self.tag)
         else:
             return self.__class__.__name__
+    def fulfill_promises (self, promises):
+        return
 
 class TAG: # base class for IMPLICIT and EXPLICIT
     def __init__ (self, tag, cls=CONTEXT_FLAG):
@@ -782,6 +827,12 @@ class TAG: # base class for IMPLICIT and EXPLICIT
     def check_tag (self, seen_tag):
         return match_tag (seen_tag, self.tag)
 
+    def fulfill_promises (self, promises):
+        if isinstance (self.typ, Promise):
+            self.typ = self.typ.get_promised (promises)
+            print self.typ
+        else:
+            self.typ.fulfill_promises (promises)
 
 # Note: IMPLICIT and EXPLICIT have dual use: they can be instantiated by
 # users of this module to indicate tagging, but when TAG.set_typ is
@@ -801,6 +852,8 @@ class IMPLICIT(TAG):
     def encode (self, ctx, val):
         ctx.set_implicit_tag (self.tag)
         self.typ.encode (ctx, val)
+    def encode_per (self, ctx, val):
+        self.typ.encode_per (ctx, val)
 
     
 class EXPLICIT (TAG):
@@ -891,8 +944,13 @@ class OID_class (ELTBASE):
     
 OID = OID_class ()
 
+# XXX need to translate into offset in list for PER encoding
 class NamedBase:
-    def __init__ (self, names_list = []):
+    def __init__ (self, names_list = [], lo = None, hi = None):
+        self.lo = lo
+        self.hi = hi
+        if names_list == None:
+            names_list = []
         self.name_to_num = {}
         self.num_to_name = {}
         self.names_list = names_list
@@ -913,7 +971,11 @@ class NamedBase:
 class INTEGER_class (ELTBASE, NamedBase):
     tag = (0, INT_TAG)
     known_len = 1
-    
+    def __init__ (self, *args):
+        NamedBase.__init__ (self, *args)
+        if self.max <> 0:
+            self.hi = self.max # XXX reorganize!
+        self.extensible = 0 # XXX
     def encode_val (self, ctx, val):
         # based on ber.py in pysnmp
         l = []
@@ -936,6 +998,15 @@ class INTEGER_class (ELTBASE, NamedBase):
         ctx.len_write_known (len(l))
         l.reverse ()
         ctx.bytes_write (l)
+    def encode_per (self, ctx, val):
+        assert (not self.extensible)
+        assert (self.lo <> None)
+        print "encoding", val, self.lo, self.hi
+        if self.hi == None:
+            ctx.write_semiconstrained_int (val, self.lo)
+        else:
+            ctx.write_constrained_int (val, self.lo, self.hi)
+        
         
     def decode_val (self, ctx, buf):
         val = 0
@@ -965,12 +1036,15 @@ class ConditionalConstr:
             return self.__dict__ [attr]
 
 class OCTSTRING_class (ConditionalConstr, ELTBASE):
-    def __init__ (self, tag = None):
+    def __init__ (self, tag = None, lo = None, hi = None):
         if tag <> None:
             self.base_tag = tag
         else:
             self.base_tag = OCTSTRING_TAG
         self.override_known_len = 1
+        self.extensible = 0 # XXX
+        self.lo = lo
+        self.hi = hi
     def __repr__ (self):
         return 'OCTSTRING: ' + repr (self.tag)
     class ConsElt:
@@ -984,7 +1058,7 @@ class OCTSTRING_class (ConditionalConstr, ELTBASE):
             return "".join (self.lst)
     def start_cons (self, tag, cur_len, ctx):
         return self.ConsElt ()
-    def encode_val (self, ctx, val):
+    def handle_charset (self, ctx, val):
         encoder, strip_bom = ctx.get_enc (self.base_tag)
         if trace_string:
             print "encoding", type (val), encoder, self.base_tag, strip_bom,
@@ -993,7 +1067,9 @@ class OCTSTRING_class (ConditionalConstr, ELTBASE):
             val = val[2:]
         if trace_string:
             print "encoded", val
-
+        return val
+    def encode_val (self, ctx, val):
+        val = self.handle_charset (ctx, val)
         if cons_encoding:
             # Dubuisson, _ASN.1 ..._, 18.2.10 says that string
             # types are encoded like OCTETSTRING, so no worries
@@ -1007,6 +1083,25 @@ class OCTSTRING_class (ConditionalConstr, ELTBASE):
         else:
             ctx.len_write_known (len (val))
             ctx.bytes_write (val)
+    def encode_per (self, ctx, val):
+        val = handle_charset (ctx, val)
+        assert (not self.extensible)
+        l = len (val)
+        if self.lo <> None and self.lo == self.hi:
+            if l <= 2:
+                ctx.write_bits_unaligned (val, l * BYTE_BITS)
+            elif l <= 8192:
+                ctx.write_bits (val, l * BYTE_BITS)
+            else:
+                assert (0) # XXX need to fragment!
+
+        assert (len < 65536)
+        if self.hi == None:
+            ctx.write_semiconstrained_int (l, self.lo)
+        else:
+            ctx.write_constrained_int (l, self.lo, self.hi)
+        ctx.write_bits (val, l * BYTE_BITS)
+            
     def decode_val (self, ctx, buf):
         tmp_str = ''.join (map (chr, buf))
         decoder = ctx.get_dec (self.base_tag)
@@ -1053,12 +1148,19 @@ class CHOICE:
                 self.set_arm (i, val)
                 return
         raise KeyError (key)
+    def fulfill_promises (self, promises):
+        for i in range (len (self.choice)):
+            if isinstance (self.choice [i][1], Promise):
+                self.choice [i][1] = self.choice[i][1].get_promised ()
+            else:
+                self.choice[i][1].fulfill_promises (promises)
+                
     def set_arm (self, i, new_arm):
         self.choice[i] = self.mung (new_arm)
     def mung (self, arm):
         (cname, ctag, ctyp) = arm
         ctyp = TYPE (ctag, ctyp)
-        return (cname, ctyp)
+        return [cname, ctyp]
     def str_tag (self):
         return repr (self)
     def check_tag (self, seen_tag):
@@ -1318,6 +1420,7 @@ class SEQUENCE_BASE (ELTBASE):
         self.seq = []
         for e in seq:
             self.seq.append (self.mung (e))
+        self.extensible = 0
     def __call__ (self, **kw):
         return apply (self.klass, (), kw)
     def mung (self, e):
@@ -1343,11 +1446,39 @@ class SEQUENCE_BASE (ELTBASE):
                 self.seq[i] = self.mung (val)
                 return
         raise "not found" + str (key)
+    def fulfill_promises (self, promises):
+        for i in range (len(self.seq)):
+            (name, typ, optional) = self.seq[i]
+            if isinstance (typ, Promise):
+                self.seq[i] = (name, typ.get_promised (promises), optional)
+            else:
+                typ.fulfill_promises (promises)
+                
     def get_attribs (self):
         return map (lambda e: e[0], self.seq)
 
     def start_cons (self, tag, cur_len, ctx):
         return SeqConsElt (self)
+
+    def encode_per (self, ctx, val):
+        any_optional = 0 # XXX replace w/ every
+        for (attrname, typ, optional) in self.seq:
+            any_optional = any_optional or optional
+        if any_optional:
+            for (attrname, typ, optional) in self.seq:
+                ctx.write_bits_unaligned (hasattr (val, attrname), 1)
+        for (attrname, typ, optional) in self.seq:
+            try:
+                v = getattr (val, attrname)
+                # XXX need to handle DEFAULT,not encode
+            except AttributeError:
+                if optional: continue
+                else: raise EncodingError, ("Val " +  repr(val) +
+                                            " missing attribute: " +
+                                            str(attrname))
+            if trace_seq: print "Encoding", attrname, v
+            typ.encode_per (ctx, v)
+                
     
     def encode_val (self, ctx, val):
         for (attrname, typ, optional) in self.seq:
@@ -1571,6 +1702,12 @@ class SEQUENCE_OF(ELTBASE):
         if key == 0:
             return self.typ
         raise KeyError (key)
+    def fulfill_promises (self, promises):
+        if isinstance (self.typ, Promise):
+            self.typ = self.typ.get_promised (promises)
+        else:
+            self.typ.fulfill_promises (promises)
+
 
     class ConsElt:
         def __init__ (self, typ):
@@ -1589,6 +1726,9 @@ class SEQUENCE_OF(ELTBASE):
         for e in val:
             self.typ.encode (ctx, e)
 
+class SET_OF(SEQUENCE_OF): # XXX SET_OF needs more implementation
+    pass
+
 
 def sgn(val):
     if val < 0: return -1
@@ -1603,6 +1743,8 @@ class BOOLEAN_class (ELTBASE):
         ctx.bytes_write ([val <> 0])
         # if val is multiple of 256, Python would treat as true, but
         # just writing val would truncate. Thus, write val <> 0
+    def encode_per (self, ctx, val):
+        ctx.write_bits_unaligned (val <> 0, 1)
     def decode_val (self, ctx,buf):
         mylen = len (buf)
         if mylen <> 1: ctx.raise_error ("Bogus length for bool " +
@@ -1619,6 +1761,8 @@ class NULL_class (ELTBASE):
     known_len = 1
     def encode_val (self, ctx, val):
         ctx.len_write_known (0)
+    def encode_per (self, ctx, val):
+        pass
     def decode_val (self, ctx, buf):
         if len (buf) > 0: ctx.raise_error ("Bad length for NULL" + str (buf))
         return None
@@ -1631,6 +1775,17 @@ class ENUM (INTEGER_class):
         self.__dict__.update (kw)
         
 OBJECT_IDENTIFIER = OID # for convenience of compiler
+
+class Promise(ELTBASE):
+    """Placeholder for generating recursive data structures.
+    Replaced by calling fulfill_promises method."""
+    def __init__ (self, type_name):
+        self.type_name = type_name
+    def get_promised (self, promises_dict):
+        print "getting promised", self.type_name, promises_dict[self.type_name]
+        return promises_dict[self.type_name]
+    def __str__ (self):
+        return 'Promise: ' + self.type_name
 
 class Tester:
     def __init__ (self, print_test):
@@ -1713,6 +1868,7 @@ class Tester:
         self.test (real_spec, rval)
         self.test (real_spec2, rval)
 
+
         bs_test = BitStringVal (17, 0x1B977L) # 011011100101110111
         print "bs_test", bs_test
         for i in range (10):
@@ -1731,6 +1887,13 @@ class Tester:
         self.test (seq_of_spec2, ['db'])
         self.test (seq_of_spec2, ['db1', 'db2', 'db3'])
         self.test (seq_of_spec2, [])
+
+        seq_of3 = SEQUENCE_OF(Promise('s'))
+        seq_of3.fulfill_promises ({'s': seq_of3})
+        self.test (seq_of3, [[[],[],[[[[]]]]]])
+        # stupendously useless without a CHOICE in the SEQUENCE_OF
+        # to introduce ground terms, but hey.
+                   
         choice_spec = CHOICE ([('foo', 1, INTEGER),
                                ('bar', None, INTEGER),
                                ('baz', None, string_spec),
@@ -1739,6 +1902,17 @@ class Tester:
         self.test (choice_spec, ('bar', 3))
         self.test (choice_spec, ('baz', 'choose wisely'))
         self.test (choice_spec, ('foobar', ['choose wisely', 'choose stupidly']))
+        
+        
+        choice2_spec = CHOICE ([('a', 1, INTEGER),
+                                ('b', EXPLICIT(2), Promise('choice2')),
+                                ('c', 3, SEQUENCE_OF(Promise('choice2')))])
+        # EXPLICIT is necessary to avoid CHOICE of CHOICE without tag
+        # to figure out which arm to take
+        choice2_spec.fulfill_promises ({'choice2' : choice2_spec})
+        c2 = ('c', [('a', 4),
+                    ('b', ('c', [('a', 5), ('b', ('a', 6))]))])
+        self.test (choice2_spec, c2)
     
         seq_spec = SEQUENCE (
                              [('a',5, INTEGER),
@@ -1826,16 +2000,25 @@ import profile
 
 if __name__ == '__main__':
     pwc = PERWriteCtx (aligned = 0)
-    pwc.write_bits (1,1)
-    pwc.write_bits (1, 31)
-    print pwc.get_data ()
-    pwc.write_bits (1, 2)
-    print pwc.get_data ()
-    pwc.write_bits (1, 1)
-    print pwc.get_data ()
-    pwc.write_bits (1, 6)
-    pwc.write_bits (1, 2)
-    print pwc.get_data ()
+    inner_seq_def = SEQUENCE ([
+        ('d1', 0, BOOLEAN),
+        ('d2', 0, BOOLEAN)])
+    
+    test_def = SEQUENCE ([
+        ('a', 0, INTEGER_class (None, 0,7)),
+        ('b', 0, BOOLEAN),
+        ('c', 0, INTEGER_class (None, 0,3)),
+        ('d', 0, inner_seq_def)])
+    test = test_def ()
+    test.a = 5
+    test.b = 1
+    test.c = 1
+    test.d = inner_seq_def ()
+    test.d.d1 = 1
+    test.d.d2 = 1
+    test_def.encode_per (pwc, test)
+    print "bit offset", pwc.bit_offset
+    print map (hex, pwc.get_data ())
     if 0:
         profile.run ("run (0)")
     else:
