@@ -1,3 +1,6 @@
+[Note: superseded by CVS change tracking.  Or at least that's available,
+and a distilled version isn't yet.  Sorry.]
+
 Fix spelling of "license" in setup.py to be US, not UK, so distutils
 recognizes it.
 
