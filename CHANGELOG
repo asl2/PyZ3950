@@ -1,0 +1,131 @@
+Fix spelling of "license" in setup.py to be US, not UK, so distutils
+recognizes it.
+
+OPACRecord attribute "bibliographicRecord" had a leading space, so
+it was inaccessible with normal attribute access notation.  Fixed.
+
+0.96 (2003 May 12)
+According to the spec, it's legitimate to return fewer records than
+requested by a Present request.  Previously, the code just returned a
+null record when we made a request to fill our local cache, and
+the Present response didn't populate all the cache we asked for,
+and one of the unpopulated records was requested.
+
+Bill Oldroyd found a case in which this happened because the
+target had a small maximum message size.  Fixed to re-request
+the individual record.  (added test_extract.py to test this.)
+
+Added z3950.msg_size to set message size, to help provoke this
+failure mode for testing.
+
+0.95 (2003 Jan 23) 
+switch from "import <foo>" to "from PyZ3950 import <foo>" to make
+pydoc work.
+XML stuff from Robert Sanderson in zmarc.py
+add compiler for ASN.1 text (still alpha-y)
+Add stab at character set negotiation (turned off by default)
+base-128 encoding for OIDs can have 0 in the middle: add support
+changes for handling of ASN.1 ANY
+In InitializeResponse, userInformationField was mistakenly not EXPLICIT,
+so we'd barf whenever it was provided.  Affects Innovatve Interfaces servers.
+Thanks to Brian Kennison, kennisonb@wcsu.ctstateu.edu, for providing a test
+case.
+Fix zmarc_example to use os.path.join instead of '/'
+Change scan interface to be a sequence of dicts
+
+0.94 (2002 July 25)
+rework authetication code a little (change to be more consistent
+with rest of model, change "auth" keyword to "authentication" for
+stylistic consistency, allow passing in (user,) or (user, pass) or
+(user, pass, group)).
+
+cosmetic fixes to zmarc code (no user-visible change, I hope)
+
+Better handling of nonsurrogate diagnostics: we wouldn't always
+raise the appropriate (or, in fact, any) exception.  Note that
+for multiple nonsurrogate diags, as per ZOOM mailing list discussion,
+we only raise the first.
+
+Better handling of surrogate diagnostics: we used to raise a 
+ProtocolError when we received the diagnostic, but now we raise
+a Bib1Err (or other error, if the OID is different) on access to
+that record.
+
+New in 0.93 (2002 July 24)
+zoom, z3950: add scan, user authentication (see zoom docstring for,
+um, docs)
+
+z3950: change implementationName passed in Initialize Request
+
+asn1: add trace_int flag for tracing reading ints
+Fix nasty bug: would sometimes raise an IndexError if we tried to peek
+at the next byte, but the buffer was empty and needed to be refilled.
+Fix trace_seq_of to work w/ CHOICE instead of complaining about no tag
+
+added test/testscan.py, to demo/test scan code.
+
+zmarc.py: add code to write out MARC data, slightly better error
+reporting on read.
+
+New in 0.92 (2002 July 22)
+zoom: Fix to throw a zoom.ClientNotImpl error when a preferredRecordSyntax
+we don't recognize is passed in.  (Used to throw a KeyError.)
+For command-line client, specify elementSetName 'F' by default, allow
+overriding with -a cmd-line parameter.
+
+z3950: support decoding SearchInfoReport (so we can talk to www.bibhit.dk,
+among others: used to just throw BER exn).  Added OVID db to table.
+
+example/{zthes1, gthes}: many fixes.
+ 
+New in 0.91 (2002 July 17)
+General:
+We now use a Python package, PyZ3950, instead of cluttering up
+the top-level Python module namespace.  (Sorry, this means you have
+to change your import statements, but I think everyone's going
+to be happier in the long run.)
+
+asn1:
+add trace_seq_of flag for debugging
+add GeneralizedTime type
+add facility for registering OID/ASN.1 combinations, so that
+ANY types within an EXTERNAL can be properly decoded.
+change BitStringVal so that out-of-range bits are returned as 0
+change "Bad length for NULL" exception text
+
+z3950:
+add oid definitions for Utility, Cross-Domain-1, and Zthes-1 attribute sets,
+XML and GRS-1 record formats, Zthes schema, and AuthorityFileInfo_External.
+fix ASN.1 for OtherInformation (category wasn't optional)
+add GRS-1 and OPAC ASN.1 definitions.
+If InitializeResponse support flags for search or present aren't set, go
+ahead and do the search/present anyway, instead of returning None
+Remove 'print "Delete not supported"' when delete is called but
+not supported.
+Add some more servers to table.
+
+bib1msg:
+fix stupid bugs which would cause (wrong) exceptions to be thrown while
+trying to throw a Bib1Err
+
+grs1:
+first check-in
+
+zoom:
+change docstring for Query.__init__
+We used to throw an exception when taking a slice of an empty result
+set.  Fix to correctly return []
+Support for GRS-1, XML, and OPAC record syntaxes (OPAC data is just
+struct output from BER decoder).
+New -f formats option for test mode.
+
+ccl:
+Add top-level ATTRSET(<attrset>/query) kludge to specify attrsets
+Allow qualifiers to be literal (<numeric type>,<numeric value>) pairs.
+Support relops other than just '='
+Better prettyprinting of ASTs
+
+zmarc:
+added docstring.
+
+0.90 - Start of Changelog.

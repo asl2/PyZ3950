@@ -1,0 +1,135 @@
+
+<!doctype html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module PyZ3950/zmarc</title>
+<style type="text/css"><!--
+TT { font-family: lucidatypewriter, lucida console, courier }
+--></style></head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>PyZ3950/zmarc</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/asl2/src/PyZ3950/PyZ3950/zmarc.py">/home/asl2/src/PyZ3950/PyZ3950/zmarc.py</a></font></td></tr></table>
+    <p><tt>Parses&nbsp;<a href="#MARC">MARC</a>-format&nbsp;data.&nbsp;&nbsp;The&nbsp;<a href="#MARC">MARC</a>&nbsp;class&nbsp;has&nbsp;a&nbsp;constructor<br>
+which&nbsp;takes&nbsp;binary&nbsp;<a href="#MARC">MARC</a>&nbsp;data.</tt></p>
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#fffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top>string<br>
+</td><td width="25%" valign=top>sys<br>
+</td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="exceptions.html#Exception">exceptions.Exception</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="PyZ3950/zmarc.html#MarcError">MarcError</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="PyZ3950/zmarc.html#MARC">MARC</a>
+</font></dt></dl>
+ 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="MARC">class <strong>MARC</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Parses&nbsp;data&nbsp;into&nbsp;'fields'&nbsp;attribute,&nbsp;indexed&nbsp;by&nbsp;field&nbsp;number.<br>
+Each&nbsp;value&nbsp;is&nbsp;a&nbsp;list.&nbsp;&nbsp;For&nbsp;fixed&nbsp;fields,&nbsp;it's&nbsp;a&nbsp;list&nbsp;of&nbsp;the&nbsp;string&nbsp;data<br>
+(one&nbsp;string&nbsp;for&nbsp;each&nbsp;occurence&nbsp;of&nbsp;the&nbsp;field&nbsp;in&nbsp;the&nbsp;original&nbsp;data).&nbsp;&nbsp;For<br>
+other&nbsp;fields,&nbsp;each&nbsp;list&nbsp;element&nbsp;is&nbsp;a&nbsp;tuple&nbsp;of&nbsp;(indicator&nbsp;1,&nbsp;indicator&nbsp;2,<br>
+subdata),&nbsp;where&nbsp;subdata&nbsp;is&nbsp;a&nbsp;list&nbsp;of&nbsp;tuples&nbsp;of&nbsp;(subfield&nbsp;indicator,<br>
+subfield&nbsp;data).&nbsp;&nbsp;Yes,&nbsp;this&nbsp;is&nbsp;kinda&nbsp;lame&nbsp;and&nbsp;I&nbsp;really&nbsp;should&nbsp;have<br>
+used&nbsp;structures,&nbsp;but&nbsp;this&nbsp;was&nbsp;some&nbsp;of&nbsp;the&nbsp;first&nbsp;Python&nbsp;code&nbsp;I&nbsp;ever<br>
+wrote.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="MARC-__init__"><strong>__init__</strong></a>(self, MARC<font color="#909090">=None</font>)</dt></dl>
+
+<dl><dt><a name="MARC-__str__"><strong>__str__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="MARC-extract_int"><strong>extract_int</strong></a>(self, start, end)</dt></dl>
+
+<dl><dt><a name="MARC-get_MARC"><strong>get_MARC</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="MARC-sgml_processCode"><strong>sgml_processCode</strong></a>(self, k)</dt></dl>
+
+<dl><dt><a name="MARC-stringify_field"><strong>stringify_field</strong></a>(self, k)</dt></dl>
+
+<dl><dt><a name="MARC-toMARCXML"><strong>toMARCXML</strong></a>(self)</dt><dd><tt>&nbsp;Convert&nbsp;record&nbsp;to&nbsp;MarcXML&nbsp;Schema</tt></dd></dl>
+
+<dl><dt><a name="MARC-toMODS"><strong>toMODS</strong></a>(self)</dt><dd><tt>&nbsp;Tranform&nbsp;<a href="#MARC">MARC</a>&nbsp;record&nbsp;into&nbsp;MODS&nbsp;according&nbsp;to&nbsp;CrossWalk</tt></dd></dl>
+
+<dl><dt><a name="MARC-toOAIMARC"><strong>toOAIMARC</strong></a>(self)</dt><dd><tt>Convert&nbsp;record&nbsp;to&nbsp;OAI&nbsp;<a href="#MARC">MARC</a>&nbsp;XML&nbsp;Schema.<br>
+Note&nbsp;Well&nbsp;that&nbsp;OAI-MHP&nbsp;2.0&nbsp;recommends&nbsp;using&nbsp;MarcXML</tt></dd></dl>
+
+<dl><dt><a name="MARC-toSGML"><strong>toSGML</strong></a>(self)</dt><dd><tt>&nbsp;Convert&nbsp;record&nbsp;to&nbsp;USMARC&nbsp;SGML</tt></dd></dl>
+
+<dl><dt><a name="MARC-toSimpleDC"><strong>toSimpleDC</strong></a>(self)</dt><dd><tt>&nbsp;Convert&nbsp;Marc&nbsp;into&nbsp;DC&nbsp;according&nbsp;to&nbsp;LC&nbsp;Crosswalk</tt></dd></dl>
+
+<hr>
+Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = "Parses data into 'fields' attribute, indexed by ...e of the first Python code I ever<font color="#c040c0">\n</font>    wrote.<font color="#c040c0">\n</font>    "<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/zmarc'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>hdrbits</strong> = [5, 6, 7, 8, 17, 18, 19]<dd><tt>list()&nbsp;-&gt;&nbsp;new&nbsp;list<br>
+list(sequence)&nbsp;-&gt;&nbsp;new&nbsp;list&nbsp;initialized&nbsp;from&nbsp;sequence's&nbsp;items</tt></dl>
+
+</td></tr></table> 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="MarcError">class <strong>MarcError</strong></a>(<a href="exceptions.html#Exception">exceptions.Exception</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2>&nbsp;</td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%">Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = None</dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/zmarc'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<hr>
+Methods inherited from <a href="exceptions.html#Exception">exceptions.Exception</a>:<br>
+<dl><dt><a name="MarcError-__getitem__"><strong>__getitem__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="MarcError-__init__"><strong>__init__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="MarcError-__str__"><strong>__str__</strong></a>(...)</dt></dl>
+
+</td></tr></table></td></tr></table>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;&nbsp;</td>
+<td width="100%"><strong>__file__</strong> = './PyZ3950/zmarc.pyc'<br>
+<strong>__name__</strong> = 'PyZ3950/zmarc'<br>
+<strong>attrHash</strong> = {22: ['ISDSLvl', 'I2'], 24: ['StdNum', 'DiffInd'], 28: ['PubNmTyp', 'NteAdEnty'], 33: ['DateType', 'EventTyp'], 34: ['ScapeTyp', 'I2'], 41: ['TransInd', 'I2'], 45: ['TimePrd', 'I2'], 50: ['InLofC', 'CNSrc'], 55: ['InNLC', 'CNCLSSrc'], 60: ['InNLM', 'CNSrc'], ...}<br>
+<strong>fieldsep</strong> = '<font color="#c040c0">\x1e</font>'<br>
+<strong>recsep</strong> = '<font color="#c040c0">\x1d</font>'<br>
+<strong>sep</strong> = '<font color="#c040c0">\x1f</font>'<br>
+<strong>subfieldHash</strong> = {'0': 'zero', '1': 'one', '2': 'two', '3': 'three', '4': 'four', '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine'}</td></tr></table>
+</body></html>

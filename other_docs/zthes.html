@@ -1,0 +1,1411 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN"
+	"http://www.w3.org/TR/REC-html40/strict.dtd">
+
+<HTML>
+ <HEAD>
+  <LINK rel="stylesheet" type="text/css" href="/style.css">
+  <META name="Author" content="Mike Taylor">
+  <META name="Date" content="6th November 2001">
+  <TITLE>Zthes: a Z39.50 Profile for Thesaurus Navigation, version 0.5</TITLE>
+ </HEAD>
+ <BODY>
+  <H1>Zthes: a Z39.50 Profile for Thesaurus Navigation, version 0.5</H1>
+  <DIV align="center"><SMALL>6th November 2001</SMALL></DIV>
+  <P>
+
+Mike Taylor
+<BR>
+Version 0.5
+<BR>
+<SMALL>$Header$</SMALL>
+<P>
+<HR>
+<P>
+
+<UL TYPE=disc>
+    <LI><A HREF="#1">1.  Introduction</A>
+    <UL TYPE=disc>
+        <LI><A HREF="#1.1">1.1.  Overview</A>
+        <LI><A HREF="#1.2">1.2.  Status</A>
+        <LI><A HREF="#1.3">1.3.  Scope</A>
+        <LI><A HREF="#1.4">1.4.  Acknowledgements</A>
+    </UL>
+    <LI><A HREF="#2">2.  Abstract Model</A>
+    <UL TYPE=disc>
+        <LI><A HREF="#2.1">2.1.  Overview</A>
+        <LI><A HREF="#2.2">2.2.  Schema</A>
+        <LI><A HREF="#2.3">2.3.  Searching</A>
+    </UL>
+    <LI><A HREF="#3">3.  Z39.50 Specification</A>
+    <UL TYPE=disc>
+        <LI><A HREF="#3.1">3.1.  Overview</A>
+        <LI><A HREF="#3.2">3.2.  tagSet-Zthes</A>
+        <LI><A HREF="#3.3">3.3.  Schema</A>
+        <LI><A HREF="#3.4">3.4.  Element Sets</A>
+        <UL TYPE=disc>
+            <LI><A HREF="#3.4.1">3.4.1.  Element Set ``f''</A>
+            <LI><A HREF="#3.4.2">3.4.2.  Element Set ``b''</A>
+        </UL>
+        <LI><A HREF="#3.5">3.5.  The Zthes-1 Attribute Set</A>
+        <LI><A HREF="#3.6">3.6.  Searching</A>
+        <LI><A HREF="#3.7">3.7.  Explain</A>
+        <UL TYPE=disc>
+            <LI><A HREF="#3.7.1">3.7.1.  Overview</A>
+            <LI><A HREF="#3.7.2">3.7.2.  Identifying a Zthes Database</A>
+            <LI><A HREF="#3.7.3">3.7.3.  Locating a Relevant Zthes Database</A>
+        </UL>
+    </UL>
+    <LI><A HREF="#4">4.  Future Directions</A>
+    <LI><A HREF="#5">5.  Appendix A.  References</A>
+    <LI><A HREF="#6">6.  Appendix B.  The Zthes Abstract Model in XML</A>
+    <UL TYPE=disc>
+        <LI><A HREF="#6.1">6.1.  The Zthes DTD for XML</A>
+        <LI><A HREF="#6.2">6.2.  Sample Zthes-in-XML Document</A>
+    </UL>
+    <LI><A HREF="#7">7.  Appendix C.  Implementations</A>
+    <LI><A HREF="#8">8.  Appendix D.  Applications</A>
+</UL>
+
+<P>
+<HR>
+
+<P>
+<SMALL>
+Version history is now available at
+<A href="http://zthes.z3950.org/profile/">zthes.z3950.org/profile</A>
+<BR>
+Changes between v0.4a and this version are at
+<A href="http://zthes.z3950.org/profile/changes-05.html">zthes.z3950.org/profile/changes-05.html</A>
+</SMALL>
+
+<H2><A NAME="1">1.  Introduction</A></H2>
+
+<H3><A NAME="1.1">1.1.  Overview</A></H3>
+This document describes an abstract model for representing and
+searching thesauri - semantic hierarchies of terms as described in
+ISO 2788 <A HREF="#r2">[2]</A> - and specifies how this model may be
+implemented using the
+Z39.50 <A HREF="#r1">[1]</A>
+protocol.  It also suggests how the model may be implemented using
+other protocols and formats.
+
+<H3><A NAME="1.2">1.2.  Status</A></H3>
+Although technically this document is open for review, and may be
+altered before being re-released as version 1.0, the reality is that
+its core specifications has remained constant for eighteen months.  We
+expect that any further changes will be additions rather than
+modifications to the existing functionality.
+<P>
+All feedback is very welcome, and should be emailed to the author at
+&lt;<A href="mailto:mike@zthes.z3950.org">mike@zthes.z3950.org</A>&gt;
+<H3><A NAME="1.3">1.3.  Scope</A></H3>
+This profile is laid out in two main sections.  The first is concerned
+solely with the abstract representation of thesaurus terms and how
+they may be searched; and the second with the implementation of these
+abstract concepts in Z39.50: how thesaurus terms are encoded in the
+GRS-1 record structure, how searches are encoded in the type-1 query,
+<I>etc</I>.
+<P>
+It is intended that the abstract model described here is sufficiently
+general that it can also be implemented by protocols and data formats
+other than Z39.50.  As an example, an appendix defines an XML DTD for
+thesaurus terms based on the model, and includes an example XML
+document using that DTD.
+<P>
+Because the model is abstract, it will generally have little or no
+effect on the data model used by a server's local representation of
+its thesaurus.  In particular, pre-existing thesaurus databases may
+well represent a more complete model of a term than what's required by
+this profile's abstract model.  That's fine: the additional
+information is not be representable in the Zthes model, but may be
+used in any number of other ways beyond the scope of this profile.
+<P>
+This profile does not mandate any
+relationship between a thesaurus and any other database.  The model is that
+terms from any thesaurus database may be used to search any other
+database (called a <I>target database</I>).
+
+<H3><A NAME="1.4">1.4.  Acknowledgements</A></H3>
+This document represents the consensual outcome of extensive
+discussions between the members of the informally convened Zthes
+working group:
+<UL TYPE=disc>
+<LI>Mike Taylor
+	&lt;<A href="mailto:mike@zthes.z3950.org">mike@zthes.z3950.org</A>&gt;,
+	<A HREF="http://www.tecc.co.uk/">TECC Ltd.</A>
+<LI>Thomas Place
+	&lt;<A href="mailto:t.w.place@kub.nl">t.w.place@kub.nl</A>&gt;,
+	<A HREF="http://www.kub.nl/">Tilburg University</A>.
+<LI>Denis Lynch
+	&lt;<A href="mailto:Dlynch@ACM.org">Dlynch@ACM.org</A>&gt;,
+	Silver Platter.
+<LI>Sebastian Hammer
+	&lt;<A href="mailto:quinn@indexdata.dk">quinn@indexdata.dk</A>&gt;,
+	<A HREF="http://www.indexdata.dk/">Index Data ApS.</A>
+<LI>Ralph LeVan
+	&lt;<A href="mailto:levan@oclc.org">levan@oclc.org</A>&gt;,
+	<A HREF="http://www.oclc.org/">OCLC</A>.
+<LI>Pat Stevens
+	&lt;<A href="mailto:Pat_Stevens@oclc.org">Pat_Stevens@oclc.org</A>&gt;,
+	<A HREF="http://www.oclc.org/">OCLC</A>.
+</UL>
+
+<H2><A NAME="2">2.  Abstract Model</A></H2>
+
+<H3><A NAME="2.1">2.1.  Overview</A></H3>
+This profile represents a thesaurus as a database of inter-linked
+terms.  If multiple thesauri are to be supported by a single server,
+then they must be presented as separate databases.
+<P>
+Each individual term in a thesaurus is represented by a record in the
+database.
+<!-- ##NPT This next bit is controversial and perhaps still up for
+	grabs.  If we change our minds, we'll need to add prose about
+	the status of NPTs, how to link from them, etc. -->
+In the interests of simplicity and orthogonality, even non-preferred
+terms must be represented by their own records.
+
+<P>
+Term records consist of an initial part describing the term itself
+(with information such as its unique identifier, scope note, <I>etc</I>.),
+together with sub-records
+(that is, named sections within the main record)
+briefly describing related terms.  The
+primary means of navigation from one term to another is by searching
+for the unique identifiers of the terms related to the first one.
+
+<H3><A NAME="2.2">2.2.  Schema</A></H3>
+In the element tables in this profile, the occurrence columns describe
+whether the elements are mandatory and/or repeatable as follows:
+
+<P>
+<TABLE BORDER=1 ALIGN=center CELLPADDING=5>
+<TR>
+	<TH ALIGN=left>Value</TH>
+	<TH ALIGN=left>Meaning</TH>
+</TR>
+<TR>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>mandatory, not repeatable</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>1+</TD>
+	<TD VALIGN=top>mandatory, repeatable</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>optional, not repeatable</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>0+</TD>
+	<TD VALIGN=top>optional, repeatable</TD>
+</TR>
+</TABLE>
+
+<P>
+The top level term record is composed of the following elements:
+
+<P>
+<TABLE BORDER=1 ALIGN=center CELLPADDING=5>
+<TR>
+	<TH ALIGN=left>Name</TH>
+	<TH ALIGN=left>Occurrence</TH>
+	<TH ALIGN=left>Description</TH>
+</TR>
+<TR>
+	<TD VALIGN=top>termId</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>an opaque string of characters which uniquely
+		identifies the term within the thesaurus</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>termName</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>the name of the term in a form which may be
+		displayed to a user or used as a search term in a
+		target database</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>termQualifier</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>an additional string which, if supplied,
+		qualifies the term name such that the combination of
+		term and qualifier is unique within the thesaurus</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>termType</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>an indication of the type of the term, chosen
+		from the controlled vocabulary described below</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>termLanguage</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>the language of the term</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>termNote</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>a scope note for the term: that is, arbitrary
+		prose clarifying the meaning and scope of the
+		term</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>termCreatedDate</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>the date on which the record defining the
+		term was created</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>termCreatedBy</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>the name of the person who created the
+		record defining the term</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>termModifiedDate</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>the date on which the record defining the term
+		was last modified</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>termModifiedBy</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>the name of the person who last modified the
+		record defining the term</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>postings</TD>
+	<TD VALIGN=top>0+</TD>
+	<TD VALIGN=top>a sub-record, in the format described below,
+		indicating the frequency with which the term occurs in
+		a target database</TD><!-- xxx -->
+</TR>
+<TR>
+	<TD VALIGN=top>relation</TD>
+	<TD VALIGN=top>0+</TD>
+	<TD VALIGN=top>a sub-record, in the format described below,
+		briefly describing a term related to this one</TD>
+</TR>
+</TABLE>
+
+<P>
+It is recognised that in many thesauri there is no explicit unique
+identifier field, and the term itself, perhaps in combination with the
+qualifier, uniquely identifies a record.  Thesauri such as these must
+nevertheless provide a <TT>termID</TT> field, which may be
+automatically generated simply by combining the term and qualifier.
+
+<P>
+The <TT>termType</TT> element may take the following values:
+<DL COMPACT>
+<DT>``PT''</DT>
+	<DD>Preferred term (also known as a <I>descriptor</I>)</DD>
+<!-- ##NPT If indeed we represent non-preferred terms by records -->
+<DT>``ND''</DT>
+	<DD>Non-descriptor: that is, a non-preferred term.</DD>
+<DT>``NL''</DT>
+	<DD>Node label: that is, a dummy term not assigned to
+	documents when indexing, but inserted into the hierarchy to
+	indicate the logical basis on which a category has been
+	divided - for example, <TT>by function</TT>.
+	Also known as a <I>guide term</I> or a <I>facet
+	indicator</I>.</DD>
+</DL>
+<P>
+Servers may return other values of <TT>termType</TT> at their
+discretion.  It is recommended that such extension values begin with
+the string ``<TT>X-</TT>''.
+
+<P>
+Each <TT>postings</TT> sub-record is composed of the following
+elements:
+
+<P>
+<TABLE BORDER=1 ALIGN=center CELLPADDING=5>
+<TR>
+	<TH ALIGN=left>Name</TH>
+	<TH ALIGN=left>Occurrence</TH>
+	<TH ALIGN=left>Description</TH>
+</TR>
+<TR>
+	<TD VALIGN=top>sourceDb</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>the host, port and name of a target database in
+		which the term may be found</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>fieldName</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>if specified, the name of a field in the target
+		database in which the term may be found; otherwise,
+		the sub-record represents a postings count across the
+		entire target database</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>hitCount</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>the number of occurrences of the term in the
+		target database (in the nominated field only, if
+		specified)</TD>
+</TR>
+</TABLE>
+
+<P>
+If a server wishes to communicate separate postings counts for a term
+in more than one field, then multiple <TT>postings</TT> sub-records
+with the same value of <TT>sourceDb</TT> should be used.
+
+<P>
+Each <TT>relation</TT> sub-record is composed of the following elements:
+<P>
+<TABLE BORDER=1 ALIGN=center CELLPADDING=5>
+<TR>
+	<TH ALIGN=left>Name</TH>
+	<TH ALIGN=left>Occurrence</TH>
+	<TH ALIGN=left>Description</TH>
+</TR>
+<TR>
+	<TD VALIGN=top>relationType</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>an indication of the type of the relation,
+		chosen from the controlled vocabulary described
+		below</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>sourceDb</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>if specified, the host, port and name of a
+		different Zthes database in which the related term is
+		found; otherwise, the related term is in the same
+		database as the current one</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>termId</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>the unique identifier of the related term
+		within its database</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>termName</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>the name of the related term</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>termQualifier</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>the qualifier of the related term</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>termType</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>the type of the related term</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>termLanguage</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>the language of the related term</TD>
+</TR>
+</TABLE>
+
+<P>
+<A name="relationType"></A>
+The <TT>relationType</TT> element may take the following values:
+<DL COMPACT>
+<DT>``NT''</DT>
+	<DD>Narrower term: that is, the related term is more specific
+	than the current one.</DD>
+<DT>``BT''</DT>
+	<DD>Broader term: that is, the related term is more general
+	than the current one.</DD>
+<DT>``USE''</DT>
+	<DD>Use instead: that is, the related term should be used in
+	preference to the current one.</DD>
+<DT>``UF''</DT>
+	<DD>Use for: that is, the current term should be used in
+	preference to the related one</DD>
+<DT>``RT''</DT>
+	<DD>Related term.</DD>
+<DT>``LE''</DT>
+	<DD>Linguistic equivalent: the current term and the related
+	term are preferred terms representing the same concept - or
+	``sufficiently close'' concepts - in different languages.</DD>
+</DL>
+<P>
+Servers may return other values of <TT>relationType</TT> at their
+discretion.  It is recommended that such extension values begin with
+the string ``<TT>X-</TT>''.
+<P>
+With a single exception,
+this profile deliberately restricts its set of supported relations to
+those discussed in ISO 2788 <A HREF="#r2">[2]</A>, in the belief that
+it is better for a small set of relations to be used interoperably
+than for a larger set to be specified, with different servers and
+clients in practice using different subsets.
+<P>
+That sole exception is the addition to the standard relation types of
+``LE'', introduced to model the multilingual links described in
+ISO 5964 <A HREF="#r2">[7]</A>.
+
+<P>
+<!-- ##NPT the bit about USE/UF here will need rewriting if we allow
+	non-preferred terms not to have their own records -->
+The ``NT'' and ``BT'' relationships are reciprocal; so are ``USE'' and
+``UF''; and ``RT'' and ``LE'' are reflexive.  That is, when any term <I>T1</I>
+points to another <I>T2</I> using the relation ``NT'', <I>T2</I>
+should point back to <I>T1</I> using ``BT'' and vice versa; when
+<I>T1</I> points to <I>T2</I> using the relation ``USE'', <I>T2</I>
+should point back to <I>T1</I> using ``UF'' and vice versa; and when
+<I>T1</I> points to <I>T2</I> using the relation ``RT'' or ``LE'', <I>T2</I>
+should point back to <I>T1</I> using the same relation.
+
+<P>
+The <TT>termType</TT> element in a <TT>relation</TT> sub-record may
+take the same values as in the top-level record.
+
+<H3><A NAME="2.3">2.3.  Searching</A></H3>
+The following searches must be supported:
+<UL>
+
+<LI>
+A search which finds the single record with a specified
+<TT>termId</TT> at the top level (i.e. not within a <TT>relation</TT>
+sub-record.)
+
+<LI>
+A search which finds records with a specified <TT>termName</TT> at the
+top level.
+
+<LI>
+A search which finds records with a specified <TT>termQualifier</TT>
+at the top level.  (This is useful primarily in conjunction with the
+<TT>termName</TT> search.)
+
+<!-- ##NPT If non-preferred terms are allowed not to have records:
+<LI>
+A search which finds records in which a specified term occurs in the
+<TT>termName</TT> either in the top level of the record or in
+<TT>relation</TT> sub-records for which the <TT>relationType</TT> is
+``UF'' (use for).
+(This may be called OA: see Pat Stevens' email of 1999-02-16)
+-->
+<LI>
+A search which finds words occurring anywhere in the term record.
+</UL>
+
+<P>
+Support for additional searches, including the following, may be
+useful.
+
+<UL>
+
+<LI>
+A search which locates all the records considered suitable as starting
+points for browsing.
+
+<LI>
+A search which finds all the records in a specified relation to the
+term with a specified <TT>termId</TT>.  (This is useful for finding
+the narrower terms of a very broad term without needing to retrieve a
+very large record.)
+
+<LI>
+A search which finds a special record describing not a term but the
+thesaurus as a whole - authorship, version information, <I>etc</I>.
+
+<LI>
+A search for terms in a specified language.
+
+<LI>
+A search for terms whose <TT>termNote</TT> contains specified words.
+
+<LI>
+A search for terms of a specified type.
+
+<LI>
+Searches for terms created and/or modified at a specified time or by a
+specified person.
+
+</UL>
+
+<H2><A NAME="3">3.  Z39.50 Specification</A></H2>
+
+<H3><A NAME="3.1">3.1.  Overview</A></H3>
+This profile builds on the work of others by using
+the Z39.50 Attribute Architecture <A HREF="#r3">[3]</A>
+together with
+the Utility Attribute Set <A HREF="#r4">[4]</A>
+and
+the Cross-Domain Attribute Set <A HREF="#r5">[5]</A>
+developed for it.
+<P>
+As such, it requires servers and clients to support version 3 of the
+Z39.50 protocol.
+
+<P>
+The intention of this profile is that
+it is used in conjunction with other profiles.  It is envisaged that
+an application will use the Zthes profile to navigate a thesaurus and
+thereby obtain terms suitable for searching in a target database; and
+use a second, domain-specific profile such as GILS or CIMI to search
+in and retrieve from that database.
+
+<P>
+The Z39.50 objects defined by this profile have the following OIDs.
+<P>
+<TABLE BORDER=1 ALIGN=center CELLPADDING=5>
+<TR>
+	<TH ALIGN=left>Object</TH>
+	<TH ALIGN=left>OID</TH>
+</TR>
+<TR>
+	<TD VALIGN=top><A HREF="#3.2">tagSet-Zthes</A></TD>
+	<TD VALIGN=top>1.2.840.10003.14.8</TD>
+</TR>
+<TR>
+	<TD VALIGN=top><A HREF="#3.3">The Zthes Schema</A></TD>
+	<TD VALIGN=top>1.2.840.10003.13.8</TD>
+</TR>
+<TR>
+	<TD VALIGN=top><A HREF="#3.5">The Zthes-1 Attribute Set</A></TD>
+	<TD VALIGN=top>1.2.840.10003.3.13</TD>
+</TR>
+<TR>
+	<TD VALIGN=top><A HREF="#3.7.3">The <TT>AuthorityFileInfo</TT>
+		External</A></TD>
+	<TD VALIGN=top>1.2.840.10003.10.11</TD>
+</TR>
+
+</TABLE>
+
+<H3><A NAME="3.2">3.2.  tagSet-Zthes</A></H3>
+This profile defines a tag set called tagSet-Zthes, which describes
+the additional tags needed in the schema beyond those found in the
+standard tagSet-M and tagSet-G.  It contains the following elements,
+corresponding to the same-named elements in the abstract model schema
+described above:
+
+<P>
+<TABLE BORDER=1 ALIGN=center CELLPADDING=5>
+<TR>
+	<TH ALIGN=left>Tag</TH>
+	<TH ALIGN=left>Name</TH>
+	<TH ALIGN=left>ASN.1 Datatype</TH>
+</TR>
+<TR>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>termQualifier</TD>
+	<TD VALIGN=top>InternationalString</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>2</TD>
+	<TD VALIGN=top>termType</TD>
+	<TD VALIGN=top>InternationalString</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>3</TD>
+	<TD VALIGN=top>relationType</TD>
+	<TD VALIGN=top>InternationalString</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>4</TD>
+	<TD VALIGN=top>postings</TD>
+	<TD VALIGN=top>structured</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>5</TD>
+	<TD VALIGN=top>fieldName</TD>
+	<TD VALIGN=top>InternationalString</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>6</TD>
+	<TD VALIGN=top>hitCount</TD>
+	<TD VALIGN=top>INTEGER</TD>
+</TR>
+</TABLE>
+
+<H3><A NAME="3.3">3.3.  Schema</A></H3>
+In the Zthes schema, tag types indicate elements from the following
+tag sets:
+
+<P>
+<TABLE BORDER=1 ALIGN=center CELLPADDING=5>
+<TR>
+	<TH ALIGN=left>Type</TH>
+	<TH ALIGN=left>Meaning</TH>
+</TR>
+<TR>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>tagSet-M, defined in appendix TAG.2.1
+		of the Z39.50 standard <A HREF="#r1">[1]</A></TD>
+</TR>
+<TR>
+	<TD VALIGN=top>2</TD>
+	<TD VALIGN=top>tagSet-G, defined in appendix TAG.2.2
+		of the Z39.50 standard <A HREF="#r1">[1]</A></TD>
+</TR>
+<TR>
+	<TD VALIGN=top>3</TD>
+	<TD VALIGN=top>application-defined string tags</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>4</TD>
+	<TD VALIGN=top>tagSet-Zthes, defined above</TD>
+</TR>
+</TABLE>
+
+<P>
+The abstract schema described in section 2.2 is represented in Z39.50
+by a GRS-1 record encoded with the tag-paths specified in the
+following table.  Where possible, standard tags from tagSet-M and
+tagSet-G are re-used; in these cases, the generic names of the tags
+are listed in the right-hand column.
+<P>
+<TABLE BORDER=1 ALIGN=center CELLPADDING=5>
+<TR>
+	<TH ALIGN=left>Tag Path</TH>
+	<TH ALIGN=left>Occurrence</TH>
+	<TH ALIGN=left>Element</TH>
+	<TH ALIGN=left>Generic Name</TH>
+</TR>
+<TR>
+	<TD VALIGN=top>(1,14)</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>termId</TD>
+	<TD VALIGN=top>localControlNumber</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>(2,1)</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>termName</TD>
+	<TD VALIGN=top>title</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>(4,1)</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>termQualifier</TD>
+	<TD VALIGN=top>&nbsp;</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>(4,2)</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>termType</TD>
+	<TD VALIGN=top>&nbsp;</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>(2,20)</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>termLanguage</TD>
+	<TD VALIGN=top>language</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>(2,17)</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>termNote</TD>
+	<TD VALIGN=top>description</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>(1,15)</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>termCreatedDate</TD>
+	<TD VALIGN=top>creation date</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>(1,27)</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>termCreatedBy</TD>
+	<TD VALIGN=top>record created by</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>(1,16)</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>termModifiedDate</TD>
+	<TD VALIGN=top>dateOfLastModifification</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>(1,28)</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>termModifiedBy</TD>
+	<TD VALIGN=top>record modified by</TD>
+</TR>
+<TR><TD COLSPAN=4></TD></TR><!-- slight break in the table -->
+<TR>
+	<TD VALIGN=top>(4,4)</TD>
+	<TD VALIGN=top>0+</TD>
+	<TD VALIGN=top>postings</TD>
+	<TD VALIGN=top>&nbsp;</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>(4,4)(2,36)</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>sourceDb</TD>
+	<TD VALIGN=top>databaseName</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>(4,4)(4,5)</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>fieldName</TD>
+	<TD VALIGN=top>&nbsp;</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>(4,4)(4,6)</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>hitCount</TD>
+	<TD VALIGN=top>&nbsp;</TD>
+</TR>
+<TR><TD COLSPAN=4></TD></TR><!-- slight break in the table -->
+<TR>
+	<TD VALIGN=top>(2,30)</TD>
+	<TD VALIGN=top>0+</TD>
+	<TD VALIGN=top>relation</TD>
+	<TD VALIGN=top>relation</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>(2,30)(4,3)</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>relationType</TD>
+	<TD VALIGN=top>&nbsp;</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>(2,30)(2,36)</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>sourceDb</TD>
+	<TD VALIGN=top>databaseName</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>(2,30)(1,14)</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>termId</TD>
+	<TD VALIGN=top>localControlNumber</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>(2,30)(2,1)</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>termName</TD>
+	<TD VALIGN=top>title</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>(2,30)(4,1)</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>termQualifier</TD>
+	<TD VALIGN=top>&nbsp;</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>(2,30)(4,2)</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>termType</TD>
+	<TD VALIGN=top>&nbsp;</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>(2,30)(2,20)</TD>
+	<TD VALIGN=top>[0,1]</TD>
+	<TD VALIGN=top>termLanguage</TD>
+	<TD VALIGN=top>language</TD>
+</TR>
+</TABLE>
+
+<P>
+The <TT>termLanguage</TT> element is expressed as one of the standard
+codes described in
+RFC 1766 <A HREF="#r8">[8]</A> and
+ISO 639 <A HREF="#r9">[9]</A>
+- for example,
+``en'' for English, ``fr'' for French and ``de'' for German.
+<P>
+The administrative date fields should be returned in the ASN.1
+GeneralizedTime format.  (The working group considered the Z39.50
+ASN.1 date/time definition <A HREF="#r11">[11]</A>, but reached the
+conclusion that the benefits would be outweighed by the barrier raised
+to implementation.)
+<P>
+The person-name elements, <TT>termCreatedBy</TT> and
+<TT>termModifiedBy</TT>, may be returned in whatever format is
+convenient for the server: this profile does not attempt to address
+the interpretation of such administrative information across multiple
+databases.
+<P>
+The <TT>sourceDb</TT> element should be returned in the form of a
+<TT>z39.50s</TT> URL as described in
+RFC 2056 <A HREF="#r10">[10]</A>.
+For example, if the related term is in the database called ``aat'' on
+the server running on port 3950 on the host foo.bar.org, then the
+<TT>sourceDb</TT> element should have the value
+<TT>z39.50s://foo.bar.org:3950/aat</TT>.
+<P>
+Servers may, at their discretion, include additional tagSet-M,
+tagSet-G and string-tagged (type 3) elements in the records they
+return; they may include such additional elements at the top level,
+within relation sub-records, or both.  In particular, records may
+begin with a <TT>schemaIdentifier</TT> (1,1) element, in accordance
+with standard ``good practice''.  Clients may display any such
+additional elements as they see fit, or may ignore them.
+
+<H3><A NAME="3.4">3.4.  Element Sets</A></H3>
+
+<H4><A NAME="3.4.1">3.4.1.  Element Set ``f''</A></H4>
+Use of the element set ``f'' requests a full record, and so servers
+should respond by returning a record containing as many as possible of
+the elements listed above in the table in
+<A HREF="#3.3">section 3.3</A>.
+
+<H4><A NAME="3.4.2">3.4.2.  Element Set ``b''</A></H4>
+Use of the element set ``b'' requests a brief record.  Servers should
+respond by returning a record omitting the administrative fields
+(<TT>termCreatedDate</TT>, <TT>termCreatedBy</TT>,
+<TT>termModifiedDate</TT> and <TT>termModifiedBy</TT>), and all the
+<TT>relation</TT> sub-records.
+
+<P>
+This element set may be useful when constructing a summary of several
+records found by a search for initial entry points to a thesaurus; it
+is unlikely to be useful when navigating from term to term.
+
+<H3><A NAME="3.5">3.5.  The Zthes-1 Attribute Set</A></H3>
+This profile defines an attribute set called Zthes-1, which describes
+the additional access points needed for searching beyond those found
+in the standard utility and cross-domain attribute sets.  It contains
+the following attributes, all of type Access Point:
+
+<P>
+<TABLE BORDER=1 ALIGN=center CELLPADDING=5>
+<TR>
+	<TH ALIGN=left>Type</TH>
+	<TH ALIGN=left>Value</TH>
+	<TH ALIGN=left>Name</TH>
+	<TH ALIGN=left>Description</TH>
+</TR>
+<TR>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>termQualifier</TD>
+	<TD VALIGN=top>searches in the <TT>termQualifier</TT> element
+		of the top-level term record</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>2</TD>
+	<TD VALIGN=top>termType</TD>
+	<TD VALIGN=top>searches in the <TT>termType</TT> element
+		of the top-level term record</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>3</TD>
+	<TD VALIGN=top>thesAdmin</TD>
+	<TD VALIGN=top>used for a variety of searches related to
+		administrative details of thesaurus structure - see
+		below</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>4</TD>
+	<TD VALIGN=top>relatedTermID</TD>
+	<TD VALIGN=top>used in conjunction with a semantic qualifier
+		(attribute type 2) with value equal to one of the
+		<TT>relationType</TT>s described in
+		<A href="#relationType">section 2.2</A>;
+		searches for all records in the specified relation to
+		the record whose <TT>termID</TT> is equal to the
+		search term.
+		<P>
+		For example, a search for <TT>abc123</TT> with access
+		point <TT>relatedTermID</TT> and semantic qualifier
+		``NT'' finds all the narrower terms of the record
+		whose <TT>termID</TT> is <TT>abc123</TT>.
+</TR>
+<!-- ##NPT If non-preferred terms are allowed not to have records:
+<TR>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>5</TD>
+	<TD VALIGN=top>allTermNames</TD>
+	<TD VALIGN=top>searches for all distinguished
+		<TT>termName</TT>s, whether occurring in the top level
+		of a term record, or in a <TT>relation</TT> sub-record
+		with <TT>relationType</TT> of ``UF'' (use for).</TD>
+</TR>
+-->
+</TABLE>
+
+<P>
+The <TT>thesAdmin</TT> access point must be used with one of a small
+set of well-known strings as the search term.  Servers may support the
+following values:
+<TABLE>
+<TR>
+	<TD VALIGN=top>``start''</TD>
+	<TD>
+	Searches for all records considered suitable as starting
+	points for browsing.
+	</TD>
+</TR>
+	<TD VALIGN=top>``whole''</TD>
+	<TD>
+	Searches for a special record describing the thesaurus as a
+	whole, and containing material such as introductory text and
+	revision history that might be front matter in a printed
+	thesaurus.  This record, when it exists at all, may not be
+	found in any other search.
+	<P>
+	This profile does not currently specify the format of this
+	special record: candidate respresentions would be a
+	pre-formatted SUTRS record or a GRS-1 record using specialised
+	schema.
+	</TD>
+</TR>
+</TABLE>
+
+<P>
+The Zthes-1 attribute set conforms to attribute set class 1 as
+described in the Z39.50 Attribute Architecture.  However, it
+prescribes no rules to resolve conflict between its own semantics and
+those of another attribute set in the case where attributes for both
+are used in a single search term of a type-1 query and the top-level
+attribute-set of that query is Zthes-1.
+
+<H3><A NAME="3.6">3.6.  Searching</A></H3>
+Servers must support type-1 queries which use the following access
+points in a manner conformant to the definitions of the attribute sets
+which define them.  Where possible, standard attributes from utility
+and cross-domain sets are re-used; in these cases, the generic names
+of the attributes are listed in the right-hand column.
+
+<P>
+<TABLE BORDER=1 ALIGN=center CELLPADDING=5>
+<TR>
+	<TH ALIGN=left>Attribute Set</TH>
+	<TH ALIGN=left>Type</TH>
+	<TH ALIGN=left>Value</TH>
+	<TH ALIGN=left>Search For</TH>
+	<TH ALIGN=left>Generic Name</TH>
+</TR>
+<TR>
+	<TD VALIGN=top>utility</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>4</TD>
+	<TD VALIGN=top>termID</TD>
+	<TD VALIGN=top>local control number</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>cross-domain</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>termName</TD>
+	<TD VALIGN=top>title</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>zthes-1</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>termQualifier</TD>
+	<TD VALIGN=top>&nbsp;</TD>
+</TR>
+<!-- ##NPT If non-preferred terms are allowed not to have records:
+<TR>
+	<TD VALIGN=top>zthes-1</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>5</TD>
+	<TD VALIGN=top>allTermNames</TD>
+	<TD VALIGN=top>title</TD>
+</TR>
+-->
+<TR>
+	<TD VALIGN=top>utility</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>11</TD>
+	<TD VALIGN=top><I>all elements</I></TD>
+	<TD VALIGN=top>all access points</TD>
+</TR>
+</TABLE>
+
+<P>
+<B>Note:</B>
+Since the publication of version 0.2b of this profile, the numbering
+of the utility attribute set has changed, so that the <I>all
+elements</I> search now uses access point 11 rather than 10.  Servers
+are encouraged to support searches from old clients which use the old
+attribute value 10 as well as the new one.
+
+<P>
+For the purpose of searches on the <TT>local control number</TT> access point,
+values of the <TT>termID</TT> function as opaque ``magic cookies''.
+Therefore, such search terms should not include any contentAuthority
+attribute, even if it happens that for the specific thesaurus in
+question, the <TT>termID</TT> identifiers are taken from a well-known
+source.
+
+<P>
+The following additional access points may optionally be supported:
+
+<P>
+<TABLE BORDER=1 ALIGN=center CELLPADDING=5>
+<TR>
+	<TH ALIGN=left>Attribute Set</TH>
+	<TH ALIGN=left>Type</TH>
+	<TH ALIGN=left>Value</TH>
+	<TH ALIGN=left>Search For</TH>
+	<TH ALIGN=left>Generic Name</TH>
+</TR>
+<TR>
+	<TD VALIGN=top>zthes-1</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>3</TD>
+	<TD VALIGN=top>thesAdmin</TD>
+	<TD VALIGN=top>&nbsp;</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>zthes-1</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>4</TD>
+	<TD VALIGN=top>relatedTermID</TD>
+	<TD VALIGN=top>&nbsp;</TD>
+</TR>
+<TR>
+	<TD VALIGN=top></TD>
+	<TD VALIGN=top COLSPAN=4>
+	(with a semantic qualifier from the
+	<TT>relationType</TT> controlled vocabulary)
+	</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>utility</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>3</TD>
+	<TD VALIGN=top>termLanguage</TD>
+	<TD VALIGN=top>language</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>cross-domain</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>4</TD>
+	<TD VALIGN=top>termNote</TD>
+	<TD VALIGN=top>description</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>zthes-1</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>2</TD>
+	<TD VALIGN=top>termType</TD>
+	<TD VALIGN=top>&nbsp;</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>utility</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>termCreatedDate</TD>
+	<TD VALIGN=top>record date</TD>
+</TR>
+<TR>
+	<TD VALIGN=top></TD>
+	<TD VALIGN=top COLSPAN=4>
+	(with functional qualifier ``creation'')
+	</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>utility</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>2</TD>
+	<TD VALIGN=top>termCreatedBy</TD>
+	<TD VALIGN=top>record creator</TD>
+</TR>
+<TR>
+	<TD VALIGN=top></TD>
+	<TD VALIGN=top COLSPAN=4>
+	(with functional qualifier ``creation'')
+	</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>utility</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>termModifiedDate</TD>
+	<TD VALIGN=top>record date</TD>
+</TR>
+<TR>
+	<TD VALIGN=top></TD>
+	<TD VALIGN=top COLSPAN=4>
+	(with functional qualifier ``modification'')
+	</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>utility</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>2</TD>
+	<TD VALIGN=top>termModifiedBy</TD>
+	<TD VALIGN=top>record creator</TD>
+</TR>
+<TR>
+	<TD VALIGN=top></TD>
+	<TD VALIGN=top COLSPAN=4>
+	(with functional qualifier ``modification'')
+	</TD>
+</TR>
+<TR>
+	<TD VALIGN=top>utility</TD>
+	<TD VALIGN=top>1</TD>
+	<TD VALIGN=top>2</TD>
+	<TD VALIGN=top><I>either</I> termCreatedBy<BR>
+		       <I>or</I> termModifiedBy</TD>
+	<TD VALIGN=top>record creator</TD>
+</TR>
+<TR>
+	<TD VALIGN=top></TD>
+	<TD VALIGN=top COLSPAN=4>
+	(with no functional qualifier)
+	</TD>
+</TR>
+</TABLE>
+<P>
+
+<B>Note:</B>
+Since the publication of version 0.2b of this profile, functional
+qualifiers for use with the Record Date/Time and Record Agent access
+points have been added to the utility attribute set.  Accordingly, we
+now use the official functional qualifiers ``creation'' and
+``modification''.  Servers are encouraged to support searches from old
+clients which use the old functional qualifiers ``date/time created'',
+``creator'', ``date/time last modified'' and ``last modifier'' as well
+as the new one.
+
+<H3><A NAME="3.7">3.7.  Explain</A></H3>
+
+<H4><A NAME="3.7.1">3.7.1.  Overview</A></H4>
+(The specification for the use of Explain with Zthes databases was
+contributed by Denis Lynch.)
+<P>
+A client can gain two kinds of information about Zthes databases from
+Explain: the fact that a particular database is a Zthes database, and
+the fact that a Zthes database is relevant to a particular TermList.
+<P>
+These two uses are specified in the next two sections.
+
+<H4><A NAME="3.7.2">3.7.2.  Identifying a Zthes Database</A></H4>
+Among the many features that a client could use to deduce that a
+particular database follows the Zthes profile, the profile
+distinguishes one required indicator.  In the <TT>DatabaseInfo</TT>
+record for the database, the <TT>AccessInfo</TT> element must contain
+a <TT>schemas</TT> OID specifying the Zthes schema.
+<P>
+Once a client has observed the Zthes schema in the <TT>schemas</TT>
+for a database, it may presume that the server observes the behaviour
+described in this profile.  (The client may still need other
+information from Explain, for example additional record syntaxes that
+may be available.)
+
+<H4><A NAME="3.7.3">3.7.3.  Locating a Relevant Zthes Database</A></H4>
+Any database may use a Zthes thesaurus or other type of authority file
+for the basis of the vocabulary used for an access point.  This is
+described in Explain as follows: in the access point's
+<TT>TermListDetails</TT> record, the <TT>commonInfo</TT> element must
+contain an <TT>OtherInformation</TT> item encoded as an
+<TT>AuthorityFileInfo</TT> External.  The <TT>AuthorityFileInfo</TT>
+External is defined as follows:
+<BLOCKQUOTE>
+<PRE>
+AuthorityFileInfo ::= SEQUENCE {
+    name        [1] IMPLICIT HumanString,  -- for display
+    database    [2] IMPLICIT InternationalString,
+                     -- z39.50s URL to the authority database.
+                     -- Simplifies to a database name if on the same server.
+    exclusive   [3] IMPLICIT NULL OPTIONAL
+                     -- If present, all terms in the term
+                     -- list come from this authority file.
+                     -- If absent, other terms may or may not
+                     -- be present in the term list.
+}
+</PRE>
+</BLOCKQUOTE>
+<P>
+<B>Note:</B>
+It may be desirable to include an additional item to indicate
+the kind of authority file being referenced.  If it is desirable, an
+appropriate identification scheme will be required.
+
+<H2><A NAME="4">4.  Future Directions</A></H2>
+This document has already discussed several possible directions for
+subsequent versions of this profile, or perhaps future companion
+profiles.  Areas for consideration include, but may not be limited to,
+the following:
+
+<P>
+<UL>
+<LI>A specification for the schema of the optional whole-thesaurus
+	descriptive record that can be found by searching for
+	<TT>thesAdmin</TT>=<TT>whole</TT>.
+<LI>A way for clients to request servers to include <TT>postings</TT>
+	sub-records only for a specified set of ``interesting'' target
+	databases.
+<LI>Use of the Scan service on <TT>termName</TT> to derive alphabetic
+	displays.
+<!-- ##NPT I don't think we want to mention this, since we're almost
+	certainly not going to do it
+<LI>More lightweight support for non-preferred terms: for example,
+	allowing <TT>relation</TT> sub-records to omit the
+	<TT>termId</TT> element, or introducing an optional and
+	repeatable <TT>alternateTerms</TT> sub-record, consisting of
+	<TT>termName</TT> and <TT>termLanguage</TT> elements, at the
+	top level.  (This will also require searching support.)
+-->
+<LI>Support for version numbers of thesauri and/or terms.
+<LI>Post-coordination: for example: coal mining USE COAL + MINING
+	<!-- ### Is this just a matter of multiple USE relations?
+	Yes, but they must be links from NP term records, which we
+	may decide to allow not to exist! -->
+<!-- ### What did I mean by this?
+<LI>Use of <TT>z39.50r</TT> URLs or an attribute-architecture friendly
+	equivalent.
+-->
+</UL>
+
+<H2><A NAME="5">5.  Appendix A.  References</A></H2>
+<!-- ### We could re-order these now that the list has stabilised, but
+	 maybe consistency of reference-number is more important -->
+<TABLE>
+<TR>
+	<TD VALIGN=top><A NAME="r1">[1]</A></TD>
+	<TD>National Information Standards Organization.
+	ANSI/NISO Z39.50-1995.  <I>Information Retrieval (Z39.50):
+	Application Service Definition and Protocol Specification.</I>
+	Bethesda, MD: NISO Press, 1995.
+	Also available at
+	<A HREF="http://lcweb.loc.gov/z3950/agency/document.html"
+	><TT>http://lcweb.loc.gov/z3950/agency/document.html</TT></A>
+	</TD>
+</TR>
+<TR>
+	<TD VALIGN=top><A NAME="r2">[2]</A></TD>
+	<TD>International Organization for Standardization.
+	ISO 2788: <I>Guidelines for the establishment and development of
+	monolingual thesauri</I>, 2nd ed.  Geneva: ISO, 1986.  For
+	some inexplicable and inexcusable reason, ISO standards are
+	not generally available on-line.
+	</TD>
+</TR>
+<TR>
+	<TD VALIGN=top><A NAME="r3">[3]</A></TD>
+	<TD>Z39.50 Maintenance Agency.
+	<I>Z39.50 Attribute Architecture</I>, Draft of November 1998.
+	Available at
+	<A HREF="http://lcweb.loc.gov/z3950/agency/attrarch/arch.html"
+	><TT>http://lcweb.loc.gov/z3950/agency/attrarch/arch.html</TT></A>
+	</TD>
+</TR>
+<TR>
+	<TD VALIGN=top><A NAME="r4">[4]</A></TD>
+	<TD>Z39.50 Maintenance Agency.
+	<I>Z39.50 Utility Attribute Set</I>, Version 1 of November 1999.
+	Available at
+	<A HREF="http://lcweb.loc.gov/z3950/agency/attrarch/util.html"
+	><TT>http://lcweb.loc.gov/z3950/agency/attrarch/util.html</TT></A>
+	</TD>
+</TR>
+<TR>
+	<TD VALIGN=top><A NAME="r5">[5]</A></TD>
+	<TD>Ralph LeVan.
+	<I>A Cross-Domain Attribute Set</I>, version 1.2 of 1998/11/16.
+	Available at
+	<A HREF="http://www.oclc.org/~levan/docs/crossdomainattributeset.html"
+	><TT>http://www.oclc.org/~levan/docs/crossdomainattributeset.html</TT></A>
+	</TD>
+</TR>
+<TR>
+	<TD VALIGN=top><A NAME="r6">[6]</A></TD>
+	<TD>There is <I>no</I> reference number 6
+	</TD>
+</TR>
+<TR>
+	<TD VALIGN=top><A NAME="r7">[7]</A></TD>
+	<TD>International Organization for Standardization.
+	ISO 5964: <I>Guidelines for the establishment and development of
+	multilingual thesauri</I>.  Geneva: ISO, 1985.
+	</TD>
+</TR>
+<TR>
+	<TD VALIGN=top><A NAME="r8">[8]</A></TD>
+	<TD>H. Alvestrand.
+	RFC 1766: <I>Tags for the Identification of Languages</I>.
+	March 1995.
+	Available at <A HREF="ftp://ftp.uu.net/inet/rfc/rfc1766.Z"
+	><TT>ftp://ftp.uu.net/inet/rfc/rfc1766.Z</TT></A>
+	</TD>
+</TR>
+<TR>
+	<TD VALIGN=top><A NAME="r9">[9]</A></TD>
+	<TD>International Organization for Standardization.  Prepared
+	by ISO/TC 37, Terminology (principles and coordination).
+	ISO 639:1988 (E/F): <I>Code for the representation of names of
+	languages</I>, 1st edition, 1988.
+	</TD>
+</TR>
+<TR>
+	<TD VALIGN=top><A NAME="r10">[10]</A></TD>
+	<TD>R. Denenberg, J. Kunze, D. Lynch.
+	RFC 2056: <I>Uniform Resource Locators for Z39.50</I>.
+	November 1996.
+	Available at <A HREF="ftp://ftp.uu.net/inet/rfc/rfc2056.Z"
+	><TT>ftp://ftp.uu.net/inet/rfc/rfc2056.Z</TT></A>
+	</TD>
+</TR>
+<TR>
+	<TD VALIGN=top><A NAME="r11">[11]</A></TD>
+	<TD>Z39.50 Maintenance Agency.
+	<I>Z39.50 Date/Time Definition</I>, April 6, 1998 (amended
+	February 17, 1999.)
+	Available at
+	<A HREF="http://lcweb.loc.gov/z3950/agency/defns/date.html"
+	><TT>http://lcweb.loc.gov/z3950/agency/defns/date.html</TT></A>
+	</TD>
+</TR>
+</TABLE>
+
+<H2><A NAME="6">6.  Appendix B.  The Zthes Abstract Model in XML</A></H2>
+<P>
+This appendix has been removed, since more up to date information
+about the XML representation of the Zthes data model can now be found at
+<A href="http://zthes.z3950.org/xml/">zthes.z3950.org/xml</A>
+
+<H3><A NAME="6.1">6.1.  The Zthes DTD for XML</A></H3>
+<P>
+See
+<A href="http://zthes.z3950.org/xml/">zthes.z3950.org/xml</A>
+
+<H3><A NAME="6.2">6.2.  Sample Zthes-in-XML Document</A></H3>
+<P>
+See
+<A href="http://zthes.z3950.org/xml/">zthes.z3950.org/xml</A>
+
+<H2><A NAME="7">7.  Appendix C.  Implementations</A></H2>
+<P>
+This appendix has been removed, since more up to date information
+about implementations can now be found at
+<A href="http://zthes.z3950.org/impl/">zthes.z3950.org/impl</A>
+
+<H2><A NAME="8">8.  Appendix D.  Applications</A></H2>
+<P>
+This appendix has been removed, since more up to date information
+about applications can now be found at
+<A href="http://zthes.z3950.org/apps/">zthes.z3950.org/apps</A>
+
+<!-- ### Check superset-ness WRT Library of Congress Subject Headings:
+	 http://lcweb.loc.gov/marc/authority/ecadhome.html -->
+  <P>
+  <DIV class="navbar">
+   <SPAN style="text-align: center">
+    <A href="/index.html"><B>Home</B></A> |
+    <A href="/sitemap.html">Site Map</A> |
+    <A href="/search.html">Search</A> |
+    <A href="/new.html">What's New?</A>
+    <BR>
+    <A href="/profile/index.html">Profile</A> |
+    <A href="/xml/index.html">XML</A> |
+    <A href="/impl/index.html">Implementations</A> |
+    <A href="/apps/index.html">Applications</A>
+   </SPAN>
+  </DIV>
+
+  <P>
+  <DIV align="center"><SMALL>
+   Feedback to &lt;<A href="mailto:mike@zthes.z3950.org">mike@zthes.z3950.org</A>&gt; is welcome!
+  </SMALL></DIV align="center">
+ </BODY>
+</HTML>
+

@@ -1,0 +1,5 @@
+IR DEFINITIONS ::=  
+BEGIN   -- ANSI Z39.50 version 2 - July 1, 1992      
+     AttributeList  ::=  [44]  IMPLICIT SEQUENCE OF AttributeElement
+     Term           ::=  [45]   IMPLICIT OCTET STRING
+END

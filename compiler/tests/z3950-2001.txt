@@ -1,0 +1,4522 @@
+-- Note: this was produced from the draft 2001 PDF file via pdftohtml
+-- (http://sourceforge.net/projects/pdftohtml), some manual fiddling with
+-- emacs regexps to obtain a text file (if I have to do this again I'll
+-- use sed, I promise), fixing errors in the definition (all marked by XXX),
+-- and then hacking the code slightly (changes also marked with XXX) 
+-- to accomodate the current limitations of my ASN.1 compiler (no
+--  recursive structures: substituted with PYQUOTE  code; no support for
+-- modules: rename definitions where necessary)
+
+-- XXX check Explain characterSets def'n
+Module DEFINITIONS ::= 
+BEGIN   -- November  2001 
+EXPORTS OtherInformation, Term, AttributeSetId, AttributeList, AttributeElement, ElementSetName, 
+SortElement, DatabaseName, CompSpec, Specification, Permissions, InternationalString, IntUnit, Unit, 
+StringOrNumeric, Query, Records, ResultSetId, DefaultDiagFormat, DiagRec; 
+APDU ::= CHOICE{ 
+initRequest 
+ 
+ 
+[20] IMPLICIT InitializeRequest, 
+initResponse 
+ 
+ 
+[21] IMPLICIT InitializeResponse, 
+searchRequest   
+ 
+[22] IMPLICIT SearchRequest, 
+searchResponse   
+ 
+[23] IMPLICIT SearchResponse, 
+presentRequest   
+ 
+[24] IMPLICIT PresentRequest, 
+presentResponse   
+ 
+[25] IMPLICIT PresentResponse, 
+deleteResultSetRequest     
+[26] IMPLICIT DeleteResultSetRequest, 
+deleteResultSetResponse   
+[27] IMPLICIT DeleteResultSetResponse, 
+accessControlRequest 
+ 
+[28] IMPLICIT AccessControlRequest, -- XXX was AcessControlRequest
+accessControlResponse   
+[29] IMPLICIT AccessControlResponse, 
+resourceControlRequest   
+[30] IMPLICIT ResourceControlRequest, 
+resourceControlResponse   
+[31] IMPLICIT ResourceControlResponse, 
+triggerResourceControlRequest  
+[32] IMPLICIT TriggerResourceControlRequest, 
+resourceReportRequest   
+[33] IMPLICIT ResourceReportRequest, 
+resourceReportResponse   
+[34] IMPLICIT ResourceReportResponse, 
+scanRequest 
+ 
+ 
+[35] IMPLICIT ScanRequest, 
+scanResponse 
+ 
+ 
+[36] IMPLICIT ScanResponse, 
+ 
+ 
+-- [37] through [42] not used 
+sortRequest 
+ 
+ 
+[43] IMPLICIT SortRequest, 
+sortResponse 
+ 
+ 
+[44] IMPLICIT SortResponse, 
+segmentRequest   
+ 
+[45] IMPLICIT Segment, 
+extendedServicesRequest   
+[46] IMPLICIT ExtendedServicesRequest, 
+extendedServicesResponse 
+[47] IMPLICIT ExtendedServicesResponse, 
+close 
+ 
+ 
+ 
+[48] IMPLICIT Close, 
+duplicateDetectionRequest 
+[49] IMPLICIT ExtendedServicesRequest, 
+duplicateDetectionResponse 
+[50] IMPLICIT DuplicateDetectionResponse} 
+ -- Initialize APDUs 
+InitializeRequest ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ 
+ReferenceId OPTIONAL, 
+protocolVersion   
+ 
+ 
+ProtocolVersion, 
+options   
+ 
+ 
+ 
+Options, 
+preferredMessageSize 
+ 
+[5] 
+IMPLICIT INTEGER, 
+exceptionalRecordSize 
+ 
+[6] 
+IMPLICIT INTEGER, 
+idAuthentication   
+ 
+[7] 
+ANY OPTIONAL,  
+
+-- See comment 8 
+implementationId   
+ 
+[110] 
+IMPLICIT InternationalString OPTIONAL, 
+implementationName 
+ 
+[111] 
+IMPLICIT InternationalString OPTIONAL, 
+implementationVersion 
+ 
+[112] 
+IMPLICIT InternationalString OPTIONAL,  
+userInformationField 
+ 
+[11] 
+EXTERNAL OPTIONAL, 
+otherInfo 
+ 
+ 
+ 
+OtherInformation OPTIONAL} 
+ InitializeResponse ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ 
+ReferenceId OPTIONAL, 
+protocolVersion   
+ 
+ 
+ProtocolVersion, 
+options   
+ 
+ 
+ 
+Options, 
+preferredMessageSize 
+ 
+[5] 
+IMPLICIT INTEGER, 
+exceptionalRecordSize 
+ 
+[6] 
+IMPLICIT INTEGER, 
+result   
+ 
+[12] 
+IMPLICIT BOOLEAN,     
+-- reject = FALSE; Accept = TRUE 
+implementationId   
+ 
+[110] 
+IMPLICIT InternationalString OPTIONAL, 
+implementationName 
+ 
+[111] 
+IMPLICIT InternationalString OPTIONAL, 
+implementationVersion 
+ 
+[112] 
+IMPLICIT InternationalString OPTIONAL,  
+userInformationField 
+ 
+[11] 
+EXTERNAL OPTIONAL, 
+otherInfo 
+ 
+ 
+ 
+OtherInformation OPTIONAL} 
+ 
+--Begin auxiliary definitions for Init APDUs 
+ 
+ProtocolVersion  ::=[3] IMPLICIT BIT STRING{ 
+version-1 
+(0), 
+ 
+-- This bit should always be set,  
+--but does not correspond to any Z39.50 version. 
+version-2 
+(1), 
+ 
+-- &quot;Version 2 supported.&quot; This bit should always be set. 
+version-3 
+(2)  
+ 
+-- &quot;Version 3 supported.&quot; 
+-- See comment 9 
+} 
+ 
+Options  ::= [4] IMPLICIT BIT STRING{  
+search     
+ 
+(0),  
+present    
+ 
+(1),  
+delSet     
+ 
+(2), 
+resourceReport   
+(3), 
+triggerResourceCtrl 
+(4), 
+resourceCtrl  
+ 
+(5), 
+accessCtrl  
+ 
+(6), 
+scan 
+  
+ 
+(7), 
+sort 
+ 
+ 
+(8),  
+
+unused -- XXX added 
+-- (not used) 
+(9),  
+extendedServices 
+(10), 
+level-1Segmentation 
+(11), 
+level-2Segmentation 
+(12), 
+concurrentOperations 
+(13), 
+namedResultSets  
+(14), 
+encapsulation -- XXX was Encapsulation
+ 
+(15), 
+resultCountInSort 
+(16), 
+negotiation 
+ 
+(17), 
+dedup    -- XXX was Dedup
+ 
+(18), 
+query104 
+ 
+(19), 
+pQESCorrection   -- XXX was PQESCorrection
+(20), 
+stringSchema  
+ 
+(21)} 
+-- End auxiliary definitions for Init APDUs 
+ 
+ 
+ -- Search APDUs 
+SearchRequest ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ 
+ReferenceId OPTIONAL, 
+smallSetUpperBound 
+ 
+[13] 
+IMPLICIT INTEGER, 
+largeSetLowerBound 
+ 
+[14] 
+IMPLICIT INTEGER, 
+mediumSetPresentNumber 
+[15] 
+IMPLICIT INTEGER, 
+replaceIndicator   
+ 
+[16] 
+IMPLICIT BOOLEAN, 
+resultSetName   
+ 
+[17] 
+IMPLICIT InternationalString, 
+databaseNames   
+ 
+[18] 
+IMPLICIT SEQUENCE OF DatabaseName, 
+smallSetElementSetNames [100] ElementSetNames OPTIONAL, 
+mediumSetElementSetNames [101] ElementSetNames OPTIONAL, 
+preferredRecordSyntax   [104] IMPLICIT OBJECT IDENTIFIER OPTIONAL, 
+query   [21] Query, 
+-- Following two parameters may be used only if version 3 is in force. 
+additionalSearchInfo [203] IMPLICIT OtherInformation OPTIONAL, 
+otherInfo OtherInformation OPTIONAL} 
+
+ --Query Definitions 
+Query  ::= 
+CHOICE{ 
+type-0  [0] 
+ANY, 
+type-1  [1] 
+IMPLICIT RPNQuery, 
+type-2  [2] 
+OCTET STRING, 
+type-100 [100] 
+OCTET STRING, 
+type-101 [101] 
+IMPLICIT RPNQuery, 
+type-102 [102] 
+OCTET STRING, 
+type-104 [104] 
+IMPLICIT EXTERNAL} 
+ --Definitions for RPN query 
+RPNQuery ::= SEQUENCE{ 
+attributeSet 
+AttributeSetId, 
+rpn 
+ 
+RPNStructure} 
+-- XXX FIXUP RPNStructure is hacked to avoid cycles, and then fixed up later
+RPNStructure ::= CHOICE{ 
+op [0] Operand,  
+rpnRpnOp [1] IMPLICIT NULL} -- NULL was RpnRpnOp
+
+RpnRpnOp ::= SEQUENCE{ 
+rpn1 RPNStructure, 
+rpn2 RPNStructure, 
+op Operator }
+
+--PYQUOTE RPNStructure['rpnRpnOp'] =  ('rpnRpnOp', 1, RpnRpnOp)
+
+Operand ::= CHOICE{ 
+attrTerm 
+AttributesPlusTerm,  
+resultSet 
+ResultSetId,  
+--If version 2 is in force:  
+--If query type is 1, one of the above two must be chosen 
+--resultAttr (below) may be used only if query type is 101 
+resultAttr 
+ 
+ResultSetPlusAttributes} 
+AttributesPlusTerm ::= [102] IMPLICIT SEQUENCE{ 
+attributes 
+ 
+AttributeList,  
+term 
+ 
+ 
+Term} 
+ResultSetPlusAttributes ::= [214] IMPLICIT SEQUENCE{ 
+resultSet 
+ResultSetId, 
+attributes 
+AttributeList} 
+AttributeList ::=   
+[44] 
+IMPLICIT SEQUENCE OF AttributeElement 
+Term ::= CHOICE{ 
+general   
+ 
+[45] 
+IMPLICIT OCTET STRING, 
+-- Values below may be used only if version 3 is in force 
+numeric   
+[215] 
+IMPLICIT INTEGER, 
+characterString   
+[216] 
+IMPLICIT InternationalString, 
+oid 
+ 
+ 
+[217] 
+IMPLICIT OBJECT IDENTIFIER, 
+dateTime 
+ 
+[218] 
+IMPLICIT GeneralizedTime, 
+external   
+ 
+[219] 
+IMPLICIT EXTERNAL, 
+integerAndUnit   
+[220]   IMPLICIT IntUnit, 
+null 
+ 
+ 
+[221]   IMPLICIT NULL} 
+Operator ::= [46] CHOICE{ 
+and 
+ 
+ 
+[0] IMPLICIT NULL, 
+or 
+ 
+ 
+[1] IMPLICIT NULL, 
+and-not   
+ 
+[2] IMPLICIT NULL, 
+--If version 2 is in force:  
+--For query type 1, one of the above three must be chosen; 
+--prox (below) may be used only if query type is 101.  
+prox 
+ 
+ 
+[3] IMPLICIT ProximityOperator} 
+AttributeElement  ::=  SEQUENCE{ 
+attributeSet 
+[1] 
+IMPLICIT AttributeSetId OPTIONAL, 
+--Must be omitted if version 2 is in force.  
+--If included, overrides value of attributeSet in RPNQuery above, but <i>only</i> for <i>this</i> attribute. 
+attributeType 
+[120] 
+IMPLICIT INTEGER, 
+attributeValue 
+ 
+CHOICE{ 
+numeric  [121] IMPLICIT INTEGER, 
+-- If version 2 is in force, must select 'numeric' for attributeValue 
+complex [224] IMPLICIT SEQUENCE{  
+list 
+[1]  IMPLICIT SEQUENCE OF StringOrNumeric, 
+semanticAction  [2]  IMPLICIT SEQUENCE OF INTEGER  
+                                       OPTIONAL} 
+-- See comment 10. 
+}} 
+ProximityOperator ::= SEQUENCE{ 
+exclusion 
+ 
+[1] IMPLICIT BOOLEAN OPTIONAL, 
+distance  
+ 
+[2] IMPLICIT INTEGER, 
+ordered   
+ 
+[3] IMPLICIT BOOLEAN, 
+relationType 
+ 
+[4] IMPLICIT INTEGER{ 
+lessThan 
+ 
+(1), 
+lessThanOrEqual  
+(2), 
+equal 
+ 
+ 
+(3), 
+greaterThanOrEqual 
+(4), 
+greaterThan 
+ 
+(5), 
+notEqual 
+ 
+(6)}, 
+proximityUnitCode 
+ 
+[5] CHOICE{ 
+known  [1] IMPLICIT KnownProximityUnit, 
+private  [2] IMPLICIT INTEGER}} 
+KnownProximityUnit ::= INTEGER{ 
+character 
+(1), 
+word    
+(2), 
+sentence  
+(3), 
+paragraph  
+(4), 
+section    
+(5), 
+chapter   
+(6), 
+document  
+(7), 
+element   
+(8), 
+subelement 
+(9), 
+elementType 
+(10), 
+byte 
+ 
+(11) 
+-- Version 3 only 
+} 
+--End definitions for RPN Query 
+  SearchResponse ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ 
+ReferenceId OPTIONAL, 
+resultCount  
+ 
+ 
+[23] 
+IMPLICIT INTEGER, 
+numberOfRecordsReturned 
+[24] 
+IMPLICIT INTEGER, 
+nextResultSetPosition 
+ 
+[25] 
+IMPLICIT INTEGER, 
+searchStatus 
+ 
+ 
+[22] IMPLICIT BOOLEAN, 
+resultSetStatus   [26] 
+IMPLICIT INTEGER{ 
+subset  (1), 
+interim  (2),  
+none 
+(3)} OPTIONAL, 
+presentStatus PresentStatus OPTIONAL, 
+records   Records OPTIONAL, 
+-- Following two parameters may be used only if version 3 is in force. 
+additionalSearchInfo 
+[203] 
+ 
+IMPLICIT OtherInformation OPTIONAL, 
+otherInfo 
+ 
+ 
+ 
+OtherInformation OPTIONAL} 
+ -- Retrieval APDUs  
+PresentRequest ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ 
+ReferenceId OPTIONAL, 
+resultSetId 
+ 
+ 
+ 
+ResultSetId, 
+resultSetStartPoint 
+ 
+[30] 
+IMPLICIT INTEGER, 
+numberOfRecordsRequested 
+[29] 
+IMPLICIT INTEGER, 
+additionalRanges   
+[212] 
+IMPLICIT SEQUENCE OF Range OPTIONAL, 
+-- additionalRanges may be included only if version 3 is in force. 
+recordComposition 
+CHOICE{ 
+simple   [19] ElementSetNames, 
+-- Must choose 'simple' if version 2 is in force 
+complex  [209] IMPLICIT CompSpec} OPTIONAL, 
+preferredRecordSyntax  [104] 
+IMPLICIT OBJECT IDENTIFIER OPTIONAL, 
+maxSegmentCount 
+[204] 
+IMPLICIT INTEGER OPTIONAL,--level 1 or 2 
+maxRecordSize  [206] 
+IMPLICIT INTEGER OPTIONAL,--level 2 only 
+maxSegmentSize  [207] 
+IMPLICIT INTEGER OPTIONAL,--level 2 only 
+otherInfo 
+ 
+ 
+ 
+OtherInformation OPTIONAL} 
+Segment ::= SEQUENCE{ 
+-- Segment APDU may only be used when version 3 is in force, and only when segmentation is in effect 
+referenceId 
+ 
+ 
+ 
+ReferenceId OPTIONAL, 
+numberOfRecordsReturned 
+[24] 
+IMPLICIT INTEGER, 
+segmentRecords   
+ 
+[0] 
+IMPLICIT SEQUENCE OF NamePlusRecord, 
+otherInfo 
+ 
+ 
+ 
+OtherInformation OPTIONAL} 
+PresentResponse ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ 
+ReferenceId OPTIONAL, 
+numberOfRecordsReturned 
+[24] 
+IMPLICIT INTEGER, 
+nextResultSetPosition 
+ 
+[25] 
+IMPLICIT INTEGER, 
+presentStatus 
+ 
+ 
+ 
+PresentStatus, 
+records   
+ 
+ 
+ 
+Records OPTIONAL, 
+otherInfo 
+ 
+ 
+ 
+OtherInformation OPTIONAL}  
+ --Begin auxiliary definitions for Search and Present APDUs 
+--Begin definition of records 
+Records ::= CHOICE{ 
+responseRecords  
+ 
+[28] 
+IMPLICIT SEQUENCE OF NamePlusRecord, 
+nonSurrogateDiagnostic   
+[130] 
+IMPLICIT DefaultDiagFormat, 
+multipleNonSurDiagnostics 
+[205] 
+IMPLICIT SEQUENCE OF DiagRec}  
+
+NamePlusRecord ::= SEQUENCE{ 
+name   
+ 
+[0] IMPLICIT DatabaseName OPTIONAL, 
+record   
+ 
+[1] CHOICE{ 
+retrievalRecord   
+[1] EXTERNAL, 
+surrogateDiagnostic 
+[2] DiagRec,  
+--Must select one of the above two, retrievalRecord or surrogateDiagnostic,  
+--unless 'level 2 segmentation' is in effect. 
+startingFragment   
+[3] FragmentSyntax, 
+intermediateFragment 
+[4] FragmentSyntax, 
+finalFragment 
+ 
+[5] FragmentSyntax}} 
+FragmentSyntax ::= CHOICE{ 
+externallyTagged  
+ 
+EXTERNAL, 
+notExternallyTagged 
+ 
+OCTET STRING} 
+DiagRec ::= CHOICE{ 
+defaultFormat 
+ 
+DefaultDiagFormat, 
+-- Must choose defaultFormat if version 2 is in effect 
+externallyDefined 
+EXTERNAL} 
+DefaultDiagFormat::= SEQUENCE{  
+diagnosticSetId  OBJECT IDENTIFIER, -- XXX was DiagnosticSetId
+condition 
+ 
+INTEGER, 
+addinfo   
+ 
+CHOICE{ 
+v2Addinfo 
+VisibleString, 
+ 
+--Version 2 
+v3Addinfo 
+InternationalString 
+--Version 3 
+ -- SEE COMMENT 1  
+}} 
+--End definition of records 
+Range  ::= SEQUENCE{ 
+startingPosition   
+ 
+[1] IMPLICIT INTEGER, 
+numberOfRecords 
+ 
+[2] IMPLICIT INTEGER}  
+ElementSetNames ::= CHOICE { 
+genericElementSetName  [0] IMPLICIT InternationalString, 
+databaseSpecific    [1] IMPLICIT SEQUENCE OF SEQUENCE{ 
+dbName DatabaseName, 
+esn ElementSetName}} 
+
+PresentStatus ::= [27] 
+IMPLICIT INTEGER{ 
+success  (0), 
+partial-1  (1), 
+partial-2  (2), 
+partial-3  (3), 
+partial-4  (4), 
+failure   (5)} 
+
+ -- Begin definition of composition specification 
+CompSpec ::= SEQUENCE{ 
+selectAlternativeSyntax  [1] IMPLICIT BOOLEAN, 
+--See comment for recordSyntax, below 
+generic   
+[2] IMPLICIT Specification OPTIONAL, 
+dbSpecific 
+ 
+[3] IMPLICIT SEQUENCE OF SEQUENCE{ 
+db 
+[1] DatabaseName, 
+spec 
+[2] IMPLICIT Specification} OPTIONAL, 
+ -- At least one of generic and dbSpecific must occur,  
+    --  and both may occur. If both, then for any record no 
+--  in the list of databases within dbSpecific, generic applies 
+recordSyntax 
+[4] IMPLICIT SEQUENCE OF OBJECT IDENTIFIER OPTIONAL 
+-- For each record, the server selects the first record syntax in 
+ -- this list that it can support.  If the list is exhausted, the server 
+-- may select an alternative syntax if selectAlternativeSyntax is 'true'. 
+} 
+Specification ::= SEQUENCE{ 
+schema CHOICE{ 
+              oid [1] IMPLICIT OBJECT IDENTIFIER,  
+              uri [300] IMPLICIT InternationalString  
+-- only if option bit  21 has been negotiated 
+} OPTIONAL,  
+elementSpec 
+ 
+[2] CHOICE{ 
+elementSetName [1] IMPLICIT InternationalString, 
+externalEspec 
+[2] IMPLICIT EXTERNAL} OPTIONAL} 
+-- End definition of composition specification 
+-- End auxiliary definitions for search and response APDUs 
+ -- Delete APDUs 
+DeleteResultSetRequest ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ 
+ReferenceId OPTIONAL, 
+deleteFunction   
+[32] 
+IMPLICIT INTEGER{ 
+list  
+(0), 
+all  
+(1)}, 
+resultSetList 
+ 
+ 
+SEQUENCE OF ResultSetId OPTIONAL, 
+otherInfo 
+ 
+ 
+ 
+OtherInformation OPTIONAL}  
+DeleteResultSetResponse ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ReferenceId OPTIONAL, 
+deleteOperationStatus 
+[0] 
+IMPLICIT DeleteSetStatus, 
+deleteListStatuses 
+[1] 
+IMPLICIT ListStatuses OPTIONAL, 
+numberNotDeleted  
+[34] 
+IMPLICIT INTEGER OPTIONAL, 
+bulkStatuses 
+ 
+[35]  
+IMPLICIT ListStatuses OPTIONAL, 
+deleteMessage   
+[36] 
+IMPLICIT InternationalString OPTIONAL, 
+otherInfo 
+ 
+ 
+ 
+OtherInformation OPTIONAL} 
+ListStatuses ::= SEQUENCE OF SEQUENCE{  
+id 
+ 
+ResultSetId,  
+status   
+DeleteSetStatus} 
+DeleteSetStatus ::= [33] IMPLICIT INTEGER{ 
+success   
+ 
+ 
+ 
+(0), 
+resultSetDidNotExist 
+ 
+ 
+(1), 
+previouslyDeletedByServer 
+ 
+(2), 
+systemProblemAtServer   
+ 
+(3), 
+accessNotAllowed 
+ 
+ 
+(4), 
+resourceControlAtClient   
+ 
+(5), 
+resourceControlAtServer   
+ 
+(6), 
+bulkDeleteNotSupported   
+ 
+(7), 
+notAllRsltSetsDeletedOnBulkDlte   
+(8), 
+notAllRequestedResultSetsDeleted   
+(9), 
+resultSetInUse   
+ 
+ 
+(10)} 
+ --Access- and Resource-control APDUs 
+AccessControlRequest ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ 
+ 
+ReferenceId OPTIONAL, 
+securityChallenge 
+ 
+ 
+ 
+CHOICE{ 
+simpleForm 
+ 
+ 
+[37] 
+IMPLICIT OCTET STRING, 
+externallyDefined 
+ 
+[0] 
+EXTERNAL}, 
+ 
+otherInfo 
+OtherInformation OPTIONAL} 
+  AccessControlResponse ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ 
+ 
+ReferenceId OPTIONAL, 
+securityChallengeResponse 
+ 
+CHOICE{ 
+simpleForm 
+ 
+ 
+[38] 
+IMPLICIT OCTET STRING, 
+externallyDefined 
+ 
+[0] 
+EXTERNAL} OPTIONAL, 
+  
+ 
+ 
+--Optional only in version 3; mandatory in version 2. 
+-- If omitted (in version 3) then diagnostic must occur. 
+diagnostic 
+ 
+ 
+ 
+[223] 
+DiagRec OPTIONAL, 
+ 
+--Version 3 only 
+ otherInfo 
+ 
+ 
+ 
+ 
+OtherInformation OPTIONAL} 
+ 
+ResourceControlRequest ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ 
+ReferenceId OPTIONAL, 
+suspendedFlag   
+ 
+[39] 
+IMPLICIT BOOLEAN OPTIONAL, 
+resourceReport   
+ 
+[40] 
+ResourceReport OPTIONAL, 
+partialResultsAvailable 
+ 
+[41] 
+IMPLICIT INTEGER{ 
+subset  (1), 
+interim  (2), 
+none 
+(3)} OPTIONAL, 
+responseRequired 
+ 
+[42] 
+IMPLICIT BOOLEAN,  
+triggeredRequestFlag 
+ 
+[43] 
+IMPLICIT BOOLEAN OPTIONAL, 
+otherInfo 
+ 
+ 
+ 
+OtherInformation OPTIONAL} 
+ResourceControlResponse ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ 
+ReferenceId OPTIONAL, 
+continueFlag  
+ 
+ 
+[44] 
+IMPLICIT BOOLEAN,  
+resultSetWanted   
+ 
+[45] 
+IMPLICIT BOOLEAN OPTIONAL, 
+otherInfo 
+ 
+ 
+ 
+OtherInformation OPTIONAL} 
+TriggerResourceControlRequest ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ 
+ReferenceId OPTIONAL, 
+requestedAction   
+ 
+[46] 
+IMPLICIT INTEGER{ 
+resourceReport  (1), 
+resourceControl  (2), 
+cancel   
+(3)}, 
+prefResourceReportFormat 
+[47] 
+IMPLICIT ResourceReportId OPTIONAL, 
+resultSetWanted   
+[48] 
+IMPLICIT BOOLEAN OPTIONAL, 
+otherInfo 
+ 
+ 
+OtherInformation OPTIONAL} 
+ResourceReportRequest ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ 
+ 
+ReferenceId OPTIONAL, 
+opId 
+ 
+ 
+ 
+[210] 
+IMPLICIT ReferenceId OPTIONAL, 
+prefResourceReportFormat  
+[49]  
+IMPLICIT ResourceReportId OPTIONAL, 
+otherInfo 
+ 
+ 
+ 
+ 
+OtherInformation OPTIONAL} 
+ResourceReportResponse ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ 
+ReferenceId OPTIONAL, 
+resourceReportStatus 
+ 
+[50] 
+IMPLICIT INTEGER{ 
+success  (0), 
+partial  (1), 
+failure-1 (2), 
+failure-2 (3), 
+failure-3 (4), 
+failure-4 (5), 
+failure-5 (6), 
+failure-6 (7)}, 
+
+resourceReport   
+ 
+[51] 
+ResourceReport OPTIONAL, 
+otherInfo 
+ 
+ 
+ 
+OtherInformation OPTIONAL} 
+ResourceReport   ::=  EXTERNAL 
+ResourceReportId 
+::=  
+OBJECT IDENTIFIER 
+ --Scan APDUs 
+ScanRequest ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ 
+ 
+ReferenceId OPTIONAL, 
+databaseNames   
+ 
+[3] 
+IMPLICIT SEQUENCE OF DatabaseName, 
+attributeSet 
+ 
+ 
+ 
+AttributeSetId OPTIONAL, 
+-- SEE COMMENT 2  
+termListAndStartPoint 
+ 
+ 
+AttributesPlusTerm, 
+stepSize  
+ 
+ 
+[5] 
+IMPLICIT INTEGER OPTIONAL, 
+numberOfTermsRequested 
+ 
+[6] 
+IMPLICIT INTEGER, 
+preferredPositionInResponse 
+[7] 
+IMPLICIT INTEGER OPTIONAL, 
+otherInfo 
+ 
+ 
+ 
+OtherInformation OPTIONAL} 
+ScanResponse ::= SEQUENCE{ 
+referenceId   
+ 
+ 
+ 
+ReferenceId OPTIONAL, 
+stepSize  
+ 
+ 
+[3] 
+IMPLICIT INTEGER OPTIONAL, 
+scanStatus  
+ 
+ 
+[4] 
+IMPLICIT INTEGER { 
+success  
+(0), 
+partial-1  
+(1), 
+partial-2  
+(2), 
+partial-3  
+(3), 
+partial-4  
+(4), 
+partial-5  
+(5), 
+failure   
+(6) }, 
+numberOfEntriesReturned  
+[5] 
+IMPLICIT INTEGER, 
+positionOfTerm    
+ 
+[6] 
+IMPLICIT INTEGER OPTIONAL, 
+entries    
+ 
+[7] 
+IMPLICIT ListEntries  OPTIONAL,   
+attributeSet 
+ 
+[8] 
+IMPLICIT AttributeSetId OPTIONAL, 
+-- SEE COMMENT 3  
+otherInfo 
+ 
+ 
+ 
+ 
+OtherInformation OPTIONAL} 
+ --Begin auxiliary definitions for Scan 
+ListEntries ::= SEQUENCE{ 
+entries   
+ 
+[1]  
+IMPLICIT SEQUENCE OF Entry OPTIONAL, 
+nonsurrogateDiagnostics  [2] 
+IMPLICIT SEQUENCE OF DiagRec OPTIONAL 
+--At least one of entries and nonsurrogateDiagnostics must occur 
+} 
+Entry  ::= CHOICE { 
+termInfo 
+ 
+[1]  
+IMPLICIT TermInfo, 
+surrogateDiagnostic 
+[2]  
+DiagRec} 
+TermInfo ::= SEQUENCE { 
+term 
+ 
+ 
+ 
+ 
+Term, 
+displayTerm 
+ 
+ 
+[0] 
+IMPLICIT InternationalString OPTIONAL, 
+-- See comment 11 
+suggestedAttributes 
+ 
+AttributeList OPTIONAL, 
+alternativeTerm   
+[4] 
+IMPLICIT SEQUENCE OF AttributesPlusTerm OPTIONAL,  
+globalOccurrences 
+[2] 
+IMPLICIT INTEGER OPTIONAL, 
+byAttributes 
+ 
+[3] 
+IMPLICIT OccurrenceByAttributes OPTIONAL, 
+otherTermInfo   
+ 
+OtherInformation OPTIONAL}  
+OccurrenceByAttributes ::= SEQUENCE OF SEQUENCE{ 
+attributes 
+ 
+[1] 
+AttributeList,  
+occurrences  
+ 
+CHOICE{ 
+global   
+[2]  
+INTEGER, 
+byDatabase 
+[3]  
+IMPLICIT SEQUENCE OF SEQUENCE{  
+db 
+ 
+DatabaseName, 
+num  
+[1] 
+IMPLICIT INTEGER OPTIONAL, 
+otherDbInfo 
+OtherInformation OPTIONAL}} OPTIONAL, 
+otherOccurInfo   
+OtherInformation OPTIONAL}  
+--End auxiliary definitions for Scan 
+ --Sort APDUs 
+SortRequest  ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ReferenceId OPTIONAL, 
+inputResultSetNames 
+[3] 
+IMPLICIT SEQUENCE OF InternationalString, 
+sortedResultSetName 
+[4] 
+IMPLICIT InternationalString, 
+sortSequence  
+ 
+[5] 
+IMPLICIT SEQUENCE OF SortKeySpec, 
+--Separate instance of SortKeySpec  for each sort key 
+--Order of occurrence is from major to minor 
+otherInfo 
+ 
+ 
+ 
+OtherInformation OPTIONAL} 
+SortResponse ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ 
+ReferenceId OPTIONAL, 
+sortStatus 
+ 
+ 
+[3] 
+IMPLICIT INTEGER{ 
+success  (0), 
+partial-1 (1), 
+failure  (2)}, 
+resultSetStatus   
+ 
+[4] 
+IMPLICIT INTEGER{ 
+empty   
+(1),  
+interim   
+(2),  
+unchanged 
+(3), 
+none 
+ 
+(4)} OPTIONAL, 
+diagnostics 
+ 
+ 
+[5] 
+IMPLICIT SEQUENCE OF DiagRec 
+OPTIONAL, 
+resultCount 
+ 
+ 
+[6] IMPLICIT INTEGER OPTIONAL, 
+-- Size of the output result set. 
+--Server is never obligated to supply this parameter,  
+--there is no default value, and the client should 
+-- not draw any conclusion by its omission 
+otherInfo 
+ 
+ 
+ 
+OtherInformation OPTIONAL} 
+ --Begin auxiliary definitions for Sort 
+SortKeySpec ::= SEQUENCE{ 
+sortElement 
+ 
+ 
+ 
+SortElement,  
+sortRelation 
+ 
+[1] 
+IMPLICIT INTEGER{ 
+ascending 
+ 
+(0), 
+descending 
+ 
+(1), 
+ascendingByFrequency 
+(3), 
+descendingByfrequency  (4)}, 
+-- SEE COMMENT 4  
+caseSensitivity   
+[2] 
+IMPLICIT INTEGER{ 
+caseSensitive 
+ 
+(0), 
+caseInsensitive   
+(1)}, 
+missingValueAction 
+ 
+[3]  
+CHOICE{ 
+abort 
+[1] IMPLICIT NULL, 
+null 
+[2] IMPLICIT NULL, 
+--Supply a null value for missing value 
+missingValueData 
+ 
+[3] IMPLICIT OCTET STRING} OPTIONAL} 
+SortElement ::=   CHOICE{ 
+generic   
+ 
+[1] SortKey, 
+datbaseSpecific    
+[2] IMPLICIT SEQUENCE OF SEQUENCE{ 
+databaseName  DatabaseName, 
+dbSort   
+SortKey}}  
+SortKey ::= CHOICE{ 
+-- See comment 12 
+privateSortKey   
+[0] 
+IMPLICIT InternationalString, 
+elementSpec 
+ 
+[1] 
+IMPLICIT Specification, 
+sortAttributes 
+ 
+[2] 
+IMPLICIT SEQUENCE{ 
+id 
+AttributeSetId, 
+list 
+AttributeList}} 
+--End auxiliary definitions for sort 
+ --Extended Service APDUs 
+ExtendedServicesRequest ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ReferenceId OPTIONAL, 
+function   
+ 
+[3] 
+IMPLICIT INTEGER { 
+create  (1), 
+delete  (2), 
+modify  (3)}, 
+packageType 
+ 
+[4] 
+IMPLICIT OBJECT IDENTIFIER, 
+packageName  [5] 
+IMPLICIT InternationalString OPTIONAL, 
+--PackageName is mandatory for 'modify' or 'delete'; optional for 'create'.  
+--Following four parameters mandatory for 'create'; should be included on  
+--'modify' if being modified; it is not needed on 'delete'. 
+userId   
+[6]  
+IMPLICIT InternationalString OPTIONAL, 
+retentionTime 
+ 
+[7]  
+IMPLICIT IntUnit OPTIONAL, 
+permissions 
+ 
+[8]  
+IMPLICIT Permissions OPTIONAL, 
+description 
+ 
+[9]  
+IMPLICIT InternationalString OPTIONAL, 
+taskSpecificParameters  [10] 
+IMPLICIT EXTERNAL OPTIONAL,  
+--Mandatory for 'create'; included on 'modify' if specific parameters being modified; 
+-- not necessary on 'delete'. For the 'EXTERNAL,' use OID of specific  
+--ES definition and select CHOICE [1]: 'esRequest'. 
+waitAction 
+ 
+ 
+[11] 
+IMPLICIT INTEGER{ 
+wait 
+ 
+ 
+(1), 
+waitIfPossible 
+ 
+(2), 
+dontWait 
+ 
+(3), 
+dontReturnPackage 
+(4)}, 
+elements 
+ 
+ 
+ 
+ElementSetName OPTIONAL, 
+otherInfo 
+ 
+ 
+ 
+OtherInformation OPTIONAL} 
+ExtendedServicesResponse ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ReferenceId OPTIONAL, 
+operationStatus   
+[3] 
+IMPLICIT INTEGER{ 
+done 
+ 
+(1), 
+accepted 
+(2), 
+failure   
+(3)}, 
+diagnostics 
+[4] 
+IMPLICIT SEQUENCE OF DiagRec OPTIONAL, 
+taskPackage 
+ 
+[5] 
+IMPLICIT EXTERNAL OPTIONAL, 
+-- Use OID: {Z39-50-recordSyntax (106)} and corresponding syntax. 
+-- For the EXTERNAL, 'taskSpecific,' within that definition, use OID 
+-- of the specific ES, and choose [2], 'taskPackage'. 
+otherInfo 
+ 
+ 
+ 
+OtherInformation OPTIONAL} 
+Permissions ::= SEQUENCE OF SEQUENCE{ 
+userId   
+ 
+[1] IMPLICIT InternationalString, 
+allowableFunctions 
+[2] IMPLICIT SEQUENCE OF INTEGER{ 
+delete   
+ 
+(1), 
+modifyContents   
+(2), 
+modifyPermissions 
+(3), 
+present   
+(4), 
+invoke   
+ 
+(5)}}  
+ 
+Close ::= SEQUENCE{ 
+referenceId 
+ 
+ 
+ 
+ReferenceId OPTIONAL, 
+-- See 3.2.11.1.5 
+closeReason 
+ 
+ 
+CloseReason, 
+diagnosticInformation 
+[3] 
+IMPLICIT InternationalString OPTIONAL, 
+resourceReportFormat 
+[4] 
+IMPLICIT ResourceReportId OPTIONAL,  
+--For use by client only, and only on Close request 
+--Client requests server to include report in response 
+resourceReport   
+[5] 
+ResourceReport OPTIONAL, 
+--For use by server only, unilaterally on Close request 
+--On Close response may be unilateral or in response to client request 
+otherInfo 
+ 
+ 
+ 
+OtherInformation OPTIONAL} 
+CloseReason ::=   
+[211] 
+IMPLICIT INTEGER{ 
+finished   
+ 
+(0), 
+shutdown 
+ 
+(1), 
+systemProblem   
+(2), 
+costLimit 
+ 
+(3), 
+resources 
+ 
+(4), 
+securityViolation   
+(5), 
+protocolError 
+ 
+(6), 
+lackOfActivity   
+(7), 
+responseToPeer   
+(8), 
+unspecified 
+ 
+(9)} 
+DuplicateDetectionRequest ::= SEQUENCE { 
+referenceId 
+ 
+ 
+ 
+ReferenceId OPTIONAL, 
+inputResultSetIds  
+ 
+[3] IMPLICIT SEQUENCE OF InternationalString, 
+outputResultSetName 
+ 
+[4] IMPLICIT InternationalString, 
+applicablePortionOfRecord 
+[5] IMPLICIT EXTERNAL OPTIONAL, 
+duplicateDetectionCriteria   
+[6] IMPLICIT SEQUENCE OF  
+DuplicateDetectionCriterion OPTIONAL, 
+clustering 
+ 
+ 
+[7] IMPLICIT BOOLEAN OPTIONAL, 
+--'true' means &quot;clustered&quot;. 
+--This parameter may be omitted only if retentionCriteria 
+-- CHOICE is 'numberOfEntries' and its value is 1 
+retentionCriteria   
+ 
+[8] IMPLICIT SEQUENCE OF RetentionCriterion,  
+sortCriteria 
+ 
+ 
+[9] IMPLICIT SEQUENCE OF SortCriterion OPTIONAL, 
+otherInfo 
+ 
+ 
+ 
+OtherInformation OPTIONAL} 
+DuplicateDetectionCriterion ::= CHOICE{ 
+levelOfMatch 
+ 
+[1] IMPLICIT INTEGER, 
+--A percentage; 1-100 
+caseSensitive 
+ 
+[2] IMPLICIT NULL, 
+punctuationSensitive 
+[3] IMPLICIT NULL, 
+regularExpression 
+[4] IMPLICIT EXTERNAL, 
+rsDuplicates 
+ 
+[5] IMPLICIT NULL 
+--Values 6-100 reserved for future assignment 
+} 
+RetentionCriterion ::= CHOICE{ 
+numberOfEntries  
+[1] IMPLICIT INTEGER, 
+--Greater than 0 
+percentOfEntries  
+[2] IMPLICIT INTEGER, 
+--1-100 
+duplicatesOnly   
+[3] IMPLICIT NULL, 
+--Should not be chosen if clustering is 'true' 
+discardRsDuplicates 
+[4] IMPLICIT NULL 
+--Values 5-100 reserved for future assignment 
+} 
+SortCriterion ::= CHOICE{ 
+mostComprehensive 
+ 
+[1] IMPLICIT NULL, 
+leastComprehensive 
+ 
+[2] IMPLICIT NULL, 
+mostRecent 
+ 
+ 
+[3] IMPLICIT NULL, 
+oldest   
+ 
+ 
+[4] IMPLICIT NULL, 
+leastCost 
+ 
+ 
+[5] IMPLICIT NULL, 
+preferredDatabases 
+ 
+[6] IMPLICIT SEQUENCE OF InternationalString 
+--Values 7-100 reserved for future assignment 
+} 
+DuplicateDetectionResponse ::= SEQUENCE { 
+referenceId 
+ 
+ReferenceId  OPTIONAL, 
+status   
+[3] 
+IMPLICIT INTEGER{ 
+success  (0), 
+failure  (1)}, 
+resultSetCount  [4] 
+IMPLICIT INTEGER OPTIONAL, 
+diagnostics 
+[5] 
+IMPLICIT SEQUENCE OF DiagRec OPTIONAL, 
+otherInfo 
+ 
+OtherInformation OPTIONAL} 
+ 
+--Global auxiliary definitions 
+ReferenceId  
+ 
+::=   
+ 
+[2] 
+IMPLICIT OCTET STRING 
+ResultSetId   
+ 
+::=   
+ 
+[31] 
+IMPLICIT InternationalString 
+ElementSetName  
+::=  
+ 
+[103] 
+IMPLICIT InternationalString 
+DatabaseName    
+::= 
+ 
+[105] 
+IMPLICIT InternationalString 
+AttributeSetId    
+::=  
+ 
+ 
+OBJECT IDENTIFIER 
+ --OtherInformation 
+--SEE COMMENT 5  
+OtherInformation  ::= [201] IMPLICIT SEQUENCE OF SEQUENCE{ 
+category [1] IMPLICIT InfoCategory OPTIONAL,  
+information   
+CHOICE{ 
+characterInfo [2] IMPLICIT InternationalString, 
+binaryInfo [3] IMPLICIT OCTET STRING, 
+externallyDefinedInfo [4] IMPLICIT EXTERNAL, 
+oid [5] IMPLICIT OBJECT IDENTIFIER}} 
+
+InfoCategory ::= SEQUENCE{ 
+categoryTypeId  [1]  IMPLICIT OBJECT IDENTIFIER OPTIONAL, 
+categoryValue  [2]  IMPLICIT INTEGER} 
+ --Units 
+--SEE COMMENT 6  
+IntUnit ::= SEQUENCE{ 
+value 
+ 
+[1] IMPLICIT INTEGER, 
+unitUsed 
+[2] IMPLICIT Unit} 
+Unit ::= SEQUENCE{ 
+unitSystem 
+ 
+[1] InternationalString OPTIONAL, 
+--e.g. 'SI' 
+unitType 
+ 
+[2] StringOrNumeric OPTIONAL,   
+--e.g. 'mass' 
+unit 
+ 
+ 
+[3] StringOrNumeric OPTIONAL,   
+--e.g. 'kilograms' 
+scaleFactor 
+ 
+[4] IMPLICIT INTEGER OPTIONAL 
+--e.g. 9 means 10**9 
+} 
+ 
+--CharacterString 
+InternationalString ::= GeneralString 
+--SEE COMMENT 7  
+StringOrNumeric ::= CHOICE{ 
+string  [1] IMPLICIT InternationalString, 
+numeric  [2] IMPLICIT INTEGER} 
+
+
+IdAuthentication ::= [7] CHOICE { 
+open   VisibleString,  --  for compatibility with 1992 version 
+idPass  SEQUENCE { 
+groupId   [0] IMPLICIT InternationalString OPTIONAL, 
+userId    [1] IMPLICIT InternationalString OPTIONAL, 
+password [2] IMPLICIT InternationalString OPTIONAL }, 
+anonymous NULL, 
+other EXTERNAL  
+--May use access control formats for 'other'. See Appendix  ACC. 
+}
+END -- IR DEFINITIONS 
+ 
+-- ANSI-Z39-50-ObjectIdentifier  DEFINITIONS ::= 
+-- XXX lower-cased
+--BEGIN 
+-- deleted OID definitions 
+--END 
+
+GeneralDiagnosticContainer  
+ DEFINITIONS ::= 
+BEGIN 
+IMPORTS DiagRec, DefaultDiagFormat FROM Z39-50-APDU-2001; 
+DiagnosticContainer ::=  SEQUENCE OF DiagRec 
+END 
+
+Explain DEFINITIONS ::= 
+BEGIN  
+IMPORTS AttributeSetId, Term, OtherInformation, DatabaseName, ElementSetName, IntUnit, Unit, 
+StringOrNumeric, Specification, InternationalString, AttributeList, AttributeElement FROM 
+Z39-50-APDU-2001; 
+
+Explain-Record ::= CHOICE{ 
+--Each of these may be used as search term when Use attribute is 'explain-category'. 
+targetInfo  -- XXX was TargetInfo
+
+[0] 
+IMPLICIT TargetInfo, 
+databaseInfo 
+ 
+[1] 
+IMPLICIT DatabaseInfo, 
+schemaInfo   
+ 
+[2] 
+IMPLICIT SchemaInfo, 
+tagSetInfo    
+ 
+[3] 
+IMPLICIT TagSetInfo, 
+recordSyntaxInfo  
+[4] 
+IMPLICIT RecordSyntaxInfo, 
+attributeSetInfo   
+[5] 
+IMPLICIT AttributeSetInfo, 
+termListInfo 
+ 
+[6] 
+IMPLICIT TermListInfo, 
+extendedServicesInfo 
+[7] 
+IMPLICIT ExtendedServicesInfo, 
+attributeDetails   
+[8] 
+IMPLICIT AttributeDetails, 
+termListDetails   
+[9] 
+IMPLICIT TermListDetails, 
+elementSetDetails 
+[10] 
+IMPLICIT ElementSetDetails, 
+retrievalRecordDetails 
+[11]  
+IMPLICIT RetrievalRecordDetails, 
+sortDetails            
+[12]  
+IMPLICIT SortDetails, 
+processing      
+ 
+[13] 
+IMPLICIT ProcessingInformation, 
+variants   
+ 
+[14] 
+IMPLICIT VariantSetInfo, 
+units     
+ 
+[15] 
+IMPLICIT UnitInfo, 
+categoryList         
+[100] 
+IMPLICIT CategoryList} 
+ 
+-- See Comment 1 
+ 
+TargetInfo ::= SEQUENCE { 
+commonInfo [0] IMPLICIT CommonInfo OPTIONAL, 
+--Key elements follow: 
+name   [1] IMPLICIT InternationalString, 
+--See comment 2 
+--Non-key brief elements follow: 
+recent-news [2] IMPLICIT HumanString OPTIONAL, 
+icon [3] IMPLICIT IconObject OPTIONAL, 
+--Element set name "brief-1' is defined for use when client wants icon to be omitted;  
+--otherwise `brief-1' is identical to `brief'. 
+namedResultSets  [4] IMPLICIT BOOLEAN, 
+ 
+multipleDBsearch  [5] IMPLICIT BOOLEAN, 
+maxResultSets   [6] IMPLICIT INTEGER OPTIONAL, 
+maxResultSize   [7] IMPLICIT INTEGER OPTIONAL, 
+maxTerms [8] IMPLICIT INTEGER OPTIONAL, 
+timeoutInterval   [9] IMPLICIT IntUnit OPTIONAL, 
+welcomeMessage [10] IMPLICIT HumanString OPTIONAL, 
+--Non-brief elements follow: 
+--'description' esn retrieves the following two (as well as brief): 
+contactInfo 
+ 
+[11] IMPLICIT ContactInfo OPTIONAL, 
+description [12] IMPLICIT HumanString OPTIONAL, 
+nicknames [13] IMPLICIT SEQUENCE OF InternationalString OPTIONAL, 
+usage-restrictions [14] IMPLICIT HumanString OPTIONAL, 
+paymentAddr [15] IMPLICIT HumanString OPTIONAL, 
+hours   [16] IMPLICIT HumanString OPTIONAL, 
+dbCombinations   [17] IMPLICIT SEQUENCE OF DatabaseList OPTIONAL, 
+addresses [18] IMPLICIT SEQUENCE OF NetworkAddress OPTIONAL, 
+languages [101] IMPLICIT SEQUENCE OF InternationalString OPTIONAL, 
+--Languages supported for message strings. Each is a three-character language code from Z39.53-1994.  
+ 
+characterSets    [102] IMPLICIT SEQUENCE OF InternationalString OPTIONAL,
+-- XXX added  IMPLICIT SEQUENCE OF InternationalString OPTIONAL,
+--This tag reserved for &quot;character sets supported for name and message strings&quot; 
+-- commonAccessInfo elements list objects the server supports. 
+--  All objects listed in AccessInfo for any individual database should also be listed here. 
+commonAccessInfo  -- XXX was CommonAccessInfo
+[19] IMPLICIT AccessInfo OPTIONAL} 
+DatabaseInfo ::= SEQUENCE { 
+ 
+--A server may provide &quot;virtual databases&quot; that are combinations of individual database.  
+ 
+--These databases are indicated by the presence of subDbs in the combination database's  
+ 
+--DatabaseDescription. 
+commonInfo 
+ 
+ 
+[0] 
+IMPLICIT CommonInfo OPTIONAL, 
+--Key elements follow: 
+name   
+ 
+ 
+[1] 
+IMPLICIT DatabaseName, 
+--Non-key brief elements follow: 
+explainDatabase   
+[2] 
+IMPLICIT NULL OPTIONAL, 
+--See comment 3 
+nicknames 
+ 
+[3] 
+IMPLICIT SEQUENCE OF DatabaseName OPTIONAL, 
+icon 
+ 
+ 
+[4] 
+IMPLICIT IconObject OPTIONAL, 
+-- Element set name "brief-1' is defined for use when client wants icon to be omitted;  
+--otherwise `brief-1' is identical to `brief' 
+user-fee  
+ 
+[5] 
+IMPLICIT BOOLEAN, 
+available 
+ 
+[6] 
+IMPLICIT BOOLEAN, 
+titleString 
+ 
+[7] 
+IMPLICIT HumanString OPTIONAL, 
+--Non-brief elements follow: 
+keywords 
+ 
+[8] 
+IMPLICIT SEQUENCE OF HumanString OPTIONAL, 
+description 
+ 
+[9] 
+IMPLICIT HumanString OPTIONAL, 
+associatedDbs   
+[10] 
+IMPLICIT DatabaseList OPTIONAL, 
+--Databases that may be searched in combination with this one  
+subDbs   
+ 
+[11] 
+IMPLICIT DatabaseList OPTIONAL, 
+--When present, this database is a composite representing the combined databases 'subDbs'.  
+--The individual subDbs are also available 
+disclaimers 
+ 
+[12] 
+IMPLICIT HumanString OPTIONAL, 
+news 
+ 
+ 
+[13] 
+IMPLICIT HumanString OPTIONAL, 
+recordCount  
+ 
+[14]  
+CHOICE { 
+ 
+actualNumber 
+ 
+[0]  
+IMPLICIT INTEGER, 
+ 
+approxNumber   
+[1]  
+IMPLICIT INTEGER} OPTIONAL, 
+defaultOrder 
+ 
+[15] 
+IMPLICIT HumanString OPTIONAL, 
+avRecordSize 
+ 
+[16] 
+IMPLICIT INTEGER OPTIONAL, 
+maxRecordSize   
+[17] 
+IMPLICIT INTEGER OPTIONAL, 
+hours   
+[18] 
+IMPLICIT HumanString OPTIONAL, 
+bestTime 
+ 
+[19] 
+IMPLICIT HumanString OPTIONAL, 
+lastUpdate 
+ 
+[20] 
+IMPLICIT GeneralizedTime OPTIONAL, 
+updateInterval 
+ 
+[21] 
+IMPLICIT IntUnit OPTIONAL, 
+coverage 
+ 
+[22] 
+IMPLICIT HumanString OPTIONAL, 
+proprietary 
+ 
+ 
+[23] 
+IMPLICIT BOOLEAN OPTIONAL, 
+ 
+--mandatory in full record 
+copyrightText 
+ 
+[24] 
+IMPLICIT HumanString OPTIONAL, 
+copyrightNotice   
+[25] 
+IMPLICIT HumanString OPTIONAL, 
+producerContactInfo 
+[26] 
+IMPLICIT ContactInfo OPTIONAL, 
+supplierContactInfo 
+[27] 
+IMPLICIT ContactInfo OPTIONAL, 
+submissionContactInfo 
+[28] 
+IMPLICIT ContactInfo OPTIONAL, 
+-- accessInfo lists items connected with the database. 
+--All listed items should be in the server's AccessInfo. 
+accessInfo -- XXX lower-cased AccessInfo
+  
+ 
+[29] 
+IMPLICIT AccessInfo OPTIONAL} 
+SchemaInfo ::= SEQUENCE { 
+commonInfo 
+ 
+ 
+[0] 
+IMPLICIT CommonInfo OPTIONAL, 
+--Key elements follow: 
+schema   
+ 
+ 
+[1] 
+IMPLICIT OBJECT IDENTIFIER, 
+--Non-key brief elements follow: 
+name   
+ 
+ 
+[2] 
+IMPLICIT InternationalString, 
+--Non-brief elements follow: 
+description 
+ 
+ 
+[3] 
+IMPLICIT HumanString OPTIONAL, 
+tagTypeMapping   
+ 
+[4] 
+IMPLICIT SEQUENCE OF SEQUENCE { 
+tagType  
+[0] IMPLICIT INTEGER, 
+tagSet    
+[1] IMPLICIT OBJECT  
+IDENTIFIER OPTIONAL, 
+--If tagSet is omitted, then this tagType is for a tagSet 
+-- locally defined within the schema that cannot be referenced by another schema. 
+defaultTagType  [2] IMPLICIT NULL  
+OPTIONAL} OPTIONAL, 
+recordStructure 
+ 
+[5] 
+IMPLICIT SEQUENCE OF ElementInfo OPTIONAL}  -- XXX changed PTIONAL to OPTIONAL
+--ElementInfo referenced in SchemaInfo and RecordSyntaxInfo 
+ElementInfo ::= SEQUENCE { 
+elementName 
+ 
+ 
+[1] IMPLICIT InternationalString, 
+elementTagPath   
+ 
+[2] IMPLICIT Path, 
+dataType   
+ 
+[3] ElementDataType OPTIONAL,  
+-- If omitted, not specified 
+required  
+ 
+ 
+[4] IMPLICIT BOOLEAN, 
+repeatable  
+ 
+ 
+[5] IMPLICIT BOOLEAN, 
+description   
+ 
+ 
+[6] IMPLICIT HumanString OPTIONAL} 
+--Path is referenced by ElementInfo as well as PerElementDetails 
+Path ::= SEQUENCE OF SEQUENCE{ 
+tagType  
+ 
+[1] IMPLICIT INTEGER, 
+tagValue    
+ 
+[2] StringOrNumeric} 
+ElementDataType ::= CHOICE{ 
+primitive 
+ 
+ 
+[0] IMPLICIT PrimitiveDataType, 
+structured 
+ 
+ 
+[1] IMPLICIT NULL} -- XXX FIXUP NULL was SEQUENCE of ElementInfo
+--PYQUOTE ElementDataType['structured'] = ('structured', 1, asn1.SEQUENCE_OF(ElementInfo))
+PrimitiveDataType ::= INTEGER{ 
+octetString   
+ 
+(0), 
+numeric      
+ 
+(1), 
+date        
+ 
+(2), 
+external   
+ 
+(3), 
+string      
+ 
+(4), 
+trueOrFalse  
+ 
+(5), 
+oid  
+ 
+ 
+(6), 
+ 
+intUnit   
+ 
+(7), 
+empty   
+ 
+(8), 
+noneOfTheAbove 
+(100) 
+-- See 'description' 
+} 
+TagSetInfo ::= SEQUENCE { 
+commonInfo -- XXX was capitalized
+ 
+[0] 
+IMPLICIT CommonInfo OPTIONAL, 
+-- Key elements follow: 
+tagSet   
+ 
+[1] 
+IMPLICIT OBJECT IDENTIFIER, 
+--Non-key brief elements follow: 
+name   
+ 
+[2] 
+IMPLICIT InternationalString, 
+--Non-brief elements follow: 
+description 
+ 
+[3] 
+IMPLICIT HumanString OPTIONAL, 
+elements 
+ 
+[4] 
+IMPLICIT SEQUENCE OF SEQUENCE { 
+elementname 
+[1] 
+IMPLICIT InternationalString, 
+nicknames 
+[2]  
+IMPLICIT SEQUENCE OF  
+InternationalString OPTIONAL, 
+elementTag  
+[3] 
+StringOrNumeric,  
+description 
+[4] 
+IMPLICIT HumanString OPTIONAL,  
+dataType    
+[5] 
+PrimitiveDataType OPTIONAL, 
+--If the data type is expected to be structured,  
+--that is described in the schema info, and datatype is omitted here. 
+otherTagInfo       OtherInformation OPTIONAL} OPTIONAL} 
+RecordSyntaxInfo ::= SEQUENCE { 
+commonInfo 
+ 
+[0] IMPLICIT CommonInfo OPTIONAL, 
+--Key elements follow: 
+recordSyntax 
+ 
+[1] IMPLICIT OBJECT IDENTIFIER, 
+--Non-key brief elements follow: 
+name   
+ 
+[2] IMPLICIT InternationalString, 
+--Non-brief elements follow: 
+transferSyntaxes   
+[3] IMPLICIT SEQUENCE OF OBJECT IDENTIFIER OPTIONAL, 
+description 
+ 
+[4] IMPLICIT HumanString OPTIONAL, 
+asn1Module 
+[5] IMPLICIT InternationalString OPTIONAL, 
+abstractStructure [6] IMPLICIT SEQUENCE OF ElementInfo OPTIONAL 
+--Omitting abstractStructure only means server isn't using Explain  
+--to describe the structure, not that there is no structure 
+} 
+AttributeSetInfo ::= SEQUENCE { 
+commonInfo 
+ 
+[0] 
+IMPLICIT CommonInfo OPTIONAL, 
+--Key elements follow: 
+attributeSet -- XXX lowercased
+ 
+[1] 
+IMPLICIT AttributeSetId, 
+--Non-key brief elements follow: 
+name   
+ 
+[2] 
+IMPLICIT InternationalString, 
+--Non-brief elements follow: 
+attributes 
+[3] 
+IMPLICIT SEQUENCE OF AttributeType OPTIONAL, 
+--Mandatory in full record 
+description  
+ 
+[4] IMPLICIT HumanString OPTIONAL} 
+--AttributeType referenced in AttributeSetInfo 
+AttributeType ::= SEQUENCE { 
+name   
+ 
+[0] IMPLICIT InternationalString OPTIONAL, 
+description 
+ 
+[1] IMPLICIT HumanString OPTIONAL, 
+attributeType  
+ 
+[2] IMPLICIT INTEGER, 
+attributeValues   
+[3] IMPLICIT SEQUENCE OF AttributeDescription} 
+AttributeDescription ::= SEQUENCE { 
+name   
+ 
+[0] IMPLICIT InternationalString OPTIONAL, 
+description         
+[1] IMPLICIT HumanString OPTIONAL, 
+attributeValue      
+[2] StringOrNumeric, 
+equivalentAttributes 
+[3] IMPLICIT SEQUENCE OF StringOrNumeric OPTIONAL 
+-- See comment 4 
+  
+} 
+TermListInfo ::= SEQUENCE{ 
+commonInfo 
+ 
+ 
+[0] 
+IMPLICIT CommonInfo OPTIONAL, 
+--Key elements follow: 
+databaseName   
+[1] 
+IMPLICIT DatabaseName, 
+--Non-key brief elements follow: 
+termLists 
+[2] IMPLICIT SEQUENCE OF SEQUENCE{ 
+name   
+[1] IMPLICIT InternationalString, 
+title 
+ 
+[2] IMPLICIT HumanString OPTIONAL, 
+ 
+-- see comment 5 
+searchCost  
+[3] IMPLICIT INTEGER { 
+-- see comment 6 
+optimized 
+ 
+(0), 
+ 
+normal   
+(1),   
+expensive   
+(2),   
+filter 
+ 
+(3) } OPTIONAL, -- XXX removed trailing comma
+scanable 
+[4] 
+IMPLICIT BOOLEAN,  
+--   'true' means this list can be scanned 
+--  see comment 7 
+broader   
+[5] IMPLICIT SEQUENCE OF InternationalString OPTIONAL, 
+narrower 
+[6] IMPLICIT SEQUENCE OF InternationalString OPTIONAL 
+--Broader and narrower list alternative term lists related to this one. 
+--The term lists so listed should also be in this termLists structure. 
+} 
+--No non-brief elements 
+} 
+ExtendedServicesInfo ::= SEQUENCE { 
+commonInfo         
+ 
+[0] 
+IMPLICIT CommonInfo OPTIONAL, 
+--Key elements follow: 
+type 
+ 
+ 
+ 
+[1] 
+ IMPLICIT OBJECT IDENTIFIER, 
+--Non-key brief elements follow: 
+name             
+ 
+[2] 
+IMPLICIT InternationalString OPTIONAL, 
+--Should be supplied if privateType is 'true' 
+privateType 
+ 
+ 
+[3] 
+IMPLICIT BOOLEAN, 
+restrictionsApply   
+[5] 
+IMPLICIT BOOLEAN, -- if 'true' see 'description' 
+feeApply 
+          [6] 
+IMPLICIT BOOLEAN, -- if 'true' see 'description' 
+available        
+ 
+[7] 
+IMPLICIT BOOLEAN, 
+retentionSupported 
+[8] 
+IMPLICIT BOOLEAN, 
+waitAction 
+ 
+[9] 
+IMPLICIT INTEGER{ 
+waitSupported 
+ 
+(1), 
+waitAlways 
+ 
+(2), 
+waitNotSupported 
+(3), 
+depends  
+ 
+(4), 
+notSaying 
+ 
+(5)}, 
+--Non-brief elements follow: 
+--To get brief plus 'description' use esn 'description' 
+description      
+ 
+[10] 
+IMPLICIT HumanString OPTIONAL, 
+--To get above elements and 'specificExplain' use esn 'specificExplain' 
+specificExplain   
+[11] 
+IMPLICIT EXTERNAL OPTIONAL, 
+--Use oid of specific ES, and select choice [3] 'explain'.  
+--Format to be developed in conjunction with the specific ES definition. 
+--To get all elements except 'specificExplain', use esn 'asn' 
+esASN   
+ 
+[12] 
+IMPLICIT InternationalString OPTIONAL   
+--The ASN.1 for this ES 
+} 
+--Detail records 
+-- See comment 8 
+AttributeDetails ::= SEQUENCE { 
+commonInfo 
+ 
+ 
+[0] 
+IMPLICIT CommonInfo OPTIONAL, 
+--Key elements follow: 
+databaseName   
+[1] 
+IMPLICIT DatabaseName, 
+--Non-brief elements follow: 
+attributesBySet   
+[2] 
+IMPLICIT SEQUENCE OF AttributeSetDetails OPTIONAL,  
+--Mandatory in full record 
+attributeCombinations 
+[3] 
+IMPLICIT AttributeCombinations OPTIONAL} 
+--AttributeSetDetails referenced by AttributeDetails 
+AttributeSetDetails ::= SEQUENCE { 
+attributeSet 
+ 
+[0] 
+IMPLICIT AttributeSetId, 
+attributesByType  
+[1] 
+IMPLICIT SEQUENCE OF AttributeTypeDetails } 
+AttributeTypeDetails ::= SEQUENCE { 
+attributeType  
+ 
+[0] 
+IMPLICIT INTEGER, 
+defaultIfOmitted   
+[1] 
+IMPLICIT OmittedAttributeInterpretation OPTIONAL, 
+attributeValues   
+[2] 
+IMPLICIT SEQUENCE OF AttributeValue OPTIONAL } 
+--If no attributeValues are supplied, all values of this type are fully supported,  
+--and the descriptions in AttributeSetInfo are adequate. 
+OmittedAttributeInterpretation ::= SEQUENCE { 
+defaultValue -- XXX lcased
+[0] 
+StringOrNumeric OPTIONAL, 
+--A default value is listed if that's how the server works 
+defaultDescription 
+[1] 
+IMPLICIT HumanString OPTIONAL } 
+-- See comment 9 
+AttributeValue ::= SEQUENCE { 
+value           
+ 
+[0] 
+StringOrNumeric, 
+description     
+ 
+[1] 
+IMPLICIT HumanString OPTIONAL, 
+subAttributes  
+[2] 
+IMPLICIT SEQUENCE OF StringOrNumeric OPTIONAL, 
+superAttributes  [3] 
+IMPLICIT SEQUENCE OF StringOrNumeric OPTIONAL, 
+partialSupport 
+ 
+[4] 
+IMPLICIT NULL OPTIONAL } 
+ 
+ 
+-- See comment 10 
+TermListDetails ::= SEQUENCE{  -- one for each termList in TermListInfo 
+commonInfo 
+ 
+[0] 
+IMPLICIT CommonInfo OPTIONAL, 
+--Key elements follow: 
+termListName   
+[1] 
+IMPLICIT InternationalString, 
+--Non-key elements (all non-brief) follow: 
+description 
+ 
+[2] 
+IMPLICIT HumanString OPTIONAL, 
+attributes 
+ 
+[3] 
+IMPLICIT AttributeCombinations OPTIONAL, 
+--Pattern for attributes that hit this list. Mandatory in full record 
+scanInfo 
+ 
+[4] 
+IMPLICIT SEQUENCE { 
+maxStepSize        
+[0] 
+IMPLICIT INTEGER OPTIONAL, 
+ 
+collatingSequence 
+[1] 
+IMPLICIT HumanString OPTIONAL, 
+increasing 
+ 
+[2] 
+IMPLICIT BOOLEAN OPTIONAL} OPTIONAL, 
+--Occurs only if list is scanable.  
+--If list is scanable and if scanInfo is omitted, server doesn't consider these important. 
+estNumberTerms 
+[5] 
+IMPLICIT INTEGER OPTIONAL, 
+sampleTerms 
+ 
+[6] 
+IMPLICIT SEQUENCE OF Term OPTIONAL} 
+ElementSetDetails ::= SEQUENCE { 
+-- see comment 11 
+commonInfo 
+ 
+[0] 
+IMPLICIT CommonInfo OPTIONAL, 
+--Key elements follow: 
+databaseName   
+[1] 
+IMPLICIT DatabaseName, 
+elementSetName  
+[2] 
+IMPLICIT ElementSetName, 
+recordSyntax 
+ 
+[3] 
+IMPLICIT OBJECT IDENTIFIER, 
+ 
+--Non-key Brief elements follow: 
+schema   
+ 
+[4] 
+IMPLICIT OBJECT IDENTIFIER, 
+--Non-brief elements follow: 
+description 
+ 
+[5] 
+IMPLICIT HumanString OPTIONAL, 
+detailsPerElement 
+[6] 
+IMPLICIT SEQUENCE OF PerElementDetails OPTIONAL 
+ 
+--mandatory in full record 
+} 
+RetrievalRecordDetails ::= SEQUENCE { 
+commonInfo 
+ 
+[0] 
+IMPLICIT CommonInfo OPTIONAL, 
+-- Key elements follow: 
+databaseName   
+[1] 
+IMPLICIT DatabaseName, 
+schema   
+ 
+[2] 
+IMPLICIT OBJECT IDENTIFIER, 
+recordSyntax 
+ 
+[3] 
+IMPLICIT OBJECT IDENTIFIER, 
+--Non-brief elements follow: 
+description 
+ 
+[4] 
+IMPLICIT HumanString OPTIONAL, 
+detailsPerElement 
+[5] 
+IMPLICIT SEQUENCE OF PerElementDetails OPTIONAL 
+--Mandatory in full record 
+} 
+--PerElementDetails is referenced in RetrievalRecordDetails and ElementSetDetails. 
+PerElementDetails ::= SEQUENCE { 
+name   
+[0] 
+IMPLICIT InternationalString OPTIONAL, 
+--If the name is omitted, the record syntax's name for this element is appropriate. 
+recordTag 
+ 
+[1] 
+IMPLICIT RecordTag OPTIONAL, 
+--The record tag may be omitted if tags are inappropriate  
+--for the record syntax, or if the client can be expected to know it for some other reason. 
+schemaTags 
+ 
+[2] 
+IMPLICIT SEQUENCE OF Path OPTIONAL, 
+--The information from the listed schema elements is combined in some way to produce the data sent in the  
+--listed record tag. The 'contents' element below may describe the logic used. 
+maxSize  
+ 
+[3] 
+IMPLICIT INTEGER OPTIONAL, 
+minSize   
+ 
+[4] 
+IMPLICIT INTEGER OPTIONAL, 
+avgSize   
+ 
+[5] 
+IMPLICIT INTEGER OPTIONAL, 
+fixedSize 
+ 
+[6] 
+IMPLICIT INTEGER OPTIONAL, 
+repeatable  
+ 
+[8] 
+IMPLICIT BOOLEAN, 
+required  
+ 
+[9] 
+IMPLICIT BOOLEAN,  
+--'required' really means that server will always supply the element 
+description 
+ 
+[12] 
+IMPLICIT HumanString OPTIONAL, 
+contents  
+ 
+[13] 
+IMPLICIT HumanString OPTIONAL, 
+billingInfo 
+ 
+[14] 
+IMPLICIT HumanString OPTIONAL, 
+restrictions 
+ 
+[15] 
+IMPLICIT HumanString OPTIONAL, 
+alternateNames   
+[16] 
+IMPLICIT SEQUENCE OF InternationalString OPTIONAL, 
+genericNames   
+[17] 
+IMPLICIT SEQUENCE OF InternationalString OPTIONAL, 
+searchAccess 
+ 
+[18] 
+IMPLICIT AttributeCombinations OPTIONAL } 
+--RecordTag referenced in PerElementDetails above 
+RecordTag ::= SEQUENCE { 
+qualifier   
+ 
+[0] 
+StringOrNumeric OPTIONAL, 
+--e.g. tag set for GRS-1 
+tagValue 
+ 
+[1] StringOrNumeric} 
+SortDetails ::= SEQUENCE { 
+commonInfo 
+ 
+[0] 
+IMPLICIT CommonInfo OPTIONAL, 
+--Key elements follow: 
+databaseName   
+[1] 
+IMPLICIT DatabaseName, 
+--No non-key brief elements 
+--Non-brief elements follow: 
+sortKeys 
+ 
+ 
+[2] 
+IMPLICIT SEQUENCE OF SortKeyDetails OPTIONAL 
+--Mandatory in full record 
+} 
+ 
+SortKeyDetails ::= SEQUENCE { 
+description 
+ 
+[0] 
+IMPLICIT HumanString OPTIONAL, 
+elementSpecifications 
+[1] 
+IMPLICIT SEQUENCE OF Specification OPTIONAL, 
+--Each specification is a way of specifying this same sort key 
+attributeSpecifications 
+[2] 
+IMPLICIT AttributeCombinations OPTIONAL, 
+--Each combination is a way of specifying this same sort key 
+sortType -- XXX lcased
+ 
+[3] 
+CHOICE { 
+character 
+[0] 
+IMPLICIT NULL, 
+numeric   
+[1] 
+IMPLICIT NULL, 
+structured 
+[2] 
+IMPLICIT HumanString} 
+OPTIONAL, 
+caseSensitivity   
+[4] 
+IMPLICIT INTEGER { 
+always  (0), 
+--always case-sensitive 
+never   
+(1), 
+--never case-sensitive 
+default-yes 
+(2), 
+--case-sensitivity is as specified on request,  
+--and if not specified, case-sensitive 
+default-no 
+(3)} 
+--case-sensitivity is as specified on request,  
+--and if not specified, <i>not</i> case-sensitive 
+OPTIONAL} 
+ProcessingInformation ::= SEQUENCE{ 
+commonInfo 
+ 
+[0] 
+IMPLICIT CommonInfo OPTIONAL, 
+--Key elements follow: 
+databaseName   
+[1] 
+IMPLICIT DatabaseName, 
+processingContext 
+[2] 
+IMPLICIT INTEGER { 
+access   
+ 
+(0),  
+--e.g. choosing databases 
+search   
+ 
+(1),  
+--e.g. &quot;search strategies&quot; or search  
+--forms  
+retrieval  
+ 
+(2),  
+--e.g. recommended element  
+--combinations  
+record-presentation 
+(3), 
+--display of retrieved records 
+record-handling   
+(4) 
+--handling (e.g. saving) of retrieved  
+--records 
+}, 
+name   
+ 
+ 
+[3] 
+IMPLICIT InternationalString, 
+oid 
+ 
+ 
+ 
+[4] 
+IMPLICIT OBJECT IDENTIFIER, 
+--No non-key brief elements 
+--Non-brief elements follow: 
+description 
+ 
+ 
+[5] 
+IMPLICIT HumanString OPTIONAL, 
+--Use element set name 'description' to retrieve all except instructions. 
+instructions 
+ 
+ 
+[6] 
+IMPLICIT EXTERNAL OPTIONAL 
+--mandatory in full record 
+} 
+VariantSetInfo ::= SEQUENCE { 
+-- SEE COMMENT 12 
+commonInfo 
+ 
+ 
+[0] IMPLICIT CommonInfo OPTIONAL, 
+--Key elements follow: 
+variantSet 
+ 
+ 
+[1] IMPLICIT OBJECT IDENTIFIER, 
+--Non-key brief elements follow: 
+name   
+ 
+ 
+[2] IMPLICIT InternationalString, 
+--Non-brief elements follow: 
+variants   
+ 
+[3] IMPLICIT SEQUENCE OF VariantClass OPTIONAL 
+ 
+ 
+ 
+ 
+ 
+ 
+--Mandatory in full record 
+} 
+--Subsidiary structures for VariantSetInfo 
+VariantClass ::= SEQUENCE { 
+name     
+ 
+[0] IMPLICIT InternationalString OPTIONAL, 
+description 
+ 
+[1] IMPLICIT HumanString OPTIONAL, 
+variantClass 
+ 
+[2] IMPLICIT INTEGER, 
+variantTypes 
+ 
+[3] IMPLICIT SEQUENCE OF VariantType} 
+VariantType ::= SEQUENCE { 
+name   
+ 
+[0] IMPLICIT InternationalString OPTIONAL, 
+description  
+ 
+[1] IMPLICIT HumanString OPTIONAL, 
+variantType 
+ 
+[2] IMPLICIT INTEGER, 
+variantValue 
+ 
+[3] IMPLICIT VariantValue OPTIONAL} 
+VariantValue ::= SEQUENCE { 
+dataType  
+ 
+[0] PrimitiveDataType, 
+values     
+ 
+[1] ValueSet OPTIONAL } 
+ValueSet ::= CHOICE { 
+range      
+ 
+[0] IMPLICIT ValueRange, 
+enumerated 
+ 
+[1] IMPLICIT SEQUENCE OF ValueDescription } 
+ValueRange ::= SEQUENCE { 
+--At last one the following must be supplied, both may be supplied. 
+lower     
+ 
+[0] ValueDescription OPTIONAL, 
+upper      
+ 
+[1] ValueDescription OPTIONAL } 
+ValueDescription ::= CHOICE{ 
+integer          
+ 
+INTEGER, 
+string           
+ 
+InternationalString, 
+octets           
+ 
+OCTET STRING, 
+oid              
+ 
+OBJECT IDENTIFIER, 
+unit            
+[1] 
+IMPLICIT Unit, 
+valueAndUnit 
+[2] 
+IMPLICIT IntUnit  
+--oid and unit can't be used in a ValueRange 
+} 
+UnitInfo ::= SEQUENCE { 
+commonInfo 
+ 
+ 
+[0] IMPLICIT CommonInfo OPTIONAL, 
+--Key elements follow: 
+unitSystem  
+ 
+ 
+[1] IMPLICIT InternationalString OPTIONAL, 
+--Changed to OPTIONAL in 2001 version as result of defect report 
+--No non-key brief elements 
+--Non-brief elements follow: 
+description -- XXX lcased
+ 
+[2] IMPLICIT HumanString OPTIONAL, 
+units     
+ 
+[3] IMPLICIT SEQUENCE OF UnitType OPTIONAL 
+--Mandatory in full record 
+} 
+--Subsidiary structures for UnitInfo 
+UnitType ::= SEQUENCE { 
+name   
+ 
+ 
+[0] IMPLICIT InternationalString OPTIONAL, 
+description 
+ 
+ 
+[1] IMPLICIT HumanString OPTIONAL, 
+unitType 
+ 
+ 
+[2] StringOrNumeric, 
+units  
+ 
+ 
+ 
+[3] IMPLICIT SEQUENCE OF Units} 
+Units ::= SEQUENCE { 
+name    
+ 
+ 
+[0] IMPLICIT InternationalString OPTIONAL, 
+description 
+ 
+ 
+[1] IMPLICIT HumanString OPTIONAL, 
+unit   
+ 
+ 
+ 
+[2] StringOrNumeric} 
+CategoryList ::= SEQUENCE { 
+commonInfo  
+ 
+ 
+[0] IMPLICIT CommonInfo OPTIONAL, 
+--Only one record expected per Explain database. All elements appear in brief presentation 
+categories -- XXX lcased
+ 
+ 
+[1] IMPLICIT SEQUENCE OF CategoryInfo } 
+CategoryInfo ::= SEQUENCE { 
+category     
+ 
+[1] IMPLICIT InternationalString, 
+originalCategory   
+[2] IMPLICIT InternationalString OPTIONAL, 
+description      
+ 
+[3] IMPLICIT HumanString OPTIONAL, 
+asn1Module   
+ 
+[4] IMPLICIT InternationalString OPTIONAL} 
+--Subsidiary definitions 
+CommonInfo ::= SEQUENCE { 
+dateAdded    
+ 
+[0] IMPLICIT GeneralizedTime OPTIONAL, 
+dateChanged  
+ 
+[1] IMPLICIT GeneralizedTime OPTIONAL, 
+expiry           
+ 
+[2] IMPLICIT GeneralizedTime OPTIONAL, 
+humanString-Language 
+[3] IMPLICIT LanguageCode OPTIONAL, 
+--Following not to occur for brief: 
+otherInfo 
+ 
+OtherInformation OPTIONAL} 
+HumanString ::= SEQUENCE OF SEQUENCE { 
+language -- XXX lcased
+ 
+[0] IMPLICIT LanguageCode OPTIONAL, 
+text       
+ 
+[1] IMPLICIT InternationalString} 
+IconObject ::= SEQUENCE OF SEQUENCE{ 
+--Note that the &quot;SEQUENCE OF&quot; is to allow alternative  
+--representations of the same Icon; it is not intended to allow multiple icons. 
+bodyType  
+[1] CHOICE{ 
+ianaType 
+[1] IMPLICIT InternationalString, 
+z3950type 
+[2] IMPLICIT InternationalString, 
+otherType 
+[3] IMPLICIT InternationalString}, 
+content   
+[2] IMPLICIT OCTET STRING} 
+LanguageCode ::= InternationalString 
+-- from ANSI/NISO Z39.53-1994  
+ContactInfo ::= SEQUENCE { 
+name   
+ 
+[0] IMPLICIT InternationalString OPTIONAL, 
+description 
+ 
+[1] IMPLICIT HumanString OPTIONAL, 
+address     
+ 
+[2] IMPLICIT HumanString OPTIONAL, 
+email        
+ 
+[3] IMPLICIT InternationalString OPTIONAL, 
+phone        
+ 
+[4] IMPLICIT InternationalString OPTIONAL} 
+NetworkAddress ::= CHOICE { 
+internetAddress   
+[0] IMPLICIT SEQUENCE { 
+ 
+ 
+ 
+ 
+hostAddress 
+[0] IMPLICIT InternationalString, 
+ 
+ 
+ 
+ 
+port  
+ 
+[1] IMPLICIT INTEGER}, 
+depricated 
+ 
+[1] IMPLICIT SEQUENCE {  
+ 
+ 
+depricated0 
+[0] IMPLICIT InternationalString,   
+ 
+ 
+ 
+depricated1 
+[1] IMPLICIT InternationalString OPTIONAL, 
+ 
+ 
+ 
+depricated2 
+[2] IMPLICIT InternationalString OPTIONAL, 
+ 
+depricated3 
+[3] IMPLICIT InternationalString}, 
+-- This element depricated in Z39.50-2001 
+other 
+ 
+ 
+[2] IMPLICIT SEQUENCE {   
+ 
+ 
+ 
+ 
+type      [0] IMPLICIT InternationalString, 
+address  [1] IMPLICIT InternationalString}} 
+AccessInfo ::= SEQUENCE { 
+ 
+-- see comment 13 
+queryTypesSupported [0] IMPLICIT SEQUENCE OF QueryTypeDetails OPTIONAL, 
+diagnosticsSets [1] IMPLICIT SEQUENCE OF OBJECT IDENTIFIER OPTIONAL, 
+attributeSetIds [2] IMPLICIT SEQUENCE OF AttributeSetId OPTIONAL, 
+schemas [3] IMPLICIT SEQUENCE OF OBJECT IDENTIFIER OPTIONAL, 
+recordSyntaxes [4] IMPLICIT SEQUENCE OF OBJECT IDENTIFIER OPTIONAL, 
+resourceChallenges [5] IMPLICIT SEQUENCE OF OBJECT IDENTIFIER OPTIONAL, 
+restrictedAccess [6] IMPLICIT AccessRestrictions OPTIONAL, 
+costInfo [8] IMPLICIT Costs OPTIONAL, 
+variantSets [9] IMPLICIT SEQUENCE OF OBJECT IDENTIFIER OPTIONAL, 
+elementSetNames [10] IMPLICIT SEQUENCE OF ElementSetName OPTIONAL, 
+unitSystems [11] IMPLICIT SEQUENCE OF InternationalString OPTIONAL} 
+-- XXX unitSystems is not marked OPTIONAL in the 2001 draft, but
+-- see http://www.loc.gov/z3950/agency/defects/0009.html
+-- To promote interoperability, you might want to treat it as non-OPTIONAL
+-- when sending, but www.cnshb.ru:210 doesn't.
+
+--Begin auxiliary definitions for AccessInfo 
+--Begin Query Details 
+QueryTypeDetails ::= CHOICE { 
+private    
+ 
+[0]  
+IMPLICIT PrivateCapabilities, 
+rpn         
+ 
+[1]   
+IMPLICIT RpnCapabilities, 
+iso8777       
+ 
+[2]   
+IMPLICIT Iso8777Capabilities, 
+z39-58   
+ 
+[100] 
+IMPLICIT HumanString, 
+erpn 
+ 
+ 
+[101] 
+IMPLICIT RpnCapabilities, 
+rankedList 
+ 
+[102] 
+IMPLICIT HumanString} 
+PrivateCapabilities ::= SEQUENCE { 
+operators      
+[0] IMPLICIT SEQUENCE OF SEQUENCE { 
+ 
+ 
+ 
+operator  
+[0] IMPLICIT InternationalString, 
+description 
+[1] IMPLICIT HumanString OPTIONAL }  
+OPTIONAL, 
+searchKeys   
+[1] IMPLICIT SEQUENCE OF SearchKey OPTIONAL,  
+--field names that can be searched 
+description  
+[2] IMPLICIT SEQUENCE OF HumanString OPTIONAL } 
+RpnCapabilities ::= SEQUENCE { 
+operators -- XXX lcased
+[0] IMPLICIT SEQUENCE OF INTEGER{ 
+and 
+ 
+(0), 
+or 
+ 
+(1), 
+and-not   
+(2), 
+prox 
+ 
+(3)}OPTIONAL, 
+--Omitted means all operators are supported 
+resultSetAsOperandSupported 
+[1] IMPLICIT BOOLEAN, 
+restrictionOperandSupported 
+[2] IMPLICIT BOOLEAN, 
+proximity  
+ 
+[3] IMPLICIT ProximitySupport OPTIONAL} 
+Iso8777Capabilities ::= SEQUENCE { 
+searchKeys 
+[0] IMPLICIT SEQUENCE OF SearchKey, 
+-- field names that may be searched 
+restrictions  
+[1] IMPLICIT HumanString OPTIONAL  
+--Omitted means supported, not specifying units 
+} 
+ProximitySupport ::= SEQUENCE { 
+anySupport 
+ 
+ 
+[0]   IMPLICIT BOOLEAN, 
+ 
+-- 'false' means no proximity support, in which case unitsSupported not supplied 
+unitsSupported  [1]   IMPLICIT SEQUENCE OF CHOICE{   
+known  [1] IMPLICIT INTEGER, 
+--Values from KnownProximityUnit 
+private  [2] IMPLICIT SEQUENCE{   
+ 
+ 
+ 
+ 
+ 
+unit 
+ 
+[0] IMPLICIT INTEGER,   
+description 
+[1] HumanString OPTIONAL}}  
+OPTIONAL} 
+SearchKey ::= SEQUENCE { 
+searchKey    
+ 
+[0] IMPLICIT InternationalString, 
+description    
+ 
+[1] IMPLICIT HumanString OPTIONAL } 
+--End Query details 
+ 
+AccessRestrictions ::= SEQUENCE OF SEQUENCE { 
+accessType   
+ 
+[0] INTEGER { 
+any  
+ 
+ 
+(0), 
+search    
+ 
+(1), 
+present    
+ 
+(2), 
+specific-elements  
+(3), 
+extended-services 
+(4), 
+by-database 
+ 
+(5)}, 
+accessText        
+[1] IMPLICIT HumanString OPTIONAL, 
+accessChallenges 
+[2] IMPLICIT SEQUENCE OF OBJECT IDENTIFIER OPTIONAL} 
+Costs ::= SEQUENCE { 
+connectCharge   
+[0] IMPLICIT Charge OPTIONAL,--Per-connection charge 
+connectTime 
+ 
+[1] IMPLICIT Charge OPTIONAL,--Time-based charge 
+displayCharge    
+[2] IMPLICIT Charge OPTIONAL,--Per-record charge 
+searchCharge    
+[3] IMPLICIT Charge OPTIONAL,--Per-search charge 
+subscriptCharge   
+[4] IMPLICIT Charge OPTIONAL,  --Subscription charges 
+-- XXX added L,
+otherCharges 
+ 
+[5] IMPLICIT SEQUENCE OF SEQUENCE{  
+forWhat  
+[1] 
+IMPLICIT HumanString, 
+charge   
+[2]  
+IMPLICIT Charge} OPTIONAL}  
+Charge ::= SEQUENCE{ 
+cost 
+ 
+ 
+ 
+[1] IMPLICIT IntUnit, 
+perWhat 
+ 
+[2] IMPLICIT Unit OPTIONAL, 
+--e.g. &quot;second,&quot; &quot;minute,&quot; &quot;line,&quot; &quot;record&quot;... 
+text  
+ 
+ 
+ 
+[3] IMPLICIT HumanString OPTIONAL}  
+--End Auxiliary definitions for AccessInfo 
+DatabaseList ::= SEQUENCE OF DatabaseName 
+AttributeCombinations ::= SEQUENCE { 
+defaultAttributeSet 
+ 
+[0] IMPLICIT AttributeSetId, 
+ 
+ 
+--Default for the combinations.  
+ 
+ 
+--Also probably a good choice for the default in searches, but that isn't required. 
+legalCombinations 
+[1] IMPLICIT SEQUENCE OF AttributeCombination } 
+AttributeCombination ::= SEQUENCE OF AttributeOccurrence 
+--An AttributeCombination is a pattern for legal combination of attributes 
+AttributeOccurrence ::= SEQUENCE {    
+--An AttributeOccurrence lists the legal values for a specific attribute type in a combination 
+attributeSet    
+ 
+[0] 
+IMPLICIT AttributeSetId OPTIONAL, 
+attributeType     
+[1] 
+IMPLICIT INTEGER, 
+mustBeSupplied   
+[2] 
+IMPLICIT NULL OPTIONAL, 
+attributeValues   
+CHOICE { 
+any-or-none 
+ 
+[3] IMPLICIT NULL, 
+ 
+--All supported values are OK  
+specific   
+ 
+[4] IMPLICIT SEQUENCE OF StringOrNumeric}} 
+--Only these values allowed 
+END 
+
+ RecordSyntax-SUTRS 
+{Z39-50-recordSyntax sutrs (101)} DEFINITIONS ::= 
+BEGIN  
+IMPORTS InternationalString  FROM Z39-50-APDU-2001; 
+SutrsRecord ::=  InternationalString     
+-- See Comment 1. 
+END 
+ 
+RecordSyntax-generic  
+ 
+-- For detailed semantics, see Appendix RET.
+{Z39-50-recordSyntax grs-1 (105)} DEFINITIONS ::= 
+BEGIN  
+EXPORTS Variant; 
+IMPORTS IntUnit, Unit, InternationalString, StringOrNumeric, Term FROM Z39-50-APDU-2001; 
+GenericRecord ::= SEQUENCE OF TaggedElement   
+TaggedElement ::= SEQUENCE { 
+tagType  
+ 
+[1] IMPLICIT INTEGER OPTIONAL, 
+--If omitted, default should be supplied dynamically by tagSet-M;  
+--otherwise it should be statically specified by the schema. 
+tagValue 
+ 
+[2] StringOrNumeric, 
+tagOccurrence   
+[3] IMPLICIT INTEGER OPTIONAL, 
+--Occurrence within the database record, and relative to the parent.  
+--No default; if omitted, server not telling or it is irrelevant. 
+-- 1-based. Tags are numbered beginning with 1. 
+content   
+ 
+[4] ElementData, 
+metaData 
+ 
+[5] IMPLICIT ElementMetaData OPTIONAL, 
+appliedVariant   
+[6] IMPLICIT Variant OPTIONAL} 
+ElementData ::= CHOICE{ 
+octets   OCTET STRING, 
+numeric  INTEGER, 
+date GeneralizedTime, 
+ext EXTERNAL, 
+string  InternationalString, 
+--Note: VisibleString (ASN.1 tag 26) is not supported by GRS-1.  
+--The tag for `string' must always be 2, even when  
+--version 2 is in effect and the character repertoire collapses to that of VisibleString. 
+trueOrFalse BOOLEAN, 
+oid OBJECT IDENTIFIER, 
+intUnit   [1] IMPLICIT IntUnit, 
+elementNotThere [2] IMPLICIT NULL, 
+-- Element requested but not there 
+elementEmpty [3] IMPLICIT NULL, 
+ --element there, but empty 
+noDataRequested [4] IMPLICIT NULL, 
+ --Variant request said 'no data' 
+diagnostic [5] IMPLICIT EXTERNAL, 
+subtree   [6] SEQUENCE OF NULL -- XXX FIXUP NULL was TaggedElement
+-- Recursive, for nested tags 
+} 
+
+--PYQUOTE ElementData['subtree'] = ('subtree', asn1.EXPLICIT(6), asn1.SEQUENCE_OF(TaggedElement))
+
+ElementMetaData ::= SEQUENCE{ 
+seriesOrder 
+ 
+ 
+[1]  
+IMPLICIT Order OPTIONAL,  
+--Only for a non-leaf node 
+usageRight 
+ 
+ 
+[2]  
+IMPLICIT Usage OPTIONAL, 
+hits 
+ 
+ 
+ 
+[3] 
+IMPLICIT SEQUENCE OF HitVector OPTIONAL, 
+displayName 
+ 
+ 
+[4] 
+IMPLICIT InternationalString OPTIONAL,  
+ 
+--Name for element that client can use for display 
+supportedVariants 
+ 
+[5]  
+IMPLICIT SEQUENCE OF Variant OPTIONAL, 
+message 
+ 
+ 
+[6] 
+IMPLICIT InternationalString OPTIONAL, 
+elementDescriptor 
+ 
+[7]  
+IMPLICIT OCTET STRING OPTIONAL, 
+ 
+--For example, a DTD 
+surrogateFor 
+ 
+ 
+[8]  
+IMPLICIT TagPath OPTIONAL,   
+ 
+--The retrieved element is a surrogate for the element given by this path  
+surrogateElement 
+[9]  
+IMPLICIT TagPath OPTIONAL, 
+ 
+--The element given by this path is a surrogate for the retrieved element 
+ 
+-- See comment 1. 
+ 
+other 
+ 
+
+ 
+[99] 
+IMPLICIT EXTERNAL OPTIONAL} 
+  
+TagPath ::= SEQUENCE  OF SEQUENCE{ 
+tagType  
+ 
+[1] 
+IMPLICIT INTEGER OPTIONAL, 
+tagValue 
+ 
+[2] 
+StringOrNumeric, 
+tagOccurrence   
+[3] 
+IMPLICIT INTEGER OPTIONAL} 
+Order ::= SEQUENCE{ 
+ascending 
+ 
+[1] IMPLICIT BOOLEAN, 
+ 
+--&quot;true&quot; means monotonically increasing (i.e. non-decreasing);  
+ 
+--&quot;false&quot; means monotonically decreasing (i.e. non-increasing). 
+order 
+ 
+ 
+ 
+[2] IMPLICIT INTEGER 
+ 
+--Same as defined by 'elementOrdering' in tagSet-M, though this may be 
+ 
+--overridden by schema. 
+} 
+Usage ::= SEQUENCE  { 
+type  
+ 
+[1] IMPLICIT INTEGER{ 
+redistributable 
+(1), --Element is freely redistributable 
+restricted 
+(2), --Restriction contains statement 
+licensePointer 
+(3) --Restriction contains license pointer 
+}, 
+restriction 
+[2] IMPLICIT InternationalString OPTIONAL} 
+HitVector ::= SEQUENCE{  
+--Each hit vector points to a fragment within the element, via location and/or token. 
+  satisfier   
+   
+Term OPTIONAL,  -- sourceword, etc. 
+offsetIntoElement 
+[1] IMPLICIT IntUnit OPTIONAL, 
+length   
+ 
+[2] IMPLICIT IntUnit OPTIONAL, 
+hitRank   
+ 
+[3] IMPLICIT INTEGER OPTIONAL, 
+serverToken 
+ 
+[4] IMPLICIT OCTET STRING OPTIONAL 
+ 
+--Client may use token subsequently within a variantRequest  
+ 
+--(in an elementRequest) to retrieve (or to refer to) the fragment.   
+} 
+Variant ::= SEQUENCE{ 
+globalVariantSetId 
+[1]  
+IMPLICIT OBJECT IDENTIFIER OPTIONAL, 
+ 
+--Applies to the triples below, when variantSetId omitted.  
+ 
+--If globalVariantSetId omitted, default applies.  
+ 
+--Default may be provided by the tagSet-M element defaultVariantSetId. 
+triples   
+ 
+[2] 
+IMPLICIT SEQUENCE OF SEQUENCE{ 
+variantSetId 
+ 
+[0] 
+IMPLICIT OBJECT IDENTIFIER OPTIONAL, 
+--If omitted, globalVariantSetId (above) applies, 
+--unless that too is omitted, in which case, default used. 
+class 
+[1] 
+IMPLICIT INTEGER, 
+type 
+[2] 
+IMPLICIT INTEGER, 
+value 
+[3] 
+CHOICE{ 
+ 
+ 
+-- XXX added tag names, for convenience 
+
+int INTEGER, 
+ 
+ 
+ 
+str InternationalString, 
+ 
+ 
+ 
+oct OCTET STRING, 
+ 
+ 
+ 
+oid OBJECT IDENTIFIER, 
+ 
+ 
+bool BOOLEAN, 
+nul NULL, 
+ 
+ 
+--Following need context tags: 
+unit  
+[1] IMPLICIT Unit,  
+valueAndUnit 
+[2] IMPLICIT IntUnit}}} 
+END 
+ 
+    
+
+RecordSyntax-ESTaskPackage 
+{Z39-50-recordSyntax esTaskPackage (106)} DEFINITIONS ::= 
+BEGIN  
+IMPORTS Permissions, InternationalString, IntUnit, DiagRec FROM Z39-50-APDU-2001; 
+TaskPackage ::= SEQUENCE{ 
+packageType 
+ 
+[1]  
+IMPLICIT OBJECT IDENTIFIER, 
+ 
+--oid of specific ES definition 
+packageName   
+[2]  
+IMPLICIT InternationalString OPTIONAL, 
+userId   
+ 
+[3]  
+IMPLICIT InternationalString OPTIONAL, 
+retentionTime 
+ 
+[4]  
+IMPLICIT IntUnit OPTIONAL, 
+permissions 
+ 
+[5]  
+IMPLICIT Permissions OPTIONAL, 
+description 
+ 
+[6]  
+IMPLICIT InternationalString OPTIONAL, 
+serverReference   
+[7]  
+IMPLICIT OCTET STRING OPTIONAL, 
+creationDateTime 
+[8]  
+IMPLICIT GeneralizedTime OPTIONAL, 
+taskStatus 
+ 
+[9]  
+IMPLICIT INTEGER{ 
+pending   
+(0), 
+active   
+(1), 
+complete 
+(2), 
+aborted   
+(3)}, 
+packageDiagnostics 
+[10] 
+IMPLICIT SEQUENCE OF DiagRec OPTIONAL, 
+taskSpecificParameters  [11] 
+IMPLICIT EXTERNAL 
+ 
+--Use oid for specific ES definition  
+ 
+--(same oid as packageType above) and select [2] &quot;taskPackage.&quot; 
+}  
+END 
+ 
+ 
+
+ 
+ResourceReport-Format-Resource-2 
+ DEFINITIONS ::= 
+BEGIN  
+IMPORTS InternationalString, StringOrNumeric, IntUnit FROM Z39-50-APDU-2001;   
+ResourceReport-2 ::= SEQUENCE{  -- XXX changed from ResourceReport, because 
+-- ResourceReport used above and we don't yet handle modules
+estimates 
+[1]  
+IMPLICIT SEQUENCE OF Estimate OPTIONAL, 
+message 
+[2]  
+IMPLICIT InternationalString OPTIONAL} 
+Estimate ::= SEQUENCE{ 
+type 
+ 
+[1]  
+StringOrNumeric, 
+ 
+--Numeric values of 1-16 are the same as used in Resource-1. 
+value 
+ 
+[2]  
+IMPLICIT IntUnit 
+-- When expressing currency: unitSystem (of Unit) is 'z3950'  
+-- (case insensitive), and unitType is 'iso4217-1990' (case insensitive).  
+-- Unit is currency code from ISO 4217-1990 
+} 
+END 
+
+ 
+AccessControlFormat-prompt-1 
+{Z39-50-accessControl prompt-1 (1)} DEFINITIONS ::= 
+BEGIN 
+IMPORTS InternationalString, DiagRec FROM Z39-50-APDU-2001; 
+PromptObject ::= CHOICE{ 
+challenge 
+ 
+[1] IMPLICIT Challenge, 
+ 
+response 
+ 
+[2] IMPLICIT Response} 
+Challenge ::= SEQUENCE OF SEQUENCE { 
+promptId 
+ 
+[1] PromptId, 
+ 
+-- See comment 1 
+defaultResponse   
+[2] IMPLICIT InternationalString OPTIONAL, 
+promptInfo 
+ 
+[3] CHOICE{    
+character 
+ 
+[1] IMPLICIT InternationalString, 
+encrypted 
+ 
+[2] IMPLICIT Encryption} OPTIONAL, 
+  
+-- See comment 2 
+regExpr   
+ 
+[4] IMPLICIT InternationalString OPTIONAL, 
+ 
+-- See comment 3 
+responseRequired 
+[5] IMPLICIT NULL OPTIONAL, 
+allowedValues   
+[6] IMPLICIT SEQUENCE OF InternationalString OPTIONAL, 
+ 
+--e.g. promptId=&quot;Desired color&quot;; allowed = 'red', 'blue','Green' 
+shouldSave 
+ 
+ 
+[7] IMPLICIT NULL OPTIONAL, 
+ 
+ 
+-- See comment 4 
+ 
+dataType     
+ 
+[8] IMPLICIT INTEGER{ 
+ 
+ 
+ 
+ 
+ 
+integer     
+(1), 
+ 
+ 
+ 
+ 
+ 
+date         
+(2), 
+ 
+ 
+ 
+ 
+ 
+float        
+(3), 
+ 
+ 
+ 
+ 
+ 
+alphaNumeric 
+(4), 
+ 
+ 
+ 
+ 
+ 
+url-urn    
+(5), 
+ 
+ 
+ 
+ 
+ 
+boolean   
+(6)} OPTIONAL, 
+ 
+-- See comment  5 
+diagnostic  
+ 
+ 
+[9] IMPLICIT EXTERNAL OPTIONAL 
+ 
+ 
+--Intended for repeat requests when there is an error  
+ 
+ 
+--the client should report to the user from previous attempt. 
+} 
+Response ::= SEQUENCE OF SEQUENCE { 
+promptId 
+ 
+[1] PromptId, 
+ 
+-- See comment 6 
+promptResponse   
+[2] CHOICE{ 
+string   
+ 
+[1] IMPLICIT InternationalString, 
+accept   
+ 
+[2] IMPLICIT BOOLEAN, 
+acknowledge 
+ 
+[3] IMPLICIT NULL, 
+diagnostic 
+ 
+[4] DiagRec, 
+encrypted 
+ 
+[5] IMPLICIT Encryption}} 
+PromptId ::= CHOICE{ 
+enummeratedPrompt 
+ 
+[1] IMPLICIT SEQUENCE{ 
+type 
+ 
+ 
+[1] IMPLICIT INTEGER{ 
+groupId   
+(0), 
+userId    
+(1), 
+password  
+(2), 
+newPassword 
+(3), 
+copyright 
+(4), 
+-- See comment 7 
+sessionId 
+(5)}, 
+suggestedString   
+[2] IMPLICIT InternationalString OPTIONAL}, 
+ 
+nonEnumeratedPrompt 
+[2] IMPLICIT InternationalString} 
+Encryption ::= SEQUENCE{ 
+cryptType 
+[1] IMPLICIT OCTET STRING OPTIONAL,  
+credential 
+[2] IMPLICIT OCTET STRING OPTIONAL, 
+ 
+--Random number, SALT, or other factor 
+data 
+ 
+[3] IMPLICIT OCTET STRING} 
+END 
+ 
+AccessControlFormat-des-1 
+{Z39-50-accessControlFormat  des-1 (2)} DEFINITIONS ::= 
+BEGIN 
+DES-RN-Object ::= CHOICE { 
+challenge 
+ 
+[1] IMPLICIT DRNType, 
+response 
+ 
+[2] IMPLICIT DRNType} 
+DRNType ::= SEQUENCE{ 
+userId   
+ 
+[1] IMPLICIT OCTET STRING OPTIONAL, 
+salt 
+ 
+ 
+[2] IMPLICIT OCTET STRING OPTIONAL, 
+randomNumber   
+[3] IMPLICIT OCTET STRING} 
+END 
+  
+AccessControlFormat-krb-1 
+{Z39-50-accessControlFormat  krb-1 (3)} DEFINITIONS ::= 
+BEGIN 
+IMPORTS InternationalString FROM Z39-50-APDU-2001; 
+KRBObject ::= CHOICE { 
+challenge 
+[1] IMPLICIT KRBRequest, 
+response 
+[2] IMPLICIT KRBResponse} 
+KRBRequest ::= SEQUENCE{ 
+service      
+[1] IMPLICIT InternationalString, 
+instance    
+[2] IMPLICIT InternationalString OPTIONAL, 
+realm      
+[3] IMPLICIT InternationalString OPTIONAL} 
+ 
+--Server requests a ticket for the given service, instance, and realm 
+KRBResponse ::= SEQUENCE{ 
+userid   
+[1] IMPLICIT InternationalString OPTIONAL, 
+ticket    
+[2] IMPLICIT OCTET STRING} 
+ 
+-- Client responds with a ticket for the requested service 
+END 
+
+ESFormat-PersistentResultSet 
+{Z39-50-extendedService persistentResultSet (1)} DEFINITIONS ::= 
+BEGIN 
+IMPORTS InternationalString FROM Z39-50-APDU-2001; 
+PersistentResultSet ::= CHOICE{ 
+esRequest 
+[1] IMPLICIT SEQUENCE{ 
+toKeep   
+[1] IMPLICIT NULL, 
+notToKeep 
+[2] ClientPartNotToKeep-prs OPTIONAL}, -- XXX added _prs
+taskPackage 
+[2] IMPLICIT SEQUENCE{ 
+clientPart 
+[1] IMPLICIT NULL, 
+serverPart 
+[2] ServerPart-prs OPTIONAL}} 
+ClientPartNotToKeep-prs ::= SEQUENCE{ 
+clientSuppliedResultSet [1] IMPLICIT InternationalString OPTIONAL, 
+ --Name of transient result set, supplied on request, 
+-- mandatory unless function is 'delete' 
+replaceOrAppend [2] IMPLICIT INTEGER{ -- Only if function is &quot;modify&quot;
+replace   (1), 
+append   (2)} OPTIONAL} 
+ServerPart-prs ::= SEQUENCE{ 
+serverSuppliedResultSet  [1] IMPLICIT InternationalString OPTIONAL,  
+ 
+ 
+--Name of transient result set, supplied by server, 
+ 
+ 
+ --representing the persistent result set to which  
+ 
+ 
+--package pertains. Meaningful only when package is  
+ 
+ 
+--presented. (i.e. not on ES response). 
+numberOfRecords  -- XXX lcased
+[2] IMPLICIT INTEGER OPTIONAL} 
+END 
+  
+ESFormat-PersistentQuery 
+{Z39-50-extendedService persistentQuery (2)} DEFINITIONS ::= 
+BEGIN 
+IMPORTS Query, InternationalString, OtherInformation FROM Z39-50-APDU-2001; 
+PersistentQuery ::= CHOICE{ 
+esRequest 
+[1] IMPLICIT SEQUENCE{ 
+toKeep   
+[1] ClientPartToKeep-pq OPTIONAL, 
+notToKeep 
+[2] ClientPartNotToKeep-pq}, -- XXX appended _pq b/c cross-module dup
+taskPackage 
+[2] IMPLICIT SEQUENCE{ 
+clientPart 
+[1] ClientPartToKeep-pq OPTIONAL, 
+serverPart 
+[2] ServerPart-pq}} 
+ClientPartToKeep-pq ::= SEQUENCE{ 
+dbNames 
+[2] IMPLICIT SEQUENCE OF InternationalString OPTIONAL, 
+additionalSearchInfo 
+[3] OtherInformation OPTIONAL} 
+ClientPartNotToKeep-pq ::= CHOICE{ 
+package  
+[1] IMPLICIT InternationalString, 
+query   
+[2] Query} 
+ServerPart-pq ::= Query 
+ 
+END 
+
+-- XXX ExportSpecification moved around
+  
+ESFormat-ExportSpecification 
+{Z39-50-extendedService exportSpecification (6)} DEFINITIONS ::= 
+BEGIN 
+
+
+EXPORTS ExportSpecification, Destination; IMPORTS CompSpec, InternationalString FROM 
+Z39-50-APDU-2001; 
+
+
+Destination ::= CHOICE{ 
+phoneNumber 
+ 
+[1]   IMPLICIT InternationalString, 
+faxNumber 
+ 
+[2]   IMPLICIT InternationalString, 
+x400address 
+ 
+[3]   IMPLICIT InternationalString, 
+emailAddress 
+ 
+[4]   IMPLICIT InternationalString, 
+pagerNumber 
+ 
+[5]   IMPLICIT InternationalString, 
+ftpAddress 
+ 
+[6]   IMPLICIT InternationalString, 
+ftamAddress 
+ 
+[7]   IMPLICIT InternationalString, 
+printerAddress   
+[8]   IMPLICIT InternationalString, 
+other    
+ 
+[100]   IMPLICIT SEQUENCE{ 
+vehicle   
+[1] IMPLICIT InternationalString    OPTIONAL, 
+destination 
+[2] IMPLICIT InternationalString}} -- XXX moved from home
+ExportSpecification ::= CHOICE{ 
+esRequest 
+[1] IMPLICIT SEQUENCE{ 
+toKeep   
+[1] ClientPartToKeep-es, 
+notToKeep 
+[2] IMPLICIT NULL}, 
+taskPackage 
+[2] IMPLICIT SEQUENCE{ 
+clientPart 
+[1] ClientPartToKeep-es, 
+serverPart 
+[2] IMPLICIT NULL}} 
+ClientPartToKeep-es ::= SEQUENCE{ 
+composition 
+ 
+[1] IMPLICIT CompSpec, 
+exportDestination 
+[2] Destination} 
+
+END 
+  ESFormat-PeriodicQuerySchedule 
+{Z39-50-extendedService periodicQuerySchedule (3)} DEFINITIONS ::= 
+BEGIN 
+IMPORTS Query, InternationalString, IntUnit FROM Z39-50-APDU-2001  
+ExportSpecification, Destination FROM ESFormat-ExportSpecification; 
+
+
+PeriodicQuerySchedule ::= CHOICE{ 
+esRequest 
+[1] IMPLICIT SEQUENCE{ 
+toKeep   
+[1] ClientPartToKeep-pqs, 
+notToKeep 
+[2] ClientPartNotToKeep-pqs}, 
+taskPackage 
+[2] IMPLICIT SEQUENCE{ 
+clientPart 
+[1] ClientPartToKeep-pqs, 
+serverPart 
+[2] ServerPart-pqs}} 
+ClientPartToKeep-pqs ::=SEQUENCE{ 
+activeFlag 
+ 
+[1] IMPLICIT BOOLEAN, 
+databaseNames   
+[2] IMPLICIT SEQUENCE OF InternationalString OPTIONAL, 
+--databaseNames must not occur if option bit 20 is set 
+resultSetDisposition 
+[3] IMPLICIT INTEGER{ 
+replace   
+(1), 
+append   
+(2), 
+createNew 
+(3) 
+ 
+--Only if client and server have agreement about naming  
+--convention for the resulting package,
+--and only if no result set is specified 
+} OPTIONAL,  
+--Mandatory on 'create' if result set is specified,  
+--in which case it must be 'replace' or 'append 
+alertDestination   
+[4] Destination OPTIONAL, 
+exportParameters 
+[5] CHOICE{ 
+packageName  [1]  IMPLICIT InternationalString, 
+exportPackage  [2] ExportSpecification} OPTIONAL} 
+ClientPartNotToKeep-pqs ::= SEQUENCE{ 
+databaseNames  [0] IMPLICIT SEQUENCE OF InternationalString OPTIONAL, -- XXX lcased
+--Must not occur unless option bit 20 is set 
+querySpec  
+ 
+ 
+[1] CHOICE{ 
+actualQuery 
+[1] Query, 
+packageName  [2] IMPLICIT InternationalString} OPTIONAL, 
+--Mandatory for 'create' 
+clientSuggestedPeriod 
+[2] Period OPTIONAL,  
+-- mandatory for 'create' 
+expiration 
+ 
+[3] IMPLICIT GeneralizedTime OPTIONAL, 
+resultSetPackage  
+[4] IMPLICIT InternationalString OPTIONAL, 
+additionalSearchInfo 
+[5] OtherInformation OPTIONAL 
+--Must not occur unless option bit 20 is set 
+} 
+
+ServerPart-pqs ::= SEQUENCE{ 
+databaseNames  [0] IMPLICIT SEQUENCE OF InternationalString OPTIONAL, -- XXX lcased
+
+--databaseNames must occur if bit 20 is set  
+-- and must not occur if option bit 20 is not set 
+actualQuery 
+ 
+[1] Query, 
+serverStatedPeriod 
+[2] Period, 
+  
+--Server supplies the period, which may be same as client proposed 
+expiration 
+ 
+[3] IMPLICIT GeneralizedTime OPTIONAL, 
+--Server supplies value for task package.  
+--It may be the same as client proposed or different from  
+--(and overrides) client proposal, but if omitted, there is no expiration. 
+resultSetPackage  
+[4] IMPLICIT InternationalString OPTIONAL, 
+--May be omitted only if exportParameters was supplied.  
+--Server supplies same name as client supplied, if client did supply a name. 
+lastQueryTime   
+[5] IMPLICIT GeneralizedTime OPTIONAL, 
+lastResultNumber 
+[6] IMPLICIT INTEGER OPTIONAL, 
+--Above two were made optional in 2001 version,  
+--because there won't be any value for these between  
+--the time the package is created and the first query is executed. 
+numberSinceModify 
+[7] IMPLICIT INTEGER OPTIONAL, 
+additionalSearchInfo 
+[8] OtherInformation OPTIONAL  
+--Must not occur unless option bit 20 is set 
+} 
+Period ::= CHOICE{ 
+unit        
+ 
+[1] IMPLICIT IntUnit, 
+businessDaily  
+ 
+[2] IMPLICIT NULL, 
+continuous 
+ 
+[3] IMPLICIT NULL, 
+other    
+ 
+[4] IMPLICIT InternationalString} 
+END 
+  
+ESFormat-ItemOrder 
+{Z39-50-extendedService itemOrder (4)} DEFINITIONS ::= 
+ BEGIN 
+IMPORTS InternationalString FROM Z39-50-APDU-2001; 
+ItemOrder ::= CHOICE{ 
+esRequest -- XXX lcased
+[1] IMPLICIT SEQUENCE{ 
+toKeep  [1] ClientPartToKeep-io OPTIONAL, 
+notToKeep 
+[2] ClientPartNotToKeep-io}, 
+taskPackage 
+[2] IMPLICIT SEQUENCE{ 
+clientPart 
+[1] ClientPartToKeep-io OPTIONAL, 
+serverPart 
+[2] ServerPart-io}} 
+ClientPartToKeep-io ::= SEQUENCE{ 
+supplDescription  [1] IMPLICIT EXTERNAL OPTIONAL, 
+contact   
+[2] IMPLICIT SEQUENCE{ 
+name  [1] IMPLICIT InternationalString OPTIONAL, 
+phone  [2] IMPLICIT InternationalString OPTIONAL, 
+email 
+[3] IMPLICIT InternationalString OPTIONAL} OPTIONAL, 
+addlBilling 
+[3] IMPLICIT SEQUENCE{ 
+paymentMethod   
+[1]   CHOICE{ 
+billInvoice [0] IMPLICIT NULL, 
+prepay   [1] IMPLICIT NULL, 
+depositAccount   [2] IMPLICIT NULL, 
+creditCard [3] IMPLICIT CreditCardInfo, 
+cardInfoPreviouslySupplied [4] IMPLICIT NULL, 
+privateKnown [5] IMPLICIT NULL, 
+privateNotKnown [6] IMPLICIT EXTERNAL}, 
+customerReference [2] IMPLICIT InternationalString OPTIONAL, 
+--An identifier assigned by the client  
+--to identify the customer.  
+--It could be used when the client want  
+--to search for Item Order task packages  
+--for a specific customer.  
+customerPONumber [3] IMPLICIT InternationalString OPTIONAL 
+--A purchase order number assigned by the  
+--customer (as opposed to one that might be  
+--assigned by the supplier). Similarly, a client  
+--may search for a task package knowing  
+--only the customer reference.  
+} 
+OPTIONAL} 
+CreditCardInfo   ::= SEQUENCE{ 
+nameOnCard 
+ 
+[1] IMPLICIT InternationalString, 
+expirationDate   
+[2] IMPLICIT InternationalString, 
+cardNumber 
+ 
+[3] IMPLICIT InternationalString}  
+ClientPartNotToKeep-io ::= SEQUENCE{  
+--Corresponds to 'requestedItem' in service definition 
+--Must supply at least one, and may supply both. 
+resultSetItem 
+[1] IMPLICIT SEQUENCE{   
+resultSetId 
+[1] IMPLICIT InternationalString, 
+item 
+ 
+[2] IMPLICIT INTEGER} OPTIONAL, 
+itemRequest 
+[2] IMPLICIT EXTERNAL OPTIONAL 
+-- See comment  1. 
+} 
+ServerPart-io ::= SEQUENCE{ 
+itemRequest 
+ 
+[1] 
+IMPLICIT EXTERNAL OPTIONAL, 
+ 
+--When itemRequest is an ILL-Request APDU,  
+ 
+--use OID 1.0.10161.2.1 (as above)  
+statusOrErrorReport 
+[2] IMPLICIT EXTERNAL OPTIONAL, -- XXX comma appended
+ 
+--When statusOrErrorReport is an ILL Status-Or-Error-Report  
+ 
+--APDU, use OID 1.0.10161.2.1 (as above) 
+auxiliaryStatus   
+[3] IMPLICIT INTEGER{ 
+notReceived 
+ 
+(1), 
+loanQueue 
+ 
+(2), 
+forwarded 
+ 
+(3), 
+unfilledCopyright   
+(4), 
+filledCopyright   
+(5)} OPTIONAL} 
+END 
+ 
+  
+ESFormat-Update 
+{Z39-50-extendedService update (5)} DEFINITIONS ::= 
+BEGIN 
+IMPORTS DiagRec, InternationalString FROM Z39-50-APDU-2001;  
+Update ::= CHOICE{ 
+esRequest 
+[1] IMPLICIT SEQUENCE{ 
+toKeep  [1] ClientPartToKeep-upd, 
+notToKeep 
+[2] ClientPartNotToKeep-upd}, 
+taskPackage 
+[2] IMPLICIT SEQUENCE{ 
+clientPart 
+[1] ClientPartToKeep-upd, 
+serverPart 
+[2] ServerPart-upd}} 
+ClientPartToKeep-upd ::= SEQUENCE{ 
+action   
+[1] IMPLICIT INTEGER{ 
+recordInsert 
+(1), 
+recordReplace  (2), 
+recordDelete 
+(3), 
+elementUpdate  (4)}, 
+databaseName  [2] IMPLICIT InternationalString, 
+schema   
+[3] IMPLICIT OBJECT IDENTIFIER OPTIONAL, 
+elementSetName [4] IMPLICIT InternationalString OPTIONAL} 
+ClientPartNotToKeep-upd ::= SuppliedRecords 
+ServerPart-upd ::= SEQUENCE{ 
+updateStatus 
+ 
+[1] IMPLICIT INTEGER{ 
+success  (1), 
+partial  (2), 
+failure  (3)}, 
+globalDiagnostics 
+[2] IMPLICIT SEQUENCE OF DiagRec OPTIONAL, 
+--These are non-surrogate diagnostics relating  
+--to the task, not to individual records. 
+taskPackageRecords 
+[3] IMPLICIT SEQUENCE OF TaskPackageRecordStructure 
+--See comment 1. 
+} 
+--Auxiliary definitions for Update 
+SuppliedRecords ::= SEQUENCE OF SEQUENCE{ 
+recordId 
+[1] CHOICE{ 
+number  [1] IMPLICIT INTEGER, 
+string  [2] IMPLICIT InternationalString, 
+ opaque  [3] IMPLICIT OCTET STRING} OPTIONAL, 
+supplementalId   
+[2] CHOICE{ 
+timeStamp 
+[1] IMPLICIT GeneralizedTime, 
+versionNumber  [2] IMPLICIT InternationalString, 
+previousVersion  [3] IMPLICIT EXTERNAL} OPTIONAL, 
+correlationInfo   
+[3] IMPLICIT CorrelationInfo OPTIONAL, 
+record   
+ 
+[4] IMPLICIT EXTERNAL} 
+CorrelationInfo ::= SEQUENCE{ 
+--Client may supply one or both for any record: 
+note 
+[1] IMPLICIT InternationalString OPTIONAL, 
+id 
+[2] IMPLICIT INTEGER OPTIONAL} 
+TaskPackageRecordStructure ::= SEQUENCE{ 
+recordOrSurDiag  
+[1] CHOICE { 
+record  [1] IMPLICIT EXTERNAL, 
+--Choose 'record' if recordStatus is 'success', and elementSetName was supplie d. 
+diagnostic 
+[2] DiagRec 
+-- Choose 'diagnostic', if RecordStatus is failure 
+} OPTIONAL, 
+--See comment 2 
+correlationInfo   
+[2] IMPLICIT CorrelationInfo OPTIONAL, 
+-- This should be included if it was supplied by the client 
+recordStatus 
+ 
+[3] IMPLICIT INTEGER{ 
+success   
+(1), 
+queued   
+(2),  -- XXX added leading (
+inProcess 
+(3), 
+failure   
+(4)}} 
+END 
+
+  ESFormat-ExportInvocation 
+{Z39-50-extendedService exportInvocation (7)} DEFINITIONS ::= 
+BEGIN 
+IMPORTS InternationalString, IntUnit FROM Z39-50-APDU-2001  
+ExportSpecification FROM ESFormat-ExportSpecification; 
+ExportInvocation ::= CHOICE{ 
+esRequest 
+[1] IMPLICIT SEQUENCE{ 
+toKeep   
+[1] ClientPartToKeep-ei, 
+notToKeep 
+[2] ClientPartNotToKeep-ei}, -- XXX _ei appended
+taskPackage 
+[2] IMPLICIT SEQUENCE{ 
+clientPart 
+[1] ClientPartToKeep-ei, 
+serverPart 
+[2] ServerPart-ei OPTIONAL}} 
+ClientPartToKeep-ei ::= SEQUENCE{ 
+exportSpec 
+[1] CHOICE{ 
+packageName  [1] IMPLICIT InternationalString, 
+packageSpec 
+[2] ExportSpecification}, 
+numberOfCopies  [2] IMPLICIT INTEGER} 
+ClientPartNotToKeep-ei
+::= SEQUENCE{ 
+resultSetId 
+ 
+[1] IMPLICIT InternationalString, 
+records   
+ 
+[2] CHOICE{ 
+all 
+[1] IMPLICIT NULL, 
+ranges  [2] IMPLICIT SEQUENCE OF SEQUENCE{ 
+start 
+[1] IMPLICIT INTEGER, 
+count  [2] IMPLICIT INTEGER OPTIONAL 
+--Count may be omitted only on last range, 
+-- to indicate &quot;all remaining records beginning with 'start'.&quot; 
+}}} 
+ServerPart-ei  
+::= SEQUENCE{ 
+estimatedQuantity 
+[1] IMPLICIT IntUnit OPTIONAL, 
+quantitySoFar 
+ 
+[2] IMPLICIT IntUnit OPTIONAL, 
+estimatedCost 
+ 
+[3] IMPLICIT IntUnit OPTIONAL, 
+costSoFar 
+ 
+[4] IMPLICIT IntUnit OPTIONAL} 
+END 
+
+ 
+UserInfoFormat-searchResult-1 
+{Z39-50-userInfoFormat searchResult-1 (1)} DEFINITIONS ::= 
+BEGIN 
+IMPORTS DatabaseName, Term, Query, IntUnit, InternationalString FROM Z39-50-APDU-2001; 
+SearchInfoReport ::= SEQUENCE OF SEQUENCE{ 
+subqueryId 
+[1] IMPLICIT InternationalString OPTIONAL,  
+--Shorthand identifier of subquery 
+fullQuery 
+[2] IMPLICIT BOOLEAN,  
+--'true' means this is the full query; 'false', a sub-query  
+subqueryExpression 
+[3] QueryExpression OPTIONAL,  
+--A subquery of the query as submitted.  
+--May be whole query; if so, &quot;fullQuery&quot; should be 'true' 
+subqueryInterpretation 
+[4] QueryExpression OPTIONAL,  
+--How server interpreted subquery 
+subqueryRecommendation  [5] QueryExpression OPTIONAL, 
+-- Server-recommended alternative 
+subqueryCount   
+[6] IMPLICIT INTEGER OPTIONAL,  
+--Number of records for thissubQuery, across  
+--all of the specified databases. (If during search,  
+--via resource control, number of records so far) 
+subqueryWeight    
+[7] IMPLICIT IntUnit OPTIONAL,  
+--Relative weight of this subquery 
+resultsByDB       
+[8] IMPLICIT ResultsByDB OPTIONAL} 
+ ResultsByDB ::= SEQUENCE OF SEQUENCE{ 
+databases 
+[1] CHOICE{ 
+all 
+[1] IMPLICIT NULL, 
+--Applies across all of the databases in Search APDU 
+list 
+ 
+[2] IMPLICIT SEQUENCE OF DatabaseName 
+--Applies across all databases in this list 
+}, 
+count   
+[2] IMPLICIT INTEGER OPTIONAL, 
+--Number of records for query component  
+--(and, as above, if during search, via resource control, 
+-- number of records so far) 
+resultSetName   
+[3] IMPLICIT InternationalString OPTIONAL 
+--See comment 1. 
+} 
+QueryExpression ::=  CHOICE { 
+term  
+[1] IMPLICIT SEQUENCE{ 
+queryTerm 
+[1] 
+Term, 
+termComment 
+[2] IMPLICIT InternationalString OPTIONAL}, 
+query  [2] Query} 
+END  
+
+UserInfoFormat-userInfo-1 
+{Z39-50-userInfoFormat userInfo-1 (3)} DEFINITIONS ::= 
+BEGIN 
+IMPORTS OtherInformation FROM Z39-50-APDU-2001; 
+UserInfo-1 ::= OtherInformation 
+END 
+ 
+ESpec-2 -- XXX added
+{Z39-50-elementSpec eSpec-2 (2)} DEFINITIONS ::= 
+--For detailed semantics, see Appendix RET. </i>
+BEGIN 
+IMPORTS Variant FROM RecordSyntax-generic 
+StringOrNumeric, InternationalString FROM Z39-50-APDU-2001; 
+Espec-2 ::= SEQUENCE{ 
+elementSetNames   
+[1] IMPLICIT SEQUENCE OF InternationalString OPTIONAL, 
+-- See comment 1 
+defaultVariantSetId  
+[2] IMPLICIT OBJECT IDENTIFIER OPTIONAL, 
+--If supplied, applies whenever variantRequest does not include variantSetId 
+defaultVariantRequest  
+[3] IMPLICIT Variant OPTIONAL, 
+--See comment 2. 
+defaultTagType   
+[4] IMPLICIT INTEGER OPTIONAL, 
+--If supplied, applies whenever 'tagType'  
+--(within 'tag' within TagPath) is omitted 
+elements 
+ 
+[5] IMPLICIT SEQUENCE OF ElementRequest OPTIONAL} 
+ElementRequest::= CHOICE{ 
+simpleElement   -- XXX lcased
+[1] IMPLICIT SimpleElement, 
+compositeElement 
+[2] IMPLICIT SEQUENCE{ 
+elementList 
+[1] CHOICE{ 
+primitives 
+[1] IMPLICIT  
+SEQUENCE OF InternationalString, 
+--Client may specify one or more element set names,  
+--each identifying a set of elements, and the composite element is the union 
+specs   
+[2] IMPLICIT  
+SEQUENCE OF SimpleElement}, 
+deliveryTag  
+[2] IMPLICIT Espec-2-TagPath, -- XXX Espec-2- prepended for cross-module uniqueness
+ 
+ 
+ 
+--DeliveryTag tagPath for compositeElement  
+ 
+ 
+ 
+--may not include wildThing or wildPath 
+variantRequest  [3] IMPLICIT Variant OPTIONAL}} -- XXX lcased
+SimpleElement ::= SEQUENCE{ 
+path  
+ 
+ 
+[1] IMPLICIT Espec-2-TagPath, 
+variantRequest    
+[2] IMPLICIT Variant OPTIONAL} 
+Espec-2-TagPath ::= SEQUENCE OF CHOICE{   
+specificTag  
+ 
+[1] IMPLICIT SEQUENCE{ 
+ 
+ 
+--The following line, schemaId is the  
+ 
+ 
+--only difference in this definition from that of eSpec-1.  
+schemaId  
+[0] IMPLICIT OBJECT  IDENTIFIER OPTIONAL, 
+ 
+--see comment 3 
+tagType -- XXX lcased
+[1] IMPLICIT INTEGER OPTIONAL, 
+--If omitted, then 'defaultTagType' (above) applies,  
+--if supplied, and if not supplied, then default  
+--listed in schema applies 
+tagValue -- XXX lcased
+[2] StringOrNumeric, 
+occurrence  
+[3] Occurrences OPTIONAL  
+--default is &quot;first occurrence&quot; 
+}, 
+wildThing   
+ 
+[2] Occurrences, 
+-- See comment 4 
+wildPath   
+ 
+[3] IMPLICIT NULL } -- XXX added '}'
+ 
+-- See comment 5. 
+Occurrences ::= CHOICE{ 
+all   
+ 
+ 
+[1] IMPLICIT NULL, 
+last  
+ 
+ 
+[2] IMPLICIT NULL, 
+values   
+ 
+[3] IMPLICIT SEQUENCE{ 
+start  
+[1] IMPLICIT INTEGER, 
+--If 'start' alone is included, then  
+--single occurrence is requested 
+howMany  
+[2] IMPLICIT INTEGER OPTIONAL 
+--For example, if 'start' is 5 and 'howMany' is 6,  
+--then request is for &quot;occurrences 5 through 10.&quot; 
+}} 
+END  
+ ESpec-q -- XXX ucased
+{Z39-50-elementSpec eSpec-q (3)} DEFINITIONS ::= 
+BEGIN 
+IMPORTS Term,  AttributeList, AttributeElement 
+FROM Z39-50-APDU-2001; -- XXX added ';'
+Espec-q ::= SEQUENCE{ 
+valueRestrictor    
+[1] IMPLICIT ValueRestrictor, 
+elementSelector    
+[2] IMPLICIT EXTERNAL OPTIONAL} 
+ValueRestrictor ::= SEQUENCE{ 
+attributeSetId     
+OBJECT IDENTIFIER, 
+nodeSelectionCriteria  
+Espec-q-RPNStructure} -- XXX Espec-q- prefixed for uniqueness
+Espec-q-RPNStructure ::= CHOICE{ 
+op  [0] AttributesPlusTerm, 
+rpnRpnOp   [1] IMPLICIT NULL} -- XXX FIXUP was RpnRpnOp
+
+--PYQUOTE Espec_q_RPNStructure['rpnRpnOp'] =  ('rpnRpnOp', 1, Espec_q_RpnRpnOp)
+
+Espec-q-RpnRpnOp ::= SEQUENCE{ 
+rpn1       Espec-q-RPNStructure, 
+rpn2    Espec-q-RPNStructure, 
+ op        [46] CHOICE{ 
+and  [0]  IMPLICIT NULL, 
+or   [1]  IMPLICIT NULL, 
+and-not  [2]  IMPLICIT NULL} }
+Espec-q-AttributesPlusTerm ::= [102] IMPLICIT SEQUENCE{ 
+attributes 
+AttributeList, 
+term    Term} 
+END 
+ 

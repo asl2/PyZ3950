@@ -1,0 +1,273 @@
+<html>
+<!-- Author: Barbara Shuh                      -->
+<!-- Creation Date:   19970703                           -->
+<!-- Date of Last Update:   20020521    -->
+
+<!-- This web page is maintained by staff of Information  -->
+<!-- Analysis and Standards, National Library of Canada, in  -->
+<!-- the role of Maintenance Agency for the ISO Interlibrary  -->
+<!-- Loan Protocol standards, ISO 10160 and ISO 10161 -->
+<head>
+<title>ILL Protocol Implementations</title>
+</head>
+
+<body background="images/bg.gif" link="#0009ff" vlink="#FF0000" alink="#00FFFF">
+
+<a name="top"></a>
+<table cellspacing=0 width=610 cellpadding=0 border=0>
+	<tr>
+	<td width=140 valign="top">
+	<img src="images/banreg1.gif" width="140" height=45 border=0 alt="ILL Protocol Implementations"><p>
+
+	<a href="whatsnew.htm"><img src="images/btwn.gif" width="140" height=28 border=0 alt="What's New"></a><br>
+	<a href="standard.htm"><img src="images/btsta.gif" width="140" height=28 border=0 alt="Standards"></a><br>
+	<a href="register.htm"><img src="images/btreg.gif" width="140" height=28 border=0 alt="Register"></a><br>
+	<a href="implemen.htm"><img src="images/btimpb.gif" width="140" height=28 border=0 alt="Implementations"></a><br>
+	<a href="testing.htm"><img src="images/bttest.gif" width="140" height=28 border=0 alt="Testing ILL Protocol Implementations"></a><br>
+	<a href="reading.htm"><img src="images/btrd.gif" width="140" height=28 border=0 alt="Reading"></a><br>
+	<a href="asn1.htm"><img src="images/btasn.gif" width="140" height=28 border=0 alt="ASN.1 Index"></a><p>
+
+<a href="main.htm"><img src="images/bthome.gif" width="140" height=28 border=0 alt="Home"></a><br>
+<a href="siteindx.htm"><img src="images/btsite.gif" width="140" height=28 border=0 alt="Site Index"></a><p>
+
+
+	<img src="images/thisdoc.gif" width="140" height=33 border=0 alt="In this Document:"><p>
+
+
+<!-- DOCUMENT TABLE OF CONTENTS BEGINS -->
+
+<font size=1 face=helvetica,arial>
+<b>
+
+<a href="implemen.htm#sitelink">Links to Web Sites</a>
+<p>
+ILL Protocol Implementation<br>Test Beds
+<p>
+
+<a href="implemen.htm#ipig">IPIG</a>
+<p>
+
+<a href="http://www.nlc-bnc.ca/wbin/illcntct/survsee">Implementation List</a>
+<p>
+<a href="implemen.htm#regi_form">Misc. Forms for Implementors
+<p>
+
+<a href="impl_list.htm">Links to Web Sites</a>
+<p>
+<a href="impl_can.htm">Canadian <br>Implementors</a>
+<p>Related Sites:<br>Testing ILL Protocol<br> Implementations:<p>
+
+<a href="conformt.htm">OSI Conformance <br>Testing</a>
+<p>
+ILL Protocol Interoperability <br>Testing<p>
+<ul><li><a href="testiom.htm">Interoperability Testing (Intro)</a>
+<li><a href="testiotp.htm">Test Plan <br>(proforma)</a>
+<li><a href="testiots.htm">Test Suite</a>
+<li><a href="testiors.htm">Test Results (template)</a>
+<li><a href="testiorp.htm">Test Report</a></ul>
+</b>
+</font>
+
+<!-- DOCUMENT TABLE OF CONTENTS ENDS -->
+
+<!-- SIDEBAR FOOTER BEGINS  -->
+
+<hr width=100>
+<b><font color=#030b6e face=arial size=-2>
+For More Information, <br>
+Contact
+<br>the Interlibrary Loan
+<br>Application Standards
+<br>Maintenance Agency,
+<br>National Library
+<br>of Canada
+<p>
+<font size=-2><a href="mailto:barbara.shuh@nlc-bnc.ca">barbara.shuh<br>@nlc-bnc.ca</a></font>
+<p>
+Last Update: 2002/05/21
+</font>
+</b>
+
+<!-- SIDEBAR FOOTER ENDS  -->
+
+<p><br><p><br>
+	</td>
+	<td valign="top" align="left" width=470>
+	<img src="images/banimp2.gif" width=225 height=45 border=0 cellpadding=0 cellspacing=0 alt="ILL Protocol Implementations"> <br>
+
+<font face=arial size=-1 color=#0033ff>
+	Interlibrary Loan Application Standards Maintenance Agency
+	</font>
+<p><br>
+
+<!-- DOCUMENT TEXT BEGINS HERE  -->
+
+<h2>ILL Protocol Implementation Test Beds</h2></a>
+
+<p>Following is a list of the addresses for ILL protocol implementation test beds available for testing.</p>
+<p>Each listing includes the address, port, and/or contact name. Details such as restrictions of access are included, as applicable.</p>
+<h3>Well-known ports</h3>
+<p>Port 499 and port 1611 have been registered with IANA as well-known ports for the use of ILL Protocol messaging.  Implementations conforming to the IPIG Profile using direct transfer over TCP SHALL listen on port 1611 and may also listen on port 499.</p>
+<h4>One-way messaging on Port 1611:</h4>
+<p>If connecting to port 1611, implementations conforming to the IPIG Profile SHALL send one or more ILL-APDUs.  If &quot;connected-to&quot; on port 1611, implementations conforming to the IPIG Profile SHALL be able to receive any number of ILL-APDUs and SHALL NOT send any ILL-APDUs on the same connection.</p>
+<h4>Two-way messaging on Port 499: </h4>
+<p>If connecting to port 499, implementations conforming to the IPIG Profile SHALL send zero or more ILL-APDUs and SHALL be able to receive zero or more ILL-APDUs on the same connection.  If &quot;connected-to&quot; on port 499, implementations conforming to the IPIG Profile SHALL be able to receive any number of ILL-APDUs.</p>
+<p>
+<a href="contact.htm">Contact the Web Manager</a> with any corrections, contributions or comments.</p>
+<p><hr></p>
+<dl>
+<dt><strong>British Library Test System</strong></dt>
+<dd><em>Site Name:</em>  TEST ARTISO</dd>
+<dd><em>System Id:</em>         bl:BLTEST</dd>
+<dd><em>IP Address:</em>        testgate.bl.uk</dd>
+<dd><em>MIME Address:</em>      artiso@testgate.bl.uk</dd>
+<dd><em>Ports Supported:</em>   1611</dd>
+<dd><em>Contact:</em>           Kevin Gladwell (<a href="mailto:kevin.gladwell@bl.uk">kevin.gladwell@bl.uk</a>)</dd>
+</dl>
+
+<blockquote><p>This system has been built by Fretwell Downing Informatics (contact: Ed Davidson (<a href="mailto:ed.davidson@fdgroup.com">ed.davidson@fdgroup.com</a>) ) Ensure that you can exchange all APDUs with them before starting interoperability testing with the BL.</p>
+
+<p>For fuller details on testing your ISO ILL System with ARTISO, see the
+Test Details <BR>(<a href="http://www.bl.uk/services/document/artiso.html"> http://www.bl.uk/services/document/artiso.html</a>)</p></blockquote>
+
+<p><hr><p>
+
+<dt><strong>The <em>epixtech</em>  ISO/ILL Test Bed</strong></dt>
+<dd><em>Site Name: </em>RSS</dd>
+<dd><em>System Id: </em>als:RSS</dd>
+<dd><em>IP Address: </em>rss.epixtech.com</dd>
+<dd><em>MIME Address: </em>rss@doyle.epixtech.com</dd>
+<dd><em>Ports Supported: </em>1611 (simplex) &amp; 499 (duplex)</dd>
+<dd><em>Contact: </em>Ken Victorson (<a href="mailto:K.Victorson@epixtech.com">K.Victorson@epixtech.com</a>)</dd></dl>
+<blockquote><p>The <em>epixtech</em> ILL server is in production and available for testing with your ILL server.  <em>epixtech</em> welcomes all interested vendors and developers to test against their production ILL/ISO server.  Their ILL server supports the entire life-cycle of an ILL transaction (excluding forward notification).</p>
+
+<p>Before transmittng any ISO/ILL APDU's to <em>epixtech</em>'s ILL server, please send the following information to Ken Victorson (<a href="mailto:K.Victorson@epixtech.com">K.Victorson@epixtech.com</a>)</p></blockquote>
+<dd>System Id</dd>
+<dd>Server IP Address</dd>
+<dd>Port</dd></dl>
+<blockquote><p>This information will be used to set up your ILL server properly on the <em>epixtech</em> production RSS/ILL server so protocol-based communication can begin.
+<p>Once <em>epixtech</em> has defined your ILL server, they will be prepared to begin exchanging APDU's with you. </p></blockquote>
+<p><hr><p>
+
+<dt><strong>Fretwell Downing Informatics</strong></dt>
+<dd><em>Contact </em>Ed Davidson (<a href="mailto:ed.davidson@fdgroup.com"> ed.davidson@fdgroup.com</a>) for information on interoperability testing with VDX.</dd>
+
+<p><hr><p>
+<dt><strong>Local Interlending and Document Delivery Administration System (LIDDAS)</strong>
+<dd>Testbed access: liddas.slnsw.gov.au</dd>
+<p><hr>
+ <dt><strong>National Library of Canada/Bibliothèque nationale du Canada</strong></dt>
+<dd><em>Site Name:</em>  NAVIS</dd>
+<dd><em>System Id:</em>         nlc-bnc:OONL</dd>
+<dd><em>IP Address:</em>        webserv@nlc-bnc.ca</dd>
+<dd><em>MIME Address:</em>      illtest@services.nlc-bnc.ca</dd>
+<dd><em>Contact:</em>           Eileen Lim (<a href="mailto:eileen.lim@nlc-bnc.ca">eileen.lim@nlc-bnc.ca</a>)</dd>
+<dd><em>Notes:</em>  The National Library of Canada's system, NAVIS, supports only the responder role.</dd>
+<blockquote><p>For fuller details on testing your ISO ILL System with NAVIS, see
+<em>Interoperability Testing with the National Library of Canada</em> (<a href="document/testing/nlc-interoptp.pdf">http://www.nlc-bnc.ca/iso/ill/document/testing/nlc-interoptp.pdf</a>).</p></blockquote>
+<p><hr></p>
+<strong><dl>
+<dt>OCLC Test System</strong> </dt>
+<blockquote>As of 22 November 1999, OCLC's Environment is available for ISO ILL interaction testing.</blockquote>
+
+<em><dd>Domain Name:</em> testenv.oclc.org </dd>
+<em><dd>Ports Supported:</dd>
+</em><dd>ILL Direct Request test system: 5771 </dd>
+<em><dd>Contact:</dd>
+</em><dd>Jim McDonald (<a href="mailto:jim_mcdonald@oclc.org">jim_mcdonald@oclc.org</a>) or </dd>
+<dd>Joanne Shoemaker (<a href="mailto:joanne_shoemaker@oclc.org">joanne_shoemaker@oclc.org</a>) </dd>
+</dl>
+
+<p><em><blockquote>Note:</em> A valid OCLC authorization and password are required to logon to OCLC test system when using port 5771. </blockquote></p>
+
+<p>Here are the details concerning the authorization and password needed to access this system.</p>
+<p>The first ILL-Request of a connection must contain an OCLC ILL Authorization number and password in the iLLRequestExtensions portion of the request. The external object for the authorization extension will be the AccessControlFormat-prompt-1 from Z39.50-1995. The OID for the object is 1.2.840.10003.8.1.</p>
+<p>&nbsp;Based on the Z39.50 definition, encode the authorization number and password as shown below where
+*one SEQUENCE is for the authorization number and the other is for the
+password *type is userId(1) for the authorization number and password(2)
+for the password *string contains the authorization number or password</p>
+
+<pre>response[2]
+   SEQUENCE
+      PromptId[1]
+         EnumeratedPrompt[1]
+           Type[1]
+      PromptResponse[2]
+           string[1]
+   SEQUENCE
+      PromptId[1]
+         EnumeratedPrompt[1]
+           Type[1]
+      PromptResponse[2]
+           string[1]
+&nbsp;</pre>
+<p>The authorization number may be encoded with or without hyphens.</p>
+<p><hr></p>
+<dt> <strong>Testbed for Minnesota State Colleges and Universities
+Project for Automated Library Systems (MnSCU/PALS): </strong>
+<p><dt>The PALS testbed is accessible either via e-mail or via tcp/ip on port 1611
+<dd><em>SystemId:</em>     MnSCU/PALS:TST</dd>
+<dd><em>IP Address:</em>  beowulf.pals.msus.edu:1611</dd>
+<dd><em>E-mail Address:</em>  ipigmail@ranger.pals.msus.edu</dd>
+<dd><em>Contact:</em>      Alan Rykhus (<a href="mailto:alan.rykhus@mankato.msus.edu">alan.rykhus@mankato.msus.edu</a>)</dd>
+
+<p>To use the PALS testbed, PALS requires the following information to preconfigure testing partners in the PALS ILL system:</p>
+	<dd>SystemID</dd>
+	<dd>transportation mode</dd>
+	<dd>system address</dd>
+
+<p>PALS has a fully functional ILL module and can receive any of the
+ISO/ILL APDUs.   However, PALS has not implemented the forward service at this time.</p>
+
+<p><hr></p>
+
+<dt><strong>The Research Libraries Group (RLG)</strong>
+<p>Contact Linda Driver
+(<a href="mailto:Linda_Driver@notes.rlg.org">Linda_Driver@notes.rlg.org</a>) for information on access to the RLG Testbed.
+<p><hr>
+
+<dt><strong>The Library Corporation (TLC)</strong>
+
+<blockquote>TLC has dedicated an unattended installation of the ISO ILL Application, <strong>Library•Request</strong>, for interoperability testing. All transactions at this site are for test purposes only.
+This installation supports full exercising of the ISO ILL StateMachine.
+
+<dt>For BER Encoded APDU's over TCP use:</dt>
+<dd><em>SystemId-Symbol:</em> TLC:TCPTESTING</dd>
+<dd><em>IP Address:</em> Library.Request.test.tlcdelivers.com port 1611</dd>
+
+<dt>For MIME Encoded BER use:</dt>
+<dd><em>SystemId-Symbol:</em> TLC:ILLTESTING</dd>
+<dd><em>IP Address:</em> Library.Request.test@tlcdelivers.com </dd>
+
+<blockquote>To register with this test site, send an ILLRequest with a valid APDUDeliveryInfo extension.  You can send any valid APDU without our intervention.  If you would like specific responses, or have any questions, please contact Brian Crosen: (<a href="mailto:bcrosen@tlcdelivers.com"> bcrosen@tlcdelivers.com</a>) or Mark Wilson (<a href="mailto:mwilson@tlcdelivers.com">mwilson@tlcdelivers.com</a>)
+
+<hr>
+<h3>Related Pages</h3>
+<blockquote>To submit new or revised announcements of ILL protocol implementation test beds available for testing, use the <a href="impltstb_form.htm">Data Entry Form</a> for ILL Protocol Implementation Test Beds.</blockquote>
+<blockquote>To prepare a Statement of Interoperability, use the proforma Statement of Interoperability <a href="ipigprfl_si_proforma.doc">
+http://www.nlc-bnc.ca/iso/ill/ipigprfl_si_proforma.doc</a></p> <p>Instructions on the use of this proforma are available at <a href="ipigprfl_si_instructions.htm">
+http://www.nlc-bnc.ca/iso/ill/ipigprfl_si_instructions.htm</a></p>
+
+<p>Consult <a href="ipigprfl_si.htm">
+http://www.nlc-bnc.ca/iso/ill/ipigprfl_si.htm</a> for a record of the Statements of Interoperability submitted to the Maintenance Agency. </p></blockquote>
+
+<blockquote>For more information on interoperability testing, consult <a href="testiom.htm">ILL Protocol Implementation Interoperability Testing</a>, guidelines prepared by the National Library of Canada for its 1992 interoperability testing programme.</blockquote>
+<!-- DOCUMENT TEXT ENDS HERE  -->
+
+</td>
+</tr>
+
+<tr>
+<td width=160 valign="bottom">
+<p>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#top"><img src="images/top.gif" width=50 height=30 border=0 alt="Top of page"></a>
+
+<td valign="top" align="left" width=450>
+<p><hr>
+<center><font size=-1>copyright &copy; 1999-2002<br>Interlibrary Loan Application Standards Maintenance Agency </font></center>
+	</td>
+	</tr>
+	</table>
+
+</body>
+</html>

@@ -1,0 +1,2138 @@
+<html>
+<head>
+<title>A Layman's Guide to a Subset of ASN.1, BER, and DER</title>
+</head>
+<body bgcolor="#ffffff">
+<center>
+<h1>A Layman's Guide to a Subset of ASN.1, BER, and DER</h1>
+</center>
+
+<center>
+An RSA Laboratories Technical Note<br>
+Burton S. Kaliski Jr.<br>
+Revised November 1, 1993
+</center>
+<p>
+Supersedes June 3, 1991 version, which was also published as
+NIST/OSI Implementors' Workshop document SEC-SIG-91-17.
+PKCS documents are available by electronic mail to
+<pkcs@rsa.com>.
+<p>
+Copyright (C) 1991-1993 RSA Laboratories, a division of RSA
+Data Security, Inc. License to copy this document is granted
+provided that it is identified as "RSA Data Security, Inc.
+Public-Key Cryptography Standards (PKCS)" in all material
+mentioning or referencing this document.<br>
+003-903015-110-000-000
+<p>
+<b>Abstract.</b> This note gives a layman's introduction to a
+subset of OSI's Abstract Syntax Notation One (ASN.1), Basic
+Encoding Rules (BER), and Distinguished Encoding Rules
+(DER). The particular purpose of this note is to provide
+background material sufficient for understanding and
+implementing the PKCS family of standards.
+<p>
+
+<h2>1. Introduction</h2>
+
+It is a generally accepted design principle that abstraction
+is a key to managing software development. With abstraction,
+a designer can specify a part of a system without concern
+for how the part is actually implemented or represented.
+Such a practice leaves the implementation open; it
+simplifies the specification; and it makes it possible to
+state "axioms" about the part that can be proved when the
+part is implemented, and assumed when the part is employed
+in another, higher-level part. Abstraction is the hallmark
+of most modern software specifications.
+<p>
+One of the most complex systems today, and one that also
+involves a great deal of abstraction, is Open Systems
+Interconnection (OSI, described in X.200). OSI is an
+internationally standardized architecture that governs the
+interconnection of computers from the physical layer up to
+the user application layer. Objects at higher layers are
+defined abstractly and intended to be implemented with
+objects at lower layers. For instance, a service at one
+layer may require transfer of certain abstract objects
+between computers; a lower layer may provide transfer
+services for strings of ones and zeroes, using encoding
+rules to transform the abstract objects into such strings.
+OSI is called an open system because it supports many
+different implementations of the services at each layer.
+<p>
+OSI's method of specifying abstract objects is called ASN.1
+(Abstract Syntax Notation One, defined in X.208), and one
+set of rules for representing such objects as strings of
+ones and zeros is called the BER (Basic Encoding Rules,
+defined in X.209). ASN.1 is a flexible notation that allows
+one to define a variety data types, from simple types such
+as integers and bit strings to structured types such as sets
+and sequences, as well as complex types defined in terms of
+others. BER describes how to represent or encode values of
+each ASN.1 type as a string of eight-bit octets. There is
+generally more than one way to BER-encode a given value.
+Another set of rules, called the Distinguished Encoding
+Rules (DER), which is a subset of BER, gives a unique
+encoding to each ASN.1 value.
+<p>
+The purpose of this note is to describe a subset of ASN.1,
+BER and DER sufficient to understand and implement one OSI-
+based application, RSA Data Security, Inc.'s Public-Key
+Cryptography Standards. The features described include an
+overview of ASN.1, BER, and DER and an abridged list of
+ASN.1 types and their BER and DER encodings. Sections 2-4
+give an overview of ASN.1, BER, and DER, in that order.
+Section 5 lists some ASN.1 types, giving their notation,
+specific encoding rules, examples, and comments about their
+application to PKCS. Section 6 concludes with an example,
+X.500 distinguished names.
+<p>
+Advanced features of ASN.1, such as macros, are not
+described in this note, as they are not needed to implement
+PKCS. For information on the other features, and for more
+detail generally, the reader is referred to CCITT
+Recommendations X.208 and X.209, which define ASN.1 and BER.
+
+<b>Terminology and notation.</b> In this note, an octet is an eight-
+bit unsigned integer. Bit 8 of the octet is the most
+significant and bit 1 is the least significant.
+<p>
+The following meta-syntax is used for in describing ASN.1
+notation:
+<p>
+<table border=0 cellspacing=3>
+<tr>
+<td valign=top>
+<pre>BIT</pre>
+</td>
+<td valign=top>
+monospace denotes literal characters in the type<br>
+and value notation; in examples, it generally<br>
+denotes an octet value in hexadecimal
+</td>
+</tr>
+<tr>
+<td valign=top>
+<b><em>n1</em></b>
+</td>
+<td valign=top>
+bold italics denotes a variable
+</td>
+</tr>
+<tr>
+<td valign=top>
+<b>[]</b>
+</td>
+<td valign=top>
+bold square brackets indicate that a term is optional
+</td>
+</tr>
+<tr>
+<td valign=top>
+<b>{}</b>
+</td>
+<td valign=top>
+bold braces group related terms
+</td>
+</tr>
+<tr>
+<td valign=top>
+<b>|</b>
+</td>
+<td valign=top>
+bold vertical bar delimits alternatives with a group
+</td>
+</tr>
+<tr>
+<td valign=top>
+<b>...</b>
+</td>
+<td valign=top>
+bold ellipsis indicates repeated occurrences
+</td>
+</tr>
+<tr>
+<td valign=top>
+<b>=</b>
+</td>
+<td valign=top>
+bold equals sign expresses terms as subterms
+</td>
+</tr>
+</table>
+
+<h2>2. Abstract Syntax Notation One</h2>
+
+Abstract Syntax Notation One, abbreviated ASN.1, is a
+notation for describing abstract types and values.
+<p>
+In ASN.1, a type is a set of values. For some types, there
+are a finite number of values, and for other types there are
+an infinite number. A value of a given ASN.1 type is an
+element of the type's set. ASN.1 has four kinds of type:
+simple types, which are "atomic" and have no components;
+structured types, which have components; tagged types, which
+are derived from other types; and other types, which include
+the CHOICE type and the ANY type. Types and values can be
+given names with the ASN.1 assignment operator (::=) , and
+those names can be used in defining other types and values.
+<p>
+Every ASN.1 type other than CHOICE and ANY has a tag, which
+consists of a class and a nonnegative tag number. ASN.1
+types are abstractly the same if and only if their tag
+numbers are the same. In other words, the name of an ASN.1
+type does not affect its abstract meaning, only the tag
+does. There are four classes of tag:
+<p>
+<blockquote>
+     <em>Universal,</em> for types whose meaning is the same in all
+          applications; these types are only defined in
+          X.208.
+<p>
+     <em>Application,</em> for types whose meaning is specific to an
+          application, such as X.500 directory services;
+          types in two different applications may have the
+          same application-specific tag and different
+          meanings.
+<p>
+     <em>Private,</em> for types whose meaning is specific to a given
+          enterprise.
+<p>
+     <em>Context-specific,</em> for types whose meaning is specific
+          to a given structured type; context-specific tags
+          are used to distinguish between component types
+          with the same underlying tag within the context of
+          a given structured type, and component types in
+          two different structured types may have the same
+          tag and different meanings.
+</blockquote>
+<p>
+The types with universal tags are defined in X.208, which
+also gives the types' universal tag numbers. Types with
+other tags are defined in many places, and are always
+obtained by implicit or explicit tagging (see Section 2.3).
+Table 1 lists some ASN.1 types and their universal-class
+tags.
+
+<blockquote>
+<table border=1 cellpadding=3>
+<tr>
+<td valign=top>Type</td>
+<td valign=top>Tag number<br>(decimal)</td>
+<td valign=top>Tag number<br>(hexadecimal)</td>
+</tr>
+<tr>
+<td valign=top><tt>INTEGER</tt></td>
+<td valign=top>2</td>
+<td valign=top><tt>02</tt></td>
+</tr>
+<tr>
+<td valign=top><tt>BIT STRING</tt></td>
+<td valign=top>3</td>
+<td valign=top><tt>03</tt></td>
+</tr>
+<tr>
+<td valign=top><tt>OCTET STRING</tt></td>
+<td valign=top>4</td>
+<td valign=top><tt>04</tt></td>
+</tr>
+<tr>
+<td valign=top><tt>NULL</tt></td>
+<td valign=top>5</td>
+<td valign=top><tt>05</tt></td>
+</tr>
+<tr>
+<td valign=top><tt>OBJECT IDENTIFIER</tt></td>
+<td valign=top>6</td>
+<td valign=top><tt>06</tt></td>
+</tr>
+<tr>
+<td valign=top><tt>SEQUENCE</tt> and <tt>SEQUENCE OF</tt></td>
+<td valign=top>16</td>
+<td valign=top><tt>10</tt></td>
+</tr>
+<tr>
+<td valign=top><tt>SET</tt> and <tt>SET OF</tt></td>
+<td valign=top>17</td>
+<td valign=top><tt>11</tt></td>
+</tr>
+<tr>
+<td valign=top><tt>PrintableString</tt></td>
+<td valign=top>19</td>
+<td valign=top><tt>13</tt></td>
+</tr>
+<tr>
+<td valign=top><tt>T61String</tt></td>
+<td valign=top>20</td>
+<td valign=top><tt>14</tt></td>
+</tr>
+<tr>
+<td valign=top><tt>IA5String</tt></td>
+<td valign=top>22</td>
+<td valign=top><tt>16</tt></td>
+</tr>
+<tr>
+<td valign=top><tt>UTCTime</tt></td>
+<td valign=top>23</td>
+<td valign=top><tt>17</tt></td>
+</tr>
+</table>
+<p>
+<b>Table 1.</b> Some types and their universal-class tags.
+</blockquote>
+<p>
+ASN.1 types and values are expressed in a flexible,
+programming-language-like notation, with the following
+special rules:
+<p>
+<blockquote>
+<ul>
+<li>
+Layout is not significant; multiple spaces and
+line breaks can be considered as a single space.
+<p>
+<li>
+Comments are delimited by pairs of hyphens (--),
+or a pair of hyphens and a line break.
+<p>
+<li>
+Identifiers (names of values and fields) and type
+references (names of types) consist of upper- and
+lower-case letters, digits, hyphens, and spaces;
+identifiers begin with lower-case letters; type
+references begin with upper-case letters.
+</ul>
+<p>
+</blockquote>
+The following four subsections give an overview of simple
+types, structured types, implicitly and explicitly tagged
+types, and other types. Section 5 describes specific types
+in more detail.
+
+
+<h3>2.1 Simple types</h3>
+
+Simple types are those not consisting of components; they
+are the "atomic" types. ASN.1 defines several; the types
+that are relevant to the PKCS standards are the following:
+<p>
+<blockquote>
+     <tt>BIT STRING,</tt> an arbitrary string of bits (ones and
+          zeroes).
+<p>
+     <tt>IA5String,</tt> an arbitrary string of IA5 (ASCII)
+          characters.
+<p>
+     <tt>INTEGER,</tt> an arbitrary integer.
+<p>
+     <tt>NULL,</tt> a null value.
+<p>
+     <tt>OBJECT IDENTIFIER,</tt> an object identifier, which is a
+          sequence of integer components that identify an
+          object such as an algorithm or attribute type.
+<p>
+     <tt>OCTET STRING,</tt> an arbitrary string of octets (eight-bit
+          values).
+<p>
+     <tt>PrintableString,</tt> an arbitrary string of printable
+          characters.
+<p>
+     <tt>T61String,</tt> an arbitrary string of T.61 (eight-bit)
+          characters.
+<p>
+     <tt>UTCTime,</tt> a "coordinated universal time" or Greenwich
+          Mean Time (GMT) value.
+</blockquote>
+<p>
+Simple types fall into two categories: string types and non-
+string types. <tt>BIT STRING, IA5String, OCTET STRING,
+PrintableString, T61String,</tt> and <tt>UTCTime</tt>
+ are string types.
+<p>
+String types can be viewed, for the purposes of encoding, as
+consisting of components, where the components are
+substrings. This view allows one to encode a value whose
+length is not known in advance (e.g., an octet string value
+input from a file stream) with a constructed, indefinite-
+length encoding (see Section 3).
+<p>
+The string types can be given size constraints limiting the
+length of values.
+
+
+<h3>2.2 Structured types</h3>
+
+Structured types are those consisting of components. ASN.1
+defines four, all of which are relevant to the PKCS
+standards:
+<p>
+<blockquote>
+     <tt>SEQUENCE,</tt> an ordered collection of one or more types.
+<p>
+     <tt>SEQUENCE OF,</tt> an ordered collection of zero or more
+          occurrences of a given type.
+<p>
+     <tt>SET,</tt> an unordered collection of one or more types.
+<p>
+     <tt>SET OF,</tt> an unordered collection of zero or more
+          occurrences of a given type.
+</blockquote>
+<p>
+The structured types can have optional components, possibly
+with default values.
+
+
+<h3>2.3 Implicitly and explicitly tagged types</h3>
+
+Tagging is useful to distinguish types within an
+application; it is also commonly used to distinguish
+component types within a structured type. For instance,
+optional components of a <tt>SET</tt> or <tt>SEQUENCE</tt> type are typically
+given distinct context-specific tags to avoid ambiguity.
+<p>
+There are two ways to tag a type: implicitly and explicitly.
+<p>
+Implicitly tagged types are derived from other types by
+changing the tag of the underlying type. Implicit tagging is
+denoted by the ASN.1 keywords <b>[<em>class number</em>]</b> <tt>IMPLICIT</tt> (see
+Section 5.1).
+<p>
+Explicitly tagged types are derived from other types by
+adding an outer tag to the underlying type. In effect,
+explicitly tagged types are structured types consisting of
+one component, the underlying type. Explicit tagging is
+denoted by the ASN.1 keywords <b>[<em>class number</em>]</b> <tt>EXPLICIT</tt> (see
+Section 5.2).
+<p>
+The keyword <b>[<em>class number</em>]</b> alone is the same as explicit
+tagging, except when the "module" in which the ASN.1 type is
+defined has implicit tagging by default. ("Modules" are
+among the advanced features not described in this note.)
+<p>
+For purposes of encoding, an implicitly tagged type is
+considered the same as the underlying type, except that the
+tag is different. An explicitly tagged type is considered
+like a structured type with one component, the underlying
+type. Implicit tags result in shorter encodings, but
+explicit tags may be necessary to avoid ambiguity if the tag
+of the underlying type is indeterminate (e.g., the
+underlying type is <tt>CHOICE</tt> or <tt>ANY</tt>).
+
+
+<h3>2.4 Other types</h3>
+
+Other types in ASN.1 include the <tt>CHOICE</tt> and <tt>ANY</tt> types. The
+<tt>CHOICE</tt> type denotes a union of one or more alternatives; the
+<tt>ANY</tt> type denotes an arbitrary value of an arbitrary type,
+where the arbitrary type is possibly defined in the
+registration of an object identifier or integer value.
+
+
+<h2>3. Basic Encoding Rules</h2>
+
+The Basic Encoding Rules for ASN.1, abbreviated BER, give
+one or more ways to represent any ASN.1 value as an octet
+string. (There are certainly other ways to represent ASN.1
+values, but BER is the standard for interchanging such
+values in OSI.)
+<p>
+There are three methods to encode an ASN.1 value under BER,
+the choice of which depends on the type of value and whether
+the length of the value is known. The three methods are
+primitive, definite-length encoding; constructed, definite-
+length encoding; and constructed, indefinite-length
+encoding. Simple non-string types employ the primitive,
+definite-length method; structured types employ either of
+the constructed methods; and simple string types employ any
+of the methods, depending on whether the length of the value
+is known. Types derived by implicit tagging employ the
+method of the underlying type and types derived by explicit
+tagging employ the constructed methods.
+<p>
+In each method, the BER encoding has three or four parts:
+<p>
+<blockquote>
+     <em>Identifier octets.</em> These identify the class and tag
+          number of the ASN.1 value, and indicate whether
+          the method is primitive or constructed.
+<p>
+     <em>Length octets.</em> For the definite-length methods, these
+          give the number of contents octets. For the
+          constructed, indefinite-length method, these
+          indicate that the length is indefinite.
+<p>
+     <em>Contents octets.</em> For the primitive, definite-length
+          method, these give a concrete representation of
+          the  value. For the constructed methods, these
+          give the concatenation of the BER encodings of the
+          components of the value.
+<p>
+     <em>End-of-contents octets</em>. For the constructed, indefinite-
+          length method, these denote the end of the
+          contents. For the other methods, these are absent.
+</blockquote>
+<p>
+The three methods of encoding are described in the following
+sections.
+
+
+<h3>3.1 Primitive, definite-length method</h3>
+
+This method applies to simple types and types derived from
+simple types by implicit tagging. It requires that the
+length of the value be known in advance. The parts of the
+BER encoding are as follows:
+<p>
+<b>Identifier octets.</b> There are two forms: low tag number (for
+tag numbers between 0 and 30) and high tag number (for tag
+numbers 31 and greater).
+<p>
+<blockquote>
+     <em>Low-tag-number form.</em> One octet. Bits 8 and 7 specify
+          the class (see Table 2), bit 6 has value "0,"
+          indicating that the encoding is primitive, and
+          bits 5-1 give the tag number.
+<p>
+<table border=1 cellpadding=3>
+<tr><td valign=top><b>Class</b></td><td valign=top><b>Bit 8</b></td><td valign=top><b>Bit 7</b></td></tr>
+<tr><td valign=top>universal</td><td valign=top>0</td><td valign=top>0</td></tr>
+<tr><td valign=top>application</td><td valign=top>0</td><td valign=top>1</td></tr>
+<tr><td valign=top>context-specific</td><td valign=top>1</td><td valign=top>0</td></tr>
+<tr><td valign=top>private</td><td valign=top>1</td><td valign=top>1</td></tr>
+</table>
+<p>
+<b>Table 2.</b> Class encoding in identifier octets.
+<p>
+     <em>High-tag-number form.</em> Two or more octets. First octet
+          is as in low-tag-number form, except that bits 5-1
+          all have value "1." Second and following octets
+          give the tag number, base 128, most significant
+          digit first, with as few digits as possible, and
+          with the bit 8 of each octet except the last set
+          to "1."
+<p>
+</blockquote>
+<b>Length octets.</b> There are two forms: short (for lengths
+between 0 and 127), and long definite (for lengths between 0
+and 2^1008 -1).
+<blockquote>
+<p>
+     <em>Short form.</em> One octet. Bit 8 has value "0" and bits 7-1
+          give the length.
+<p>
+     <em>Long form.</em> Two to 127 octets. Bit 8 of first octet has
+          value "1" and bits 7-1 give the number of
+          additional length octets. Second and following
+          octets give the length, base 256, most significant
+          digit first.
+<p>
+</blockquote>
+<p>
+<b>Contents octets.</b> These give a concrete representation of the
+value (or the value of the underlying type, if the type is
+derived by implicit tagging). Details for particular types
+are given in Section 5.
+
+
+<h3>3.2 Constructed, definite-length method</h3>
+
+This method applies to simple string types, structured
+types, types derived simple string types and structured
+types by implicit tagging, and types derived from anything
+by explicit tagging. It requires that the length of the
+value be known in advance. The parts of the BER encoding are
+as follows:
+<p>
+<b>Identifier octets.</b> As described in Section 3.1, except that
+bit 6 has value "1," indicating that the encoding is
+constructed.
+<p>
+<b>Length octets.</b> As described in Section 3.1.
+<p>
+<b>Contents octets.</b> The concatenation of the BER encodings of
+the components of the value:
+<p>
+<blockquote>
+<ul>
+<li>
+   For simple string types and types derived from
+          them by implicit tagging, the concatenation of the
+          BER encodings of consecutive substrings of the
+          value (underlying value for implicit tagging).
+<p>
+<li>
+    For structured types and types derived from them
+          by implicit tagging, the concatenation of the BER
+          encodings of components of the value (underlying
+          value for implicit tagging).
+<p>
+<li>
+    For types derived from anything by explicit
+          tagging, the BER encoding of the underlying value.
+</ul>
+<p>
+</blockquote>
+Details for particular types are given in Section 5.
+
+
+<h3>3.3 Constructed, indefinite-length method</h3>
+
+This method applies to simple string types, structured
+types, types derived simple string types and structured
+types by implicit tagging, and types derived from anything
+by explicit tagging. It does not require that the length of
+the value be known in advance. The parts of the BER encoding
+are as follows:
+<p>
+<b>Identifier octets.</b> As described in Section 3.2.
+<p>
+<b>Length octets.</b> One octet, <tt>80</tt>.
+<p>
+<b>Contents octets.</b> As described in Section 3.2.
+<p>
+<b>End-of-contents octets.</b> Two octets, <tt>00 00</tt>.
+<p>
+Since the end-of-contents octets appear where an ordinary
+BER encoding might be expected (e.g., in the contents octets
+of a sequence value), the 00 and 00 appear as identifier and
+length octets, respectively. Thus the end-of-contents octets
+is really the primitive, definite-length encoding of a value
+with universal class, tag number 0, and length 0.
+
+
+<h2>4. Distinguished Encoding Rules</h2>
+
+The Distinguished Encoding Rules for ASN.1, abbreviated DER,
+are a subset of BER, and give exactly one way to represent
+any ASN.1 value as an octet string. DER is intended for
+applications in which a unique octet string encoding is
+needed, as is the case when a digital signature is computed
+on an ASN.1 value. DER is defined in Section 8.7 of X.509.
+<p>
+DER adds the following restrictions to the rules given in
+Section 3:
+<p>
+<blockquote>
+<ol>
+<li>
+   When the length is between 0 and 127, the short
+          form of length must be used
+<p>
+<li>
+   When the length is 128 or greater, the long form
+          of length must be used, and the length must be
+          encoded in the minimum number of octets.
+<p>
+<li>
+   For simple string types and implicitly tagged
+          types derived from simple string types, the
+          primitive, definite-length method must be
+          employed.
+<p>
+<li>
+   For structured types, implicitly tagged types
+          derived from structured types, and explicitly
+          tagged types derived from anything, the
+          constructed, definite-length method must be
+          employed.
+</ol>
+</blockquote>
+<p>
+Other restrictions are defined for particular types (such as
+<tt>BIT STRING, SEQUENCE, SET,</tt> and <tt>SET OF</tt>), and can be found in
+Section 5.
+
+
+<h2>5. Notation and encodings for some types</h2>
+
+This section gives the notation for some ASN.1 types and
+describes how to encode values of those types under both BER
+and DER.
+<p>
+The types described are those presented in Section 2. They
+are listed alphabetically here.
+<p>
+Each description includes ASN.1 notation, BER encoding, and
+DER encoding. The focus of the encodings is primarily on the
+contents octets; the tag and length octets follow Sections 3
+and 4. The descriptions also explain where each type is used
+in PKCS and related standards. ASN.1 notation is generally
+only for types, although for the type <tt>OBJECT IDENTIFIER</tt>,
+value notation is given as well.
+
+
+<h3>5.1 Implicitly tagged types</h3>
+
+An implicitly tagged type is a type derived from another
+type by changing the tag of the underlying type.
+<p>
+Implicit tagging is used for optional <tt>SEQUENCE</tt> components
+with underlying type other than <tt>ANY</tt> throughout PKCS, and for
+the extendedCertificate alternative of PKCS #7's
+<tt>ExtendedCertificateOrCertificate</tt> type.
+<p>
+ASN.1 notation:
+<p>
+<b>[[<em>class</em>] <em>number</em>]</b> <tt>IMPLICIT</tt> <b><em>Type</em></b>
+<p>
+<b><em>class</em> =</b> <tt>UNIVERSAL</tt>  |  <tt>APPLICATION</tt>  |  <tt>PRIVATE</tt>
+<p>
+where <b><em>Type</em></b> is a type, <b><em>class</em></b> is an optional class name, and
+<b><em>number</em></b> is the tag number within the class, a nonnegative
+integer.
+<p>
+In ASN.1 "modules" whose default tagging method is implicit
+tagging, the notation <b>[[<em>class</em>] <em>number</em>] <em>Type</em></b> is also
+acceptable, and the keyword <tt>IMPLICIT</tt> is implied. (See
+Section 2.3.) For definitions stated outside a module, the
+explicit inclusion of the keyword <tt>IMPLICIT</tt> is preferable to
+prevent ambiguity.
+<p>
+If the class name is absent, then the tag is context-
+specific. Context-specific tags can only appear in a
+component of a structured or <tt>CHOICE</tt> type.
+<p>
+Example: PKCS #8's <tt>PrivateKeyInfo</tt> type has an optional
+<tt>attributes</tt> component with an implicit, context-specific tag:
+<p>
+<pre>
+PrivateKeyInfo ::= SEQUENCE {
+  version Version,
+  privateKeyAlgorithm PrivateKeyAlgorithmIdentifier,
+  privateKey PrivateKey,
+  attributes [0] IMPLICIT Attributes OPTIONAL }
+</pre>
+<p>
+Here the underlying type is <tt>Attributes</tt>, the class is absent
+(i.e., context-specific), and the tag number within the
+class is 0.
+<p>
+<b>BER encoding.</b> Primitive or constructed, depending on the
+underlying type. Contents octets are as for the BER encoding
+of the underlying value.
+<p>
+Example: The BER encoding of the attributes component of a
+<tt>PrivateKeyInfo</tt> value is as follows:
+<blockquote>
+<ul>
+<li>
+    the identifier octets are <tt>80</tt> if the underlying
+          <tt>Attributes</tt> value has a primitive BER encoding and
+          <tt>a0</tt> if the underlying <tt>Attributes</tt> value has a
+          constructed BER encoding
+<p>
+<li>
+    the length and contents octets are the same as the
+          length and contents octets of the BER encoding of
+          the underlying <tt>Attributes</tt> value
+</ul>
+</blockquote>
+<p>
+<b>DER encoding.</b> Primitive or constructed, depending on the
+underlying type. Contents octets are as for the DER encoding
+of the underlying value.
+
+
+<h3>5.2 Explicitly tagged types</h3>
+
+Explicit tagging denotes a type derived from another type by
+adding an outer tag to the underlying type.
+<p>
+Explicit tagging is used for optional <tt>SEQUENCE</tt> components
+with underlying type <tt>ANY</tt> throughout PKCS, and for the
+version component of X.509's <tt>Certificate</tt> type.
+<p>
+ASN.1 notation:
+<p>
+<b>[[<em>class</em>] <em>number</em>]</b> <tt>EXPLICIT</tt> <b><em>Type</em></b>
+<p>
+<b><em>class</em> =</b> <tt>UNIVERSAL  |  APPLICATION  |  PRIVATE</tt>
+<p>
+where <b><em>Type</em></b> is a type, <b><em>class</em></b> is an optional class name, and
+<b><em>number</em></b> is the tag number within the class, a nonnegative
+integer.
+<p>
+If the class name is absent, then the tag is context-
+specific. Context-specific tags can only appear in a
+component of a <tt>SEQUENCE, SET</tt> or <tt>CHOICE</tt> type.
+<p>
+In ASN.1 "modules" whose default tagging method is explicit
+tagging, the notation <b>[[<em>class</em>] <em>number</em>] <em>Type</em></b> is also
+acceptable, and the keyword <tt>EXPLICIT</tt> is implied. (See
+Section 2.3.) For definitions stated outside a module, the
+explicit inclusion of the keyword <tt>EXPLICIT</tt> is preferable to
+prevent ambiguity.
+<p>
+Example 1: PKCS #7's <tt>ContentInfo</tt> type has an optional
+content component with an explicit, context-specific tag:
+<p>
+<pre>
+ContentInfo ::= SEQUENCE {
+  contentType ContentType,
+  content
+    [0] EXPLICIT ANY DEFINED BY contentType OPTIONAL }
+</pre>
+<p>
+Here the underlying type is <tt>ANY DEFINED BY contentType,</tt> the
+class is absent (i.e., context-specific), and the tag number
+within the class is 0.
+<p>
+Example 2: X.509's <tt>Certificate</tt> type has a version component
+with an explicit, context-specific tag, where the <tt>EXPLICIT</tt>
+keyword is omitted:
+<p>
+<pre>
+Certificate ::= ...
+  version [0] Version DEFAULT v1988,
+...
+</pre>
+<p>
+The tag is explicit because the default tagging method for
+the ASN.1 "module" in X.509 that defines the <tt>Certificate</tt>
+type is explicit tagging.
+<p>
+<b>BER encoding.</b> Constructed. Contents octets are the BER
+encoding of the underlying value.
+<p>
+Example: the BER encoding of the content component of a
+<tt>ContentInfo</tt> value is as follows:
+<p>
+<blockquote>
+<ul>
+<li>
+    identifier octets are <tt>a0</tt>
+<p>
+<li>
+    length octets represent the length of the BER
+          encoding of the underlying <tt>ANY DEFINED BY</tt>
+          <tt>contentType</tt> value
+<p>
+<li>
+    contents octets are the BER encoding of the
+          underlying <tt>ANY DEFINED BY contentType</tt> value
+</ul>
+</blockquote>
+<p>
+<b>DER encoding.</b> Constructed. Contents octets are the DER
+encoding of the underlying value.
+
+
+<h3>5.3 ANY</h3>
+
+The <tt>ANY</tt> type denotes an arbitrary value of an arbitrary
+type, where the arbitrary type is possibly defined in the
+registration of an object identifier or associated with an
+integer index.
+<p>
+The <tt>ANY</tt> type is used for content of a particular content
+type in PKCS #7's <tt>ContentInfo</tt> type, for parameters of a
+particular algorithm in X.509's <tt>AlgorithmIdentifier</tt> type,
+and for attribute values in X.501's <tt>Attribute</tt> and
+<tt>AttributeValueAssertion</tt> types. The <tt>Attribute</tt> type is used by
+PKCS #6, #7, #8, #9 and #10, and the <tt>AttributeValueAssertion</tt>
+type is used in X.501 distinguished names.
+<p>
+ASN.1 notation:
+<p>
+<tt>ANY [DEFINED BY</tt> <b><em>identifier</em></b>]
+<p>
+where <b><em>identifier</em></b> is an optional identifier.
+<p>
+In the <tt>ANY</tt> form, the actual type is indeterminate.
+<p>
+The <tt>ANY DEFINED BY</tt> identifier form can only appear in a
+component of a <tt>SEQUENCE</tt> or <tt>SET</tt> type for which identifier
+identifies some other component, and that other component
+has type <tt>INTEGER</tt> or <tt>OBJECT IDENTIFIER</tt> (or a type derived
+from either of those by tagging). In that form, the actual
+type is determined by the value of the other component,
+either in the registration of the object identifier value,
+or in a table of integer values.
+<p>
+Example: X.509's <tt>AlgorithmIdentifier</tt> type has a component of
+type <tt>ANY</tt>:
+<p>
+<pre>
+AlgorithmIdentifier ::= SEQUENCE {
+  algorithm OBJECT IDENTIFIER,
+  parameters ANY DEFINED BY algorithm OPTIONAL }
+</pre>
+<p>
+Here the actual type of the <tt>parameter</tt> component depends on
+the value of the <tt>algorithm</tt> component. The actual type would
+be defined in the registration of object identifier values
+for the <tt>algorithm</tt> component.
+<p>
+<b>BER encoding.</b> Same as the BER encoding of the actual value.
+<p>
+Example: The BER encoding of the value of the <tt>parameter</tt>
+component is the BER encoding of the value of the actual
+type as defined in the registration of object identifier
+values for the <tt>algorithm</tt> component.
+<p>
+<b>DER encoding.</b> Same as the DER encoding of the actual value.
+
+
+<h3>5.4 BIT STRING</h3>
+
+The <tt>BIT STRING</tt> type denotes an arbitrary string of bits
+(ones and zeroes). A <tt>BIT STRING</tt> value can have any length,
+including zero. This type is a string type.
+<p>
+The <tt>BIT STRING</tt> type is used for digital signatures on
+extended certificates in PKCS #6's <tt>ExtendedCertificate</tt> type,
+for digital signatures on certificates in X.509's
+<tt>Certificate</tt> type, and for public keys in certificates in
+X.509's <tt>SubjectPublicKeyInfo</tt> type.
+<p>
+ASN.1 notation:
+<p>
+<tt>BIT STRING</tt>
+<p>
+Example: X.509's <tt>SubjectPublicKeyInfo</tt> type has a component
+of type <tt>BIT STRING</tt>:
+<p>
+<pre>
+SubjectPublicKeyInfo ::= SEQUENCE {
+  algorithm AlgorithmIdentifier,
+  publicKey BIT STRING }
+</pre>
+<p>
+<b>BER encoding.</b> Primitive or constructed. In a primitive
+encoding, the first contents octet gives the number of bits
+by which the length of the bit string is less than the next
+multiple of eight (this is called the "number of unused
+bits"). The second and following contents octets give the
+value of the bit string, converted to an octet string. The
+conversion process is as follows:
+<p>
+<blockquote>
+<ol>
+<li>
+   The bit string is padded after the last bit with
+          zero to seven bits of any value to make the length
+          of the bit string a multiple of eight. If the
+          length of the bit string is a multiple of eight
+          already, no padding is done.
+<p>
+<li>
+   The padded bit string is divided into octets. The
+          first eight bits of the padded bit string become
+          the first octet, bit 8 to bit 1, and so on through
+          the last eight bits of the padded bit string.
+</ol>
+</blockquote>
+<p>
+In a constructed encoding, the contents octets give the
+concatenation of the BER encodings of consecutive substrings
+of the bit string, where each substring except the last has
+a length that is a multiple of eight bits.
+<p>
+Example: The BER encoding of the <tt>BIT STRING</tt> value
+"011011100101110111" can be any of the following, among
+others, depending on the choice of padding bits, the form of
+length octets, and whether the encoding is primitive or
+constructed:
+<p>
+<table border=0 cellpadding=3>
+<tr>
+<td valign=top><pre>03 04 06 6e 5d c0</pre></td>
+<td valign=top>DER encoding</td>
+</tr><tr>
+<td valign=top><pre>03 04 06 6e 5d e0</pre></td>
+<td valign=top>padded with "100000"</td>
+</tr><tr>
+<td valign=top><pre>03 81 04 06 6e 5d c0</pre></td>
+<td valign=top>long form of length octets</td>
+</tr><tr>
+<td valign=top>
+<pre>23 09        
+   03 03 00 6e 5d
+   03 02 06 c0</pre>
+</td>
+<td valign=top>constructed encoding: "0110111001011101" + "11"</td></tr>
+</table>
+<p>
+<b>DER encoding.</b> Primitive. The contents octects are as for a
+primitive BER encoding, except that the bit string is padded
+with zero-valued bits.
+<p>
+Example: The DER encoding of the <tt>BIT STRING</tt> value
+"011011100101110111" is
+<p>
+<pre>
+03 04 06 6e 5d c0
+</pre>
+
+
+<h3>5.5 CHOICE</h3>
+
+The <tt>CHOICE</tt> type denotes a union of one or more alternatives.
+<p>
+The <tt>CHOICE</tt> type is used to represent the union of an
+extended certificate and an X.509 certificate in PKCS #7's
+<tt>ExtendedCertificateOrCertificate</tt> type.
+<p>
+ASN.1 notation:
+<p>
+<tt>CHOICE</tt> {<br>
+  [<b><em>identifier1</em></b>] <b><em>Type1</em></b>,<br>
+  ...,<br>
+  [<b><em>identifiern</em></b>] <b><em>Typen</em></b> }<br>
+<p>
+where <b><em>identifier1 , ..., identifiern</em></b> are optional, distinct
+identifiers for the alternatives, and <b><em>Type1, ..., Typen</em></b> are
+the types of the alternatives. The identifiers are primarily
+for documentation; they do not affect values of the type or
+their encodings in any way.
+<p>
+The types must have distinct tags. This requirement is
+typically satisfied with explicit or implicit tagging on
+some of the alternatives.
+<p>
+Example: PKCS #7's <tt>ExtendedCertificateOrCertificate</tt> type is
+a <tt>CHOICE</tt> type:
+<p>
+<pre>
+ExtendedCertificateOrCertificate ::= CHOICE {
+  certificate Certificate, -- X.509
+  extendedCertificate [0] IMPLICIT ExtendedCertificate
+}
+</pre>
+<p>
+Here the identifiers for the alternatives are <tt>certificate</tt>
+and <tt>extendedCertificate</tt>, and the types of the alternatives
+are <tt>Certificate</tt> and <tt>[0] IMPLICIT ExtendedCertificate</tt>.
+<p>
+<b>BER encoding.</b> Same as the BER encoding of the chosen
+alternative. The fact that the alternatives have distinct
+tags makes it possible to distinguish between their BER
+encodings.
+<p>
+Example: The identifier octets for the BER encoding are <tt>30</tt>
+if the chosen alternative is certificate, and <tt>a0</tt> if the
+chosen alternative is <tt>extendedCertificate.</tt>
+<p>
+<b>DER encoding.</b> Same as the DER encoding of the chosen
+alternative.
+
+
+<h3>5.6 IA5String</h3>
+
+The <tt>IA5String</tt> type denotes an arbtrary string of IA5
+characters. IA5 stands for International Alphabet 5, which
+is the same as ASCII. The character set includes non-
+printing control characters. An <tt>IA5String</tt> value can have any
+length, including zero. This type is a string type.
+<p>
+The <tt>IA5String type</tt> is used in PKCS #9's electronic-mail
+address, unstructured-name, and unstructured-address
+attributes.
+<p>
+ASN.1 notation:
+<p>
+<tt>IA5String</tt>
+<p>
+<b>BER encoding.</b> Primitive or constructed. In a primitive
+encoding, the contents octets give the characters in the IA5
+string, encoded in ASCII. In a constructed encoding, the
+contents octets give the concatenation of the BER encodings
+of consecutive substrings of the IA5 string.
+<p>
+Example: The BER encoding of the <tt>IA5String</tt> value
+"test1@rsa.com" can be any of the following, among others,
+depending on the form of length octets and whether the
+encoding is primitive or constructed:
+<p>
+<table border=0 cellspacing=3>
+<tr><td valign=top><pre>16 0d 74 65 73 74 31 40 72 73 61 2e 63 6f 6d</pre></td>
+<td valign=top>DER encoding</td></tr>
+<tr><td valign=top><pre>16 81 0d
+   74 65 73 74 31 40 72 73 61 2e 63 6f 6d</pre></td>
+<td valign=top>long form of length octets</td></tr>
+<tr><td valign=top><pre>36 13
+   16 05 74 65 73 74 31
+   16 01 40
+   16 07 72 73 61 2e 63 6f 6d</pre></td>
+<td valign=top>constructed encoding: "test1" + "@" + "rsa.com"</td></tr></table>
+<p>
+<b>DER encoding.</b> Primitive. Contents octets are as for a
+primitive BER encoding.
+<p>
+Example: The DER encoding of the IA5String value
+"test1@rsa.com" is
+<p>
+<pre>16 0d 74 65 73 74 31 40 72 73 61 2e 63 6f 6d</pre>
+
+
+<h3>5.7 INTEGER</h3>
+
+The <tt>INTEGER</tt> type denotes an arbitrary integer. <tt>INTEGER</tt>
+values can be positive, negative, or zero, and can have any
+magnitude.
+<p>
+The <tt>INTEGER</tt> type is used for version numbers throughout
+PKCS, cryptographic values such as modulus, exponent, and
+primes in PKCS #1's <tt>RSAPublicKey</tt> and <tt>RSAPrivateKey</tt> types and
+PKCS #3's <tt>DHParameter</tt> type, a message-digest iteration count
+in PKCS #5's <tt>PBEParameter</tt> type, and version numbers and
+serial numbers in X.509's <tt>Certificate</tt> type.
+<p>
+ASN.1 notation:
+<p>
+<tt>INTEGER</tt> [{ <b><em>identifier1(value1) ... identifiern(valuen)</em></b> }]
+<p>
+where <b><em>identifier1, ..., identifiern</em></b> are optional distinct
+identifiers and <b><em>value1, ..., valuen</em></b> are optional integer
+values. The identifiers, when present, are associated with
+values of the type.
+<p>
+Example: X.509's Version type is an <tt>INTEGER</tt> type with
+identified values:
+<p>
+<pre>
+Version ::= INTEGER { v1988(0) }
+</pre>
+The identifier <tt>v1988</tt> is associated with the value 0. X.509's
+<tt>Certificate</tt> type uses the identifier <tt>v1988</tt> to give a default
+value of 0 for the version component:
+<p>
+<pre>
+Certificate ::= ...
+  version Version DEFAULT v1988,
+...
+</pre>
+<p>
+<b>BER encoding.</b> Primitive. Contents octets give the value of
+the integer, base 256, in two's complement form, most
+significant digit first, with the minimum number of octets.
+The value 0 is encoded as a single <tt>00</tt> octet.
+<p>
+Some example BER encodings (which also happen to be DER
+encodings) are given in Table 3.
+<p>
+<blockquote>
+<table border=1 cellspacing=2>
+<tr><td valign=top>Integer<br>value</td><td valign=top>BER encoding</td></tr>
+<tr><td valign=top>0</td><td valign=top><tt>02 01 00</tt></td></tr>
+<tr><td valign=top>127</td><td valign=top><tt>02 01 7F</tt></td></tr>
+<tr><td valign=top>128</td><td valign=top><tt>02 02 00 80</tt></td></tr>
+<tr><td valign=top>256</td><td valign=top><tt>02 02 01 00</tt></td></tr>
+<tr><td valign=top>-128</td><td valign=top><tt>02 01 80</tt></td></tr>
+<tr><td valign=top>-129</td><td valign=top><tt>02 02 FF 7F</tt></td></tr>
+</table>
+<p>
+      Table 3. Example BER encodings of INTEGER values.
+</blockquote>
+<p>
+<b>DER encoding.</b> Primitive. Contents octets are as for a
+primitive BER encoding.
+
+
+<h3>5.8 NULL</h3>
+
+The <tt>NULL</tt> type denotes a null value.
+<p>
+The <tt>NULL</tt> type is used for algorithm parameters in several
+places in PKCS.
+<p>
+ASN.1 notation:
+<p>
+<tt>NULL</tt>
+<p>
+<b>BER encoding.</b> Primitive. Contents octets are empty.
+<p>
+Example: The BER encoding of a <tt>NULL</tt> value can be either of
+the following, as well as others, depending on the form of
+the length octets:
+<p>
+<pre>
+05 00
+
+05 81 00
+</pre>
+<p>
+<b>DER encoding.</b> Primitive. Contents octets are empty; the DER
+encoding of a NULL value is always <tt>05 00.</tt>
+
+
+<h3>5.9 OBJECT IDENTIFIER</h3>
+
+The <tt>OBJECT IDENTIFIER</tt> type denotes an object identifier, a
+sequence of integer components that identifies an object
+such as an algorithm, an attribute type, or perhaps a
+registration authority that defines other object
+identifiers. An <tt>OBJECT IDENTIFIER</tt> value can have any number
+of components, and components can generally have any
+nonnegative value. This type is a non-string type.
+<p>
+<tt>OBJECT IDENTIFIER</tt> values are given meanings by registration
+authorities. Each registration authority is responsible for
+all sequences of components beginning with a given sequence.
+A registration authority typically delegates responsibility
+for subsets of the sequences in its domain to other
+registration authorities, or for particular types of object.
+There are always at least two components.
+<p>
+The <tt>OBJECT IDENTIFIER</tt> type is used to identify content in
+PKCS #7's <tt>ContentInfo</tt> type, to identify algorithms in
+X.509's <tt>AlgorithmIdentifier</tt> type, and to identify attributes
+in X.501's <tt>Attribute</tt> and <tt>AttributeValueAssertion</tt> types. The
+<tt>Attribute</tt> type is used by PKCS #6, #7, #8, #9, and #10, and
+the <tt>AttributeValueAssertion</tt> type is used in X.501
+distinguished names. <tt>OBJECT IDENTIFIER</tt> values are defined
+throughout PKCS.
+<p>
+ASN.1 notation:
+<p>
+<tt>OBJECT IDENTIFIER</tt>
+<p>
+The ASN.1 notation for values of the <tt>OBJECT IDENTIFIER</tt> type
+is
+<p>
+{ <b>[<em>identifier</em>] <em>component1 ... componentn</em></b> }
+<p>
+<b><em>componenti = identifieri | identifieri (valuei) | valuei</em></b>
+<p>
+where <b><em>identifier, identifier1, ..., identifiern</em></b> are
+identifiers, and <b><em>value1, ..., valuen</em></b> are optional integer
+values.
+<p>
+The form without identifier is the "complete" value with all
+its components; the form with identifier abbreviates the
+beginning components with another object identifier value.
+The identifiers <b><em>identifier1, ..., identifiern</em></b> are intended
+primarily for documentation, but they must correspond to the
+integer value when both are present. These identifiers can
+appear without integer values only if they are among a small
+set of identifiers defined in X.208.
+<p>
+Example: The following values both refer to the object
+identifier assigned to RSA Data Security, Inc.:
+<p>
+<pre>
+{ iso(1) member-body(2) 840 113549 }
+{ 1 2 840 113549 }
+</pre>
+<p>
+(In this example, which gives ASN.1 value notation, the
+object identifier values are decimal, not hexadecimal.)
+Table 4 gives some other object identifier values and their
+meanings.
+<p>
+<table border=1 cellspacing=2>
+<tr><td valign=top><b>Object identifier value</b></td><td valign=top><b>Meaning</b></td></tr>
+<tr><td valign=top><pre>{ 1 2 }</pre></td><td valign=top>ISO member bodies</td></tr>
+<tr><td valign=top><pre>{ 1 2 840 }</pre></td><td valign=top>US (ANSI)</td></tr>
+<tr><td valign=top><pre>{ 1 2 840 113549 }</pre></td><td valign=top>RSA Data Security, Inc.</td></tr>
+<tr><td valign=top><pre>{ 1 2 840 113549 1 }</pre></td><td valign=top>RSA Data Security, Inc. PKCS</td></tr>
+<tr><td valign=top><pre>{ 2 5 }</td><td valign=top>directory services (X.500)</td></tr>
+<tr><td valign=top><pre>{ 2 5 8 }</td><td valign=top>directory services-algorithms</td></tr>
+</table>
+<p>
+<b>Table 4.</b> Some object identifier values and their meanings.
+<p>
+<b>BER encoding.</b> Primitive. Contents octets are as follows,
+where value1, ..., valuen denote the integer values of the
+components in the complete object identifier:
+<p>
+<blockquote>
+<ol>
+<li>
+   The first octet has value 40 * <b><em>value1 + value2</em></b>.
+          (This is unambiguous, since <b><em>value1</em></b> is limited to
+          values 0, 1, and 2; <b><em>value2</em></b> is limited to the range
+          0 to 39 when <b><em>value1</em></b> is 0 or 1; and, according to
+          X.208, n is always at least 2.)
+<p>
+<li>
+   The following octets, if any, encode <b><em>value3, ...,
+          valuen.</em></b> Each value is encoded base 128, most
+          significant digit first, with as few digits as
+          possible, and the most significant bit of each
+          octet except the last in the value's encoding set
+          to "1."
+</ol>
+</blockquote>
+<p>
+Example: The first octet of the BER encoding of RSA Data
+Security, Inc.'s object identifier is 40 * 1 + 2 = 42 =
+<tt>2a16</tt>. The encoding of 840 = 6 * 128 + 4816 is <tt>86 48</tt> and the
+encoding of 113549 = 6 * 1282 + 7716 * 128 + d16 is <tt>86 f7 0d.</tt> 
+This leads to the following BER encoding:
+<p>
+<pre>
+06 06 2a 86 48 86 f7 0d
+</pre>
+<p>
+<b>DER encoding.</b> Primitive. Contents octets are as for a
+primitive BER encoding.
+<p>
+
+<h3>5.10 OCTET STRING</h3>
+
+The <tt>OCTET STRING</tt> type denotes an arbitrary string of octets
+(eight-bit values). An <tt>OCTET STRING</tt> value can have any
+length, including zero. This type is a string type.
+<p>
+The <tt>OCTET STRING</tt> type is used for salt values in PKCS #5's
+<tt>PBEParameter</tt> type, for message digests, encrypted message
+digests, and encrypted content in PKCS #7, and for private
+keys and encrypted private keys in PKCS #8.
+<p>
+ASN.1 notation:
+<p>
+<tt>OCTET STRING [SIZE</tt> (<b>{<em>size | size1..size2</em>}</b>)]
+<p>
+where <b><em>size, size1,</em></b> and <b><em>size2</em></b> are optional size constraints.
+In the <tt>OCTET STRING SIZE</tt> (<b><em>size</em></b>) form, the octet string must
+have size octets. In the <tt>OCTET STRING SIZE</tt> (<b><em>size1..size2</em></b>)
+form, the octet string must have between <b><em>size1</em></b> and <b><em>size2</em></b>
+octets. In the <tt>OCTET STRING</tt> form, the octet string can have
+any size.
+<p>
+Example: PKCS #5's <tt>PBEParameter</tt> type has a component of type
+<tt>OCTET STRING</tt>:
+<p>
+<pre>
+PBEParameter ::= SEQUENCE {
+  salt OCTET STRING SIZE(8),
+  iterationCount INTEGER }
+</pre>
+<p>
+Here the size of the salt component is always eight octets.
+<p>
+<b>BER encoding.</b> Primitive or constructed. In a primitive
+encoding, the contents octets give the value of the octet
+string, first octet to last octet. In a constructed
+encoding, the contents octets give the concatenation of the
+BER encodings of substrings of the <tt>OCTET STRING</tt> value.
+<p>
+Example: The BER encoding of the <tt>OCTET STRING</tt> value 
+<tt>01 23 45 67 89 ab cd ef</tt> can be any of the following, among others,
+depending on the form of length octets and whether the
+encoding is primitive or constructed:
+<p>
+<table border=0 cellpadding=4>
+<tr><td valign=top><pre>04 08 01 23 45 67 89 ab cd ef</pre></td><td valign=top>DER encoding</td></tr>
+<tr><td valign=top><pre>04 81 08 01 23 45 67 89 ab cd ef</pre></td><td valign=top>long form of length octets</td></tr>
+<tr><td valign=top><pre>24 0c
+   04 04 01 23 45 67
+   04 04 89 ab cd ef</pre></td><td valign=top>constructed encoding: 01 ... 67 + 89 ... ef</td></tr>
+</table>
+<p>
+<b>DER encoding.</b> Primitive. Contents octets are as for a
+primitive BER encoding.
+<p>
+Example: The BER encoding of the <tt>OCTET STRING</tt> value 
+<tt>01 23 45 67 89 ab cd ef</tt> is
+<p>
+<pre>
+04 08 01 23 45 67 89 ab cd ef
+</pre>
+
+
+<h3>5.11 PrintableString</h3>
+
+The <tt>PrintableString</tt> type denotes an arbitrary string of
+printable characters from the following character set:
+<p>
+<center>
+<tt>
+A, B, ..., Z<br>
+a, b, ..., z<br>
+0, 1, ..., 9<br>
+</tt>
+(space) <tt>' ( ) + , - . / : = ?</tt>
+</center>
+<p>
+This type is a string type.
+<p>
+The <tt>PrintableString</tt> type is used in PKCS #9's challenge-
+password and unstructured-address attributes, and in several
+X.521 distinguished names attributes.
+<p>
+ASN.1 notation:
+<p>
+<tt>PrintableString</tt>
+<p>
+<b>BER encoding.</b> Primitive or constructed. In a primitive
+encoding, the contents octets give the characters in the
+printable string, encoded in ASCII. In a constructed
+encoding, the contents octets give the concatenation of the
+BER encodings of consecutive substrings of the string.
+<p>
+Example: The BER encoding of the <tt>PrintableString</tt> value "Test
+User 1" can be any of the following, among others, depending
+on the form of length octets and whether the encoding is
+primitive or constructed:
+<p>
+<table border=0 cellpadding=4>
+<tr><td valign=top><pre>13 0b 54 65 73 74 20 55 73 65 72 20 31</pre></td><td valign=top>DER encoding</td></tr>
+<tr><td valign=top><pre>13 81 0b
+54 65 73 74 20 55 73 65 72 20 31</pre></td><td valign=top>long form of length octets</td></tr>
+<tr><td valign=top><pre>33 0f
+   13 05 54 65 73 74 20
+   13 06 55 73 65 72 20 31</pre></td><td valign=top>constructed encoding: "Test " + "User 1"</td></tr>
+</table>
+<p>
+<b>DER encoding.</b> Primitive. Contents octets are as for a
+primitive BER encoding.
+<p>
+Example: The DER encoding of the <tt>PrintableString</tt> value "Test
+User 1" is
+<p>
+<pre>
+13 0b 54 65 73 74 20 55 73 65 72 20 31
+</pre>
+
+
+<h3>5.12 SEQUENCE</h3>
+
+The <tt>SEQUENCE</tt> type denotes an ordered collection of one or
+more types.
+<p>
+The <tt>SEQUENCE</tt> type is used throughout PKCS and related
+standards.
+<p>
+ASN.1 notation:
+<p>
+<tt>SEQUENCE</tt> {<br>
+  <b>[<em>identifier1</em>] <em>Type1</em> [{</b> <tt>OPTIONAL | DEFAULT</tt> <b><em>value1</em>}],<br>
+  ...,<br>
+  [<em>identifiern</em>] <em>Typen</em> [{</b> <tt>OPTIONAL | DEFAULT</tt> <b><em>valuen}]</em></b>}
+<p>
+where <b><em>identifier1 , ..., identifiern</em></b> are optional, distinct
+identifiers for the components, <b><em>Type1, ..., Typen</em></b> are the
+types of the components, and <b><em>value1, ..., valuen</em></b> are optional
+default values for the components. The identifiers are
+primarily for documentation; they do not affect values of
+the type or their encodings in any way.
+<p>
+The <tt>OPTIONAL</tt> qualifier indicates that the value of a
+component is optional and need not be present in the
+sequence. The <tt>DEFAULT</tt> qualifier also indicates that the
+value of a component is optional, and assigns a default
+value to the component when the component is absent.
+<p>
+The types of any consecutive series of components with the
+<tt>OPTIONAL</tt> or <tt>DEFAULT</tt> qualifier, as well as of any component
+immediately following that series, must have distinct tags.
+This requirement is typically satisfied with explicit or
+implicit tagging on some of the components.
+<p>
+Example: X.509's <tt>Validity</tt> type is a <tt>SEQUENCE</tt> type with two
+components:
+<p>
+<pre>
+Validity ::= SEQUENCE {
+  start UTCTime,
+  end UTCTime }
+</pre>
+<p>
+Here the identifiers for the components are start and end,
+and the types of the components are both <tt>UTCTime</tt>.
+<p>
+<b>BER encoding.</b> Constructed. Contents octets are the
+concatenation of the BER encodings of the values of the
+components of the sequence, in order of definition, with the
+following rules for components with the <tt>OPTIONAL</tt> and <tt>DEFAULT</tt>
+qualifiers:
+<p>
+<ul>
+<li>
+    if the value of a component with the <tt>OPTIONAL</tt> or
+          <tt>DEFAULT</tt> qualifier is absent from the sequence,
+          then the encoding of that component is not
+          included in the contents octets
+<p>
+<li>
+    if the value of a component with the <tt>DEFAULT</tt>
+          qualifier is the default value, then the encoding
+          of that component may or may not be included in
+          the contents octets
+</ul>
+<p>
+<b>DER encoding.</b> Constructed. Contents octets are the same as
+the BER encoding, except that if the value of a component
+with the <tt>DEFAULT</tt> qualifier is the default value, the
+encoding of that component is not included in the contents
+octets.
+
+
+<h3>5.13 SEQUENCE OF</h3>
+
+The <tt>SEQUENCE OF</tt> type denotes an ordered collection of zero
+or more occurrences of a given type.
+<p>
+The <tt>SEQUENCE OF</tt> type is used in X.501 distinguished names.
+<p>
+ASN.1 notation:
+<p>
+<tt>SEQUENCE OF</tt> <b><em>Type</em></b>
+<p>
+where <b><em>Type</em></b> is a type.
+<p>
+Example: X.501's <tt>RDNSequence</tt> type consists of zero or more
+occurences of the <tt>RelativeDistinguishedName</tt> type, most
+significant occurrence first:
+<p>
+<pre>
+RDNSequence ::= SEQUENCE OF RelativeDistinguishedName
+</pre>
+<p>
+<b>BER encoding.</b> Constructed. Contents octets are the
+concatenation of the BER encodings of the values of the
+occurrences in the collection, in order of occurence.
+<p>
+<b>DER encoding.</b> Constructed. Contents octets are the
+concatenation of the DER encodings of the values of the
+occurrences in the collection, in order of occurence.
+
+
+<h3>5.14 SET</h3>
+
+The <tt>SET</tt> type denotes an unordered collection of one or more
+types.
+<p>
+The <tt>SET</tt> type is not used in PKCS.
+<p>
+ASN.1 notation:
+<p>
+<tt>SET</tt> {<br>
+  <b>[<em>identifier1</em>] <em>Type1</em> [{</b> <tt>OPTIONAL | DEFAULT</tt> <b><em>value1</em>}],<br>
+  ...,<br>
+  [<em>identifiern</em>] <em>Typen</em> [{</b> <tt>OPTIONAL | DEFAULT</tt> <b><em>valuen</em>}]</b>}
+<p>
+where <b><em>identifier1, ..., identifiern</em></b> are optional, distinct
+identifiers for the components, <b><em>Type1, ..., Typen</em></b> are the
+types of the components, and <b><em>value1, ..., valuen</em></b> are
+optional default values for the components. The identifiers
+are primarily for documentation; they do not affect values
+of the type or their encodings in any way.
+<p>
+The <tt>OPTIONAL</tt> qualifier indicates that the value of a
+component is optional and need not be present in the set.
+The <tt>DEFAULT</tt> qualifier also indicates that the value of a
+component is optional, and assigns a default value to the
+component when the component is absent.
+<p>
+The types must have distinct tags. This requirement is
+typically satisfied with explicit or implicit tagging on
+some of the components.
+<p>
+<b>BER encoding.</b> Constructed. Contents octets are the
+concatenation of the BER encodings of the values of the
+components of the set, in any order, with the following
+rules for components with the <tt>OPTIONAL</tt> and <tt>DEFAULT</tt>
+qualifiers:
+<p>
+<ul>
+<li>
+    if the value of a component with the <tt>OPTIONAL</tt> or
+          <tt>DEFAULT</tt> qualifier is absent from the set, then the
+          encoding of that component is not included in the
+          contents octets
+<p>
+<li>
+    if the value of a component with the <tt>DEFAULT</tt>
+          qualifier is the default value, then the encoding
+          of that component may or may not be included in
+          the contents octets
+</ul>
+<p>
+<b>DER encoding.</b> Constructed. Contents octets are the same as
+for the BER encoding, except that:
+<p>
+<ol>
+<li>
+   If the value of a component with the <tt>DEFAULT</tt>
+          qualifier is the default value, the encoding of
+          that component is not included.
+<p>
+<li>
+   There is an order to the components, namely
+          ascending order by tag.
+</ol>
+<p>
+
+<h3>5.15 SET OF</h3>
+
+The <tt>SET OF</tt> type denotes an unordered collection of zero or
+more occurrences of a given type.
+<p>
+The <tt>SET OF</tt> type is used for sets of attributes in PKCS #6,
+#7, #8, #9 and #10, for sets of message-digest algorithm
+identifiers, signer information, and recipient information
+in PKCS #7, and in X.501 distinguished names.
+<p>
+ASN.1 notation:
+<p>
+<tt>SET OF</tt> <b><em>Type</em></b>
+<p>
+where <b><em>Type</em></b> is a type.
+<p>
+Example: X.501's <tt>RelativeDistinguishedName</tt> type consists of
+zero or more occurrences of the <tt>AttributeValueAssertion</tt>
+type, where the order is unimportant:
+<p>
+<pre>
+RelativeDistinguishedName ::=
+  SET OF AttributeValueAssertion
+</pre>
+<p>
+<b>BER encoding.</b> Constructed. Contents octets are the
+concatenation of the BER encodings of the values of the
+occurrences in the collection, in any order.
+<p>
+<b>DER encoding.</b> Constructed. Contents octets are the same as
+for the BER encoding, except that there is an order, namely
+ascending lexicographic order of BER encoding. Lexicographic
+comparison of two different BER encodings is done as
+follows: Logically pad the shorter BER encoding after the
+last octet with dummy octets that are smaller in value than
+any normal octet. Scan the BER encodings from left to right
+until a difference is found. The smaller-valued BER encoding
+is the one with the smaller-valued octet at the point of
+difference.
+
+
+<h3>5.16 T61String</h3>
+
+The <tt>T61String</tt> type denotes an arbtrary string of T.61
+characters. T.61 is an eight-bit extension to the ASCII
+character set. Special "escape" sequences specify the
+interpretation of subsequent character values as, for
+example, Japanese; the initial interpretation is Latin. The
+character set includes non-printing control characters. The
+<tt>T61String</tt> type allows only the Latin and Japanese character
+interepretations, and implementors' agreements for directory
+names exclude control characters [NIST92]. A <tt>T61String</tt> value
+can have any length, including zero. This type is a string
+type.
+<p>
+The <tt>T61String</tt> type is used in PKCS #9's unstructured-address
+and challenge-password attributes, and in several X.521
+attributes.
+<p>
+ASN.1 notation:
+<p>
+<tt>T61String</tt>
+<p>
+<b>BER encoding.</b> Primitive or constructed. In a primitive
+encoding, the contents octets give the characters in the
+T.61 string, encoded in ASCII. In a constructed encoding,
+the contents octets give the concatenation of the BER
+encodings of consecutive substrings of the T.61 string.
+<p>
+Example: The BER encoding of the <tt>T61String</tt> value "cl'es publiques" 
+(French for "public keys") can be any of the
+following, among others, depending on the form of length
+octets and whether the encoding is primitive or constructed:
+<p>
+<table border=0 cellspacing=6>
+<tr><td valign=top><pre>14 0f
+   63 6c c2 65 73 20 70 75 62 6c 69 71 75 65 73</pre></td><td valign=top>DER encoding</td></tr>
+<tr><td valign=top><pre>14 81 0f
+   63 6c c2 65 73 20 70 75 62 6c 69 71 75 65 73</pre></td><td valign=top>long form of length octets</td></tr>
+<tr><td valign=top><pre>34 15
+   14 05 63 6c c2 65 73
+   14 01 20
+   14 09 70 75 62 6c 69 71 75 65 73</pre></td><td valign=top>constructed encoding: "cl'es" + " " + "publiques"</td></tr>
+</table>
+<p>
+The eight-bit character c2 is a T.61 prefix that adds an
+acute accent (') to the next character.
+<p>
+<b>DER encoding.</b> Primitive. Contents octets are as for a
+primitive BER encoding.
+<p>
+Example: The DER encoding of the <tt>T61String</tt> value "cl'es publiques" 
+is
+<p>
+<pre>
+14 0f 63 6c c2 65 73 20 70 75 62 6c 69 71 75 65 73
+</pre>
+
+<h3>5.17 UTCTime</h3>
+
+The <tt>UTCTime</tt> type denotes a "coordinated universal time" or
+Greenwich Mean Time (GMT) value. A <tt>UTCTime</tt> value includes
+the local time precise to either minutes or seconds, and an
+offset from GMT in hours and minutes. It takes any of the
+following forms:
+<p>
+<em>
+YYMMDDhhmmZ<br>
+YYMMDDhhmm+hh'mm'<br>
+YYMMDDhhmm-hh'mm'<br>
+YYMMDDhhmmssZ<br>
+YYMMDDhhmmss+hh'mm'<br>
+YYMMDDhhmmss-hh'mm'
+</em>
+<p>
+where:
+<blockquote>
+     <em>YY</em> is the least significant two digits of the year
+<p>
+     <em>MM</em> is the month (01 to 12)
+<p>
+     <em>DD</em> is the day (01 to 31)
+<p>
+     <em>hh</em> is the hour (00 to 23)
+<p>
+     <em>mm</em> are the minutes (00 to 59)
+<p>
+     <em>ss</em> are the seconds (00 to 59)
+<p>
+     <em>Z</em> indicates that local time is GMT, + indicates that
+          local time is later than GMT, and - indicates that
+          local time is earlier than GMT
+<p>
+     <em>hh'</em> is the absolute value of the offset from GMT in
+          hours
+<p>
+     <em>mm'</em> is the absolute value of the offset from GMT in
+          minutes
+</blockquote>
+<p>
+This type is a string type.
+<p>
+The <tt>UTCTime</tt> type is used for signing times in PKCS #9's
+signing-time attribute and for certificate validity periods
+in X.509's <tt>Validity</tt> type.
+<p>
+ASN.1 notation:
+<p>
+<tt>UTCTime</tt>
+<p>
+<b>BER encoding.</b> Primitive or constructed. In a primitive
+encoding, the contents octets give the characters in the
+string, encoded in ASCII. In a constructed encoding, the
+contents octets give the concatenation of the BER encodings
+of consecutive substrings of the string. (The constructed
+encoding is not particularly interesting, since <tt>UTCTime</tt>
+values are so short, but the constructed encoding is
+permitted.)
+<p>
+Example: The time this sentence was originally written was
+4:45:40 p.m. Pacific Daylight Time on May 6, 1991, which can
+be represented with either of the following <tt>UTCTime</tt> values,
+among others:
+<p>
+"910506164540-0700"
+<p>
+"910506234540Z"
+<p>
+These values have the following BER encodings, among others:
+<p>
+<pre>
+17 0d 39 31 30 35 30 36 32 33 34 35 34 30 5a
+
+17 11 39 31 30 35 30 36 31 36 34 35 34 30 2D 30 37 30 30
+</pre>
+<p>
+<b>DER encoding.</b> Primitive. Contents octets are as for a
+primitive BER encoding.
+<p>
+
+<h2>6. An example</h2>
+
+This section gives an example of ASN.1 notation and DER
+encoding: the X.501 type <tt>Name</tt>.
+
+
+<h3>6.1 Abstract notation</h3>
+
+This section gives the ASN.1 notation for the X.501 type
+<tt>Name</tt>.
+<p>
+<pre>
+Name ::= CHOICE {
+  RDNSequence }
+
+RDNSequence ::= SEQUENCE OF RelativeDistinguishedName
+
+RelativeDistinguishedName ::=
+  SET OF AttributeValueAssertion
+
+AttributeValueAssertion ::= SEQUENCE {
+   AttributeType,
+   AttributeValue }
+
+AttributeType ::= OBJECT IDENTIFIER
+
+AttributeValue ::= ANY
+</pre>
+<p>
+The <tt>Name</tt> type identifies an object in an X.500 directory.
+<tt>Name</tt> is a <tt>CHOICE</tt> type consisting of one alternative:
+<tt>RDNSequence</tt>. (Future revisions of X.500 may have other
+alternatives.)
+<p>
+The <tt>RDNSequence</tt> type gives a path through an X.500 directory
+tree starting at the root. <tt>RDNSequence</tt> is a <tt>SEQUENCE OF</tt> type
+consisting of zero or more occurences of
+<tt>RelativeDistinguishedName</tt>.
+<p>
+The <tt>RelativeDistinguishedName</tt> type gives a unique name to an
+object relative to the object superior to it in the
+directory tree. <tt>RelativeDistinguishedName</tt is a <tt>SET OF</tt> type
+consisting of zero or more occurrences of
+<tt>AttributeValueAssertion</tt>.
+<p>
+The <tt>AttributeValueAssertion</tt> type assigns a value to some
+attribute of a relative distinguished name, such as country
+name or common name. <tt>AttributeValueAssertion</tt> is a <tt>SEQUENCE</tt>
+type consisting of two components, an <tt>AttributeType</tt> type and
+an <tt>AttributeValue</tt> type.
+<p>
+The <tt>AttributeType</tt> type identifies an attribute by object
+identifier. The <tt>AttributeValue</tt> type gives an arbitrary
+attribute value. The actual type of the attribute value is
+determined by the attribute type.
+
+
+<h3>6.2 DER encoding</h3>
+
+This section gives an example of a DER encoding of a value
+of type <tt>Name</tt>, working from the bottom up.
+<p>
+The name is that of the Test User 1 from the PKCS examples
+[Kal93]. The name is represented by the following path:
+<p>
+<center>
+                           (root)<br>
+                              |<br>
+                     <tt>countryName</tt> = "US"<br>
+                              |<br>
+          <tt>organizationName</tt> = "Example Organization"<br>
+                              |<br>
+                 <tt>commonName</tt> = "Test User 1"<br>
+</center>
+<p>
+Each level corresponds to one <tt>RelativeDistinguishedName</tt>
+value, each of which happens for this name to consist of one
+<tt>AttributeValueAssertion</tt> value. The <tt>AttributeType</tt> value is
+before the equals sign, and the <tt>AttributeValue</tt> value (a
+printable string for the given attribute types) is after the
+equals sign.
+<p>
+The <tt>countryName</tt>, <tt>organizationName</tt>, and <tt>commonUnitName</tt> are
+attribute types defined in X.520 as:
+<p>
+<pre>
+attributeType OBJECT IDENTIFIER ::=
+  { joint-iso-ccitt(2) ds(5) 4 }
+
+countryName OBJECT IDENTIFIER ::= { attributeType 6 }
+
+organizationName OBJECT IDENTIFIER ::=
+  { attributeType 10 }
+
+commonUnitName OBJECT IDENTIFIER ::=
+  { attributeType 3 }
+</pre>
+
+<h3>6.2.1 AttributeType</h3>
+
+The three AttributeType values are <tt>OCTET STRING</tt> values, so
+their DER encoding follows the primitive, definite-length
+method:
+<p>
+<table border=0 cellpadding=4>
+<tr><td valign=top><pre>06 03 55 04 06</pre></td><td valign=top><pre>countryName</pre></td></tr>
+<tr><td valign=top><pre>06 03 55 04 0a</pre></td><td valign=top><pre>organizationName</pre></td></tr>
+<tr><td valign=top><pre>06 03 55 04 03</pre></td><td valign=top><pre>commonName</pre></td></tr>
+</table>
+<p>
+The identifier octets follow the low-tag form, since the tag
+is 6 for <tt>OBJECT IDENTIFIER</tt>. Bits 8 and 7 have value "0,"
+indicating universal class, and bit 6 has value "0,"
+indicating that the encoding is primitive. The length octets
+follow the short form. The contents octets are the
+concatenation of three octet strings derived from
+subidentifiers (in decimal): 40 * 2 + 5 = 85 = 5516; 4; and
+6, 10, or 3.
+
+<h3>6.2.2 AttributeValue</h3>
+
+The three <tt>AttributeValue</tt> values are <tt>PrintableString</tt> values,
+so their encodings follow the primitive, definite-length
+method:
+<p>
+<table border=0 cellpadding=4>
+<tr><td valign=top><pre>13 02 55 53</pre></td><td valign=top>"US"</td></tr>
+<tr><td valign=top><pre>13 14
+   45 78 61 6d 70 6c 65 20 4f 72 67 61 6e 69 7a 61
+   74 69 6f 6e</pre></td><td valign=top>"Example Organization"</td></tr>
+<tr><td valign=top><pre>13 0b
+   54 65 73 74 20 55 73 65 72 20 31</pre></td><td valign=top>"Test User 1"</td></tr>
+</table>
+<p>
+The identifier octets follow the low-tag-number form, since
+the tag for <tt>PrintableString</tt>, 19 (decimal), is between 0 and
+30. Bits 8 and 7 have value "0" since <tt>PrintableString</tt> is in
+the universal class. Bit 6 has value "0" since the encoding
+is primitive. The length octets follow the short form, and
+the contents octets are the ASCII representation of the
+attribute value.
+
+
+<h3>6.2.3 AttributeValueAssertion</h3>
+
+The three <tt>AttributeValueAssertion</tt> values are <tt>SEQUENCE</tt>
+values, so their DER encodings follow the constructed,
+definite-length method:
+<p>
+<table border=0 cellpadding=4>
+<tr><td valign=top><pre>30 09
+   06 03 55 04 06
+   13 02 55 53</pre></td><td valign=top><tt>countryName</tt> = "US"</td></tr>
+<tr><td valign=top><pre>30 1b
+   06 03 55 04 0a
+   13 14 ... 6f 6e</pre></td><td valign=top><tt>organizationName</tt> = "Example Organization"</td></tr>
+<tr><td valign=top><pre>30 12
+   06 03 55 04 0b
+   13 0b ... 20 31</pre></td><td valign=top><tt>commonName<tt> = "Test User 1"</td></tr>
+</table>
+<p>
+The identifier octets follow the low-tag-number form, since
+the tag for <tt>SEQUENCE</tt>, 16 (decimal), is between 0 and 30.
+Bits 8 and 7 have value "0" since <tt>SEQUENCE</tt> is in the
+universal class. Bit 6 has value "1" since the encoding is
+constructed. The length octets follow the short form, and
+the contents octets are the concatenation of the DER
+encodings of the attributeType and attributeValue
+components.
+
+
+<h3>6.2.4 RelativeDistinguishedName</h3>
+
+The three <tt>RelativeDistinguishedName</tt> values are <tt>SET OF</tt>
+values, so their DER encodings follow the constructed,
+definite-length method:
+<p>
+<pre>
+31 0b
+   30 09 ... 55 53
+
+31 1d
+   30 1b ... 6f 6e
+
+31 14
+   30 12 ... 20 31
+</pre>
+<p>
+The identifier octets follow the low-tag-number form, since
+the tag for <tt>SET OF</tt>, 17 (decimal), is between 0 and 30. Bits
+8 and 7 have value "0" since <tt>SET OF</tt> is in the universal
+class Bit 6 has value "1" since the encoding is constructed.
+The lengths octets follow the short form, and the contents
+octets are the DER encodings of the respective
+<tt>AttributeValueAssertion values</tt>, since there is only one
+value in each set.
+
+
+<h3>6.2.5 RDNSequence</h3>
+
+The <tt>RDNSequence</tt> value is a <tt>SEQUENCE OF</tt> value, so its DER
+encoding follows the constructed, definite-length method:
+<p>
+<pre>
+30 42
+   31 0b ... 55 53
+   31 1d ... 6f 6e
+   31 14 ... 20 31
+</pre>
+<p>
+The identifier octets follow the low-tag-number form, since
+the tag for <tt>SEQUENCE OF</tt>, 16 (decimal), is between 0 and 30.
+Bits 8 and 7 have value "0" since <tt>SEQUENCE OF</tt> is in the
+universal class. Bit 6 has value "1" since the encoding is
+constructed. The lengths octets follow the short form, and
+the contents octets are the concatenation of the DER
+encodings of the three <tt>RelativeDistinguishedName</tt> values, in
+order of occurrence.
+
+
+<h3>6.2.6 Name</h3>
+
+The <tt>Name</tt> value is a <tt>CHOICE</tt> value, so its DER encoding is the
+same as that of the <tt>RDNSequence</tt> value:
+<p>
+<table border=0 cellpadding=3>
+<tr>
+<td valign=top>
+<pre>
+30 42
+   31 0b
+      30 09                                   
+         06 03 55 04 06                       
+         13 02 55 53    
+
+   31 1d
+      30 1b
+         06 03 55 04 0a                       
+         13 14                                
+            45 78 61 6d 70 6c 65 20 4f 72 67
+            67 61 6e 69 7a 61 74 69 6f 6e
+
+   31 14
+      30 12
+         06 03 55 04 03                       
+         13 0b                                
+            54 65 73 74 20 55 73 65 72 20 31
+</pre>
+</td>
+<td valign=top>
+<tt>
+ <br>
+ <br>
+ <br>
+</tt>
+<tt>attributeType = </tt>countryName<br>
+<tt>attributeValue = </tt>"US"<br>
+<tt>
+ <br>
+ <br>
+</tt>
+<tt>attributeType = organizationName</tt><br>
+<tt>attributeValue = </tt>"Example Organization"<br>
+<tt>
+ <br>
+ <br>
+ <br>
+ <br>
+ <br>
+</tt>
+<tt>attributeType = commonName</tt><br>
+<tt>attributeValue = </tt>"Test User 1"<br>
+</td>
+</tr>
+</table>
+
+<h2>References</h2>
+
+PKCS #1   RSA Laboratories. <em>PKCS #1: RSA Encryption
+          Standard.</em> Version 1.5, November 1993.
+<p>
+PKCS #3   RSA Laboratories. <em>PKCS #3: Diffie-Hellman Key-
+          Agreement Standard.</em> Version 1.4, November 1993.
+<p>
+PKCS #5   RSA Laboratories. <em>PKCS #5: Password-Based
+          Encryption Standard.</em> Version 1.5, November 1993.
+<p>
+PKCS #6   RSA Laboratories. <em>PKCS #6: Extended-Certificate
+          Syntax Standard.</em> Version 1.5, November 1993.
+<p>
+PKCS #7   RSA Laboratories. <em>PKCS #7: Cryptographic Message
+          Syntax Standard.</em> Version 1.5, November 1993.
+<p>
+PKCS #8   RSA Laboratories. <em>PKCS #8: Private-Key Information
+          Syntax Standard.</em> Version 1.2, November 1993.
+<p>
+PKCS #9   RSA Laboratories. <em>PKCS #9: Selected Attribute
+          Types.</em> Version 1.1, November 1993.
+<p>
+PKCS #10  RSA Laboratories. <em>PKCS #10: Certification Request
+          Syntax Standard.</em> Version 1.0, November 1993.
+<p>
+X.200     CCITT. <em>Recommendation X.200: Reference Model of
+          Open Systems Interconnection for CCITT
+          Applications.</em> 1984.
+<p>
+X.208     CCITT. <em>Recommendation X.208: Specification of
+          Abstract Syntax Notation One (ASN.1).</em> 1988.
+<p>
+X.209     CCITT. <em>Recommendation X.209: Specification of
+          Basic Encoding Rules for Abstract Syntax Notation
+          One (ASN.1).</em> 1988.
+<p>
+X.500     CCITT. <em>Recommendation X.500: The
+          Directory--Overview of Concepts, Models and
+          Services.</em> 1988.
+<p>
+X.501     CCITT. <em>Recommendation X.501: The Directory--
+          Models.</em> 1988.
+<p>
+X.509     CCITT. <em>Recommendation X.509: The Directory--
+          Authentication Framework.</em> 1988.
+<p>
+X.520     CCITT. <em>Recommendation X.520: The Directory--
+          Selected Attribute Types.</em> 1988.
+<p>
+[Kal93]   Burton S. Kaliski Jr. <em>Some Examples of the PKCS
+          Standards.</em> RSA Laboratories, November 1993.
+<p>
+[NIST92]  NIST. <em>Special Publication 500-202: Stable
+          Implementation Agreements for Open Systems
+          Interconnection Protocols. Part 11 (Directory
+          Services Protocols).</em> December 1992.
+
+
+<h2>Revision history</h2>
+
+
+June 3, 1991 version
+<p>
+The June 3, 1991 version is part of the initial public
+release of PKCS. It was published as NIST/OSI Implementors'
+Workshop document SEC-SIG-91-17.
+<p>
+November 1, 1993 version
+<p>
+The November 1, 1993 version incorporates several editorial
+changes, including the addition of a revision history. It is
+updated to be consistent with the following versions of the
+PKCS documents:
+<p>
+<blockquote>
+     PKCS #1: RSA Encryption Standard. Version 1.5, November
+          1993.
+<p>
+     PKCS #3: Diffie-Hellman Key-Agreement Standard. Version
+          1.4, November 1993.
+<p>
+     PKCS #5: Password-Based Encryption Standard. Version
+          1.5, November 1993.
+<p>
+     PKCS #6: Extended-Certificate Syntax Standard. Version
+          1.5, November 1993.
+<p>
+     PKCS #7: Cryptographic Message Syntax Standard. Version
+          1.5, November 1993.
+<p>
+     PKCS #8: Private-Key Information Syntax Standard.
+          Version 1.2, November 1993.
+<p>
+     PKCS #9: Selected Attribute Types. Version 1.1,
+          November 1993.
+<p>
+     PKCS #10: Certification Request Syntax Standard.
+          Version 1.0, November 1993.
+</blockquote>
+<p>
+The following substantive changes were made:
+<p>
+<blockquote>
+<p>
+     Section 5: Description of T61String type is added.
+<p>
+     Section 6: Names are changed, consistent with other
+          PKCS examples.
+</blockquote>
+<p>
+
+<h2>Author's address</h2>
+
+<pre>
+Burton S. Kaliski Jr., Ph.D.
+Chief Scientist
+RSA Laboratories              (415) 595-7703
+100 Marine Parkway            (415) 595-4126 (fax)
+Redwood City, CA  94065  USA  burt@rsa.com
+</pre>
+</body>
+</html>

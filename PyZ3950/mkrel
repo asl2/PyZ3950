@@ -1,0 +1,4 @@
+./mkdoc.py
+rm dist/*
+python setup.py build sdist
+tar cvf upload.tar dist/* PyZ3950/*.html CHANGELOG

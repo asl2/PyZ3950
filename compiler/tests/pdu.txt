@@ -1,0 +1,19 @@
+IR DEFINITIONS ::=  
+BEGIN   -- ANSI Z39.50 version 2 - July 1, 1992      
+PDU ::= CHOICE{
+  initRequest                 [20] IMPLICIT InitializeRequest,
+  initResponse                [21] IMPLICIT InitializeResponse,
+  searchRequest               [22] IMPLICIT SearchRequest,
+  searchResponse              [23] IMPLICIT SearchResponse,
+  presentRequest              [24] IMPLICIT PresentRequest,
+  presentResponse             [25] IMPLICIT PresentResponse,
+  deleteResultSetRequest      [26] IMPLICIT DeleteResultSetRequest,
+  deleteResultSetResponse          [27] IMPLICIT DeleteResultSetResponse,
+  accessControlRequest        [28] IMPLICIT AccessControlRequest,
+  accessControlResponse       [29] IMPLICIT AccessControlResponse,
+  resourceControlRequest      [30] IMPLICIT ResourceControlRequest,
+  resourceControlResponse          [31] IMPLICIT ResourceControlResponse,
+  triggerResourceControlRequest    [32] IMPLICIT TriggerResourceControlRequest,
+  resourceReportRequest       [33] IMPLICIT ResourceReportRequest,
+  resourceReportResponse      [34] IMPLICIT ResourceReportResponse}
+END

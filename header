@@ -1,0 +1,32 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+ "http://www.w3.org/TR/html4/strict.dtd">
+<html><head><title>PyZ3950 - Python Z39.50 and ASN.1 BER implementations
+</title></head><body>
+<p>I wrote these modules to support
+<a href="http://www.pobox.com/~asl2/software/Tyrannio">Tyrannioware</a>,
+my home book cataloging program.  The modules are distributed together
+partly for my convenience, and partly because the Z39.50 code may serve
+as an illustration of the ASN.1 API.  (I wrote my own ASN.1 code because
+I wanted its client to be able to use normal Python data types, and use
+a declarative syntax fairly close to the original ASN.1 specification
+to encode and decode: neither <a href="http://sourceforge.net/projects/pysnmp">
+PySNMP</a> nor <a href="http://www.cnri.reston.va.us/software/pisces/">Pisces
+</a> offer this.)  The only other Python Z39.50 implementation I know of
+is part of a larger commercial product, 
+<a href="http://www.bsn.com/Z39.50/wxPresso.html">wxPresso</a>.
+<p>There's also a MARC module in zmarc.py (handles parsing only), and
+a graphical <a href="http://zthes.z3950.org">Zthes</a> browser as
+an example.</p>
+<p>The software requires Python 2.1 or later, and is licensed under
+the X licence (details in the files themselves), but the zoom
+interface requires Dave Beazley's <a
+href="http://systems.cs.uchicago.edu/ply/">PLY package</a>, licensed
+under the LGPL.  Click <a href="PyZ3950-$version$.tar.gz">here</a> to
+download version $version$ of PyZ3950.  It's packaged with distutils, so
+unzip and untar, run <code>python setup.py build</code>, and then
+<code>python setup.py install</code>.  Here's the <a
+href="CHANGELOG">CHANGELOG</a>.  Most development has been done under
+Linux, but I've tested briefly under Win98 (and, in theory, the code
+should run anywhere Python runs).<p>
+
+

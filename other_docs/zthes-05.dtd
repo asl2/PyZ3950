@@ -1,0 +1,41 @@
+<!-- Zthes DTD, version 0.5
+     Based on Z39.50 Profile for Thesaurus Navigation, version 0.5
+     Incorporating modifications by National Library of Australia
+     Date of DTD: 19 Oct 2001 -->
+
+<!-- #PCDATA: parseable character data = text
+
+     occurence indicators (default: required, not repeatable):
+     ?: zero or one occurrence (optional)
+     *: zero or more occurrences (optional, repeatable)
+     +: one or more occurrences (required, repeatable)
+
+     |: choice, one or the other, but not both
+ -->
+
+<!ENTITY % terment         "termId, termName, termQualifier?,
+                            termType?, termLanguage?">
+
+<!ENTITY % admin           "termCreatedDate?, termCreatedBy?,
+                            termModifiedDate?, termModifiedBy?">
+
+<!ELEMENT Zthes            (term+)>
+
+<!ELEMENT term             (%terment;, termNote?,
+                            %admin;,
+                            relation*)>
+
+<!ELEMENT relation         (relationType, sourceDb?, %terment;)>
+
+<!ELEMENT termId           (#PCDATA)>
+<!ELEMENT termName         (#PCDATA)>
+<!ELEMENT termQualifier    (#PCDATA)>
+<!ELEMENT termType         (#PCDATA)>
+<!ELEMENT termLanguage     (#PCDATA)>
+<!ELEMENT termNote         (#PCDATA)>
+<!ELEMENT termCreatedDate  (#PCDATA)>
+<!ELEMENT termCreatedBy    (#PCDATA)>
+<!ELEMENT termModifiedDate (#PCDATA)>
+<!ELEMENT termModifiedBy   (#PCDATA)>
+<!ELEMENT relationType     (#PCDATA)>
+<!ELEMENT sourceDb         (#PCDATA)>

@@ -1,0 +1,9 @@
+Foo DEFINITIONS EXPLICIT TAGS ::=
+
+BEGIN
+
+Foo ::= SEQUENCE OF Bar
+
+Bar ::= INTEGER
+
+END

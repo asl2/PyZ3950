@@ -1,0 +1,432 @@
+IR DEFINITIONS ::=  
+BEGIN   -- ANSI Z39.50 version 2 - July 1, 1992      
+PDU ::= CHOICE{
+  initRequest                 [20] IMPLICIT InitializeRequest,
+  initResponse                [21] IMPLICIT InitializeResponse,
+  searchRequest               [22] IMPLICIT SearchRequest,
+  searchResponse              [23] IMPLICIT SearchResponse,
+  presentRequest              [24] IMPLICIT PresentRequest,
+  presentResponse             [25] IMPLICIT PresentResponse,
+  deleteResultSetRequest      [26] IMPLICIT DeleteResultSetRequest,
+  deleteResultSetResponse          [27] IMPLICIT DeleteResultSetResponse,
+  accessControlRequest        [28] IMPLICIT AccessControlRequest,
+  accessControlResponse       [29] IMPLICIT AccessControlResponse,
+  resourceControlRequest      [30] IMPLICIT ResourceControlRequest,
+  resourceControlResponse          [31] IMPLICIT ResourceControlResponse,
+  triggerResourceControlRequest    [32] IMPLICIT TriggerResourceControlRequest,
+  resourceReportRequest       [33] IMPLICIT ResourceReportRequest,
+  resourceReportResponse      [34] IMPLICIT ResourceReportResponse}
+          -- new APDUs can be added in the future at the end of this list.
+--
+  InitializeRequest ::=SEQUENCE{
+     referenceId              ReferenceId OPTIONAL,
+     protocolVersion          ProtocolVersion,
+          -- proposed version of the protocol to be used (see below).
+     options             Options,
+          -- proposed set of services to be used       
+     preferredMessageSize          PreferredMessageSize,
+          -- origin proposal for the size of large messages (where message size is
+          -- the sum of sizes, in bytes, of the records in an APDU) the target 
+          -- should normally use when presenting groups of records; however, the 
+          -- first record in a response is permitted to cause the message to 
+          -- exceed this size (see also maximumRecordSize below).
+     maximumRecordSize        MaximumRecordSize,
+          -- origin proposal for maximum record size (number of bytes).
+          -- Value must be greater than or equal to
+          -- preferredMessageSize.
+     idAuthentication         [7]  ANY OPTIONAL,
+               -- information as required by the target to access the
+          -- responding IRPM; syntax of this parameter to be
+          -- defined by the target prior to communication.
+     implementationId         ImplementationId OPTIONAL, 
+     implementationName       ImplementationName OPTIONAL,
+     implementationVersion    ImplementationVersion OPTIONAL,
+     userInformationField          UserInformationField OPTIONAL}
+--
+ InitializeResponse ::= SEQUENCE{
+     referenceId              ReferenceId OPTIONAL,
+                              protocolVersion          ProtocolVersion,
+                    options             Options,
+                                   preferredMessageSize          PreferredMessageSize,
+          -- target decision on maximum APDU size (see description under
+          -- InitializationRequest definition). Value is allowed to be different 
+          -- from what origin proposed in the Initialization Request; if origin 
+          -- does not agree on target values, it may abort the connection.
+-- (InitializeResponse continued next page)
+-- (InitializeResponse continued)
+     maximumRecordSize        MaximumRecordSize,
+          -- target decision on the maximum record size 
+     result                   [12]  IMPLICIT BOOLEAN,
+          -- result of the processing of the request at the target. 
+          -- reject = FALSE; Accept = TRUE.
+     implementationId         ImplementationId OPTIONAL,
+     implementationName       ImplementationName OPTIONAL,
+     implementationVersion    ImplementationVersion OPTIONAL,
+     userInformationField          UserInformationField OPTIONAL}
+--
+-- Auxiliary definitions for Initialization APDUs
+      ProtocolVersion  ::=  [3]   IMPLICIT BIT STRING
+          -- represents a string of Boolean values, each value representing 
+          -- a version. The first value set to 1 indicates version 1 is available, 
+          -- the second value set to 1 indicates version 2 is available, and so on.  
+          -- Values higher than the highest known version should be ignored. Both the
+          -- Initialize and Initialize Response APDUs include a value string 
+          -- corresponding to the supported versions. The highest common version is 
+          -- selected for use.  If there are no versions in common, the Initialize 
+          -- Response APDU should indicate a value of "reject" for the parameter 
+          -- Result. Note: Versions 1 and 2 are identical. Systems supporting
+          -- version 2 should indicate support for version 1 as well,
+          -- for interoperability with systems that indicate support for
+          -- version 1 only (e.g. ISO 10163 implementations).  
+      Options  ::=  [4] IMPLICIT BIT STRING 
+                    {search        (0), 
+                     present       (1), 
+                     delSet        (2),
+                     resourceReport     (3),
+                     triggerResourceCtrl     (4),
+                     resourceCtrl       (5), 
+                     accessCtrl         (6)}
+          -- In InitializeRequest, for bits 0 through 4, ON indicates initiator does 
+          -- request use of service; for bits 5 and 6, ON indicates initiator will 
+          -- support service. For InitializeResponse, for bit 0 through 4, ON indicates 
+          --  target will support service;  for bits 5 and 6, ON indicates target requests 
+          -- service. For extensibility of the protocol, additional bits set should 
+          -- not be considered to be an error on received InitializeRequest.
+--
+      PreferredMessageSize    ::=   [5]      IMPLICIT INTEGER
+      MaximumRecordSize  ::=   [6] IMPLICIT INTEGER
+--
+      ImplementationId   ::=  [110]     IMPLICIT VisibleString
+        -- a unique identifier for the origin or target implementation
+      ImplementationName      ::=  [111]     IMPLICIT VisibleString
+        -- a descriptive name for the origin or target implementation
+      ImplementationVersion   ::=  [112]     IMPLICIT VisibleString
+        -- descriptive name for the origin or target impl. version
+   -- these three implementation parameters are provided solely for 
+   -- the convenience of implementors needing to distinguish implemen-
+   -- tations. They shall not be the subject of conformance tests.
+      UserInformationField    ::=  [11]   EXTERNAL 
+          -- additional information, not defined in this standard.
+-- end auxiliary definitions for initialization APDUs
+
+
+  SearchRequest ::= SEQUENCE{
+     referenceId              ReferenceId OPTIONAL,
+          smallSetUpperBound       [13]  IMPLICIT INTEGER,
+          -- if the number of hits is less than or equal to this number, all records are 
+          -- to be returned in the SearchResponse (within the limits given by the 
+          -- negotiated preferred-MessageSize and maximumRecordSize), composed as
+          -- specified by the smallSetElementSetNames parameter below. May be zero.
+       largeSetLowerBound          [14]  IMPLICIT INTEGER,
+               -- if the number of hits is equal to or greater than this number, no records are 
+          -- to be returned. LargeSetLowerBound must be greater than smallSetUpperBound.  
+     mediumSetPresentNumber   [15]  IMPLICIT INTEGER,
+          -- maximum number records to be returned in the SearchResponse if the number 
+          -- of hits is between largeSetLowerBound and smallSetUpperBound (again 
+          -- within the limits given by PreferredMessageSize and MaximumRecordSize), 
+          -- composed as specified by mediumSetRecordElementSetNames
+     replaceIndicator         [16]  IMPLICIT BOOLEAN,
+          -- origin indicates whether or not to replace a previously created result 
+          -- set with the same name by the one that is constructed in this search.
+     resultSetName            [17]  IMPLICIT VisibleString,
+          -- origin proposal for naming of the result set that is constructed if hits 
+          -- are found. If target allows the origin to assign names to result sets, 
+          -- it uses this proposed name. If the target does not support named result 
+          -- sets, it returns an error diagnostic.
+     databaseNames       [18] IMPLICIT SEQUENCE OF DatabaseName,
+          -- database(s) in which the search will be performed.
+     smallSetElementSetNames  [100] IMPLICIT ElementSetNames OPTIONAL,
+          -- origin proposal for composition of the records in the small
+          -- set (see above under smallSetUpperBound).
+     mediumSetElementSetNames      [101] IMPLICIT ElementSetNames OPTIONAL,
+          -- origin proposal for the composition of the records in the
+          -- medium set (see above under mediumSetPresentNumber).
+     preferredRecordSyntax    PreferredRecordSyntax OPTIONAL,
+          -- origin proposal for abstract syntax of the database records to be returned 
+          -- in the SearchResponse. Values subject to registration.
+     query                    [21] Query}
+          -- the search argument (see description below).
+--
+      Query  ::=  CHOICE 
+     {type-0        [0]  ANY,  
+      type-1   [1]       IMPLICIT RPNQuery,
+      type-2        [2]       OCTET STRING,
+      type-100 [100]     OCTET STRING,
+      type-101 [101]     IMPLICIT OCTET STRING}
+     -- the search argument contained in the SearchRequest.  Five types are defined:
+               --   a)   A type-0 query may be used only when the origin and target have an a priori 
+     --   agreement outside of this standard as to form of query acceptable to target.
+          --   b)   type-1 is the Reverse Polish Notation (RPN) query (see below).  
+     --   c)   type-2 is the ISO8777 type query, specified in ISO 8777.
+     --   d)   type-100 is the Z39.58 type query, specified in ANSI Z39.58.
+     --   e)   type-101 is the proximity query, specified in Appendix G.
+--
+    RPNQuery  ::=  SEQUENCE{ 
+          attributeSetId  OBJECT IDENTIFIER, -- identifies attribute set
+          RPNStructure}
+
+
+
+     RPNStructure ::= CHOICE {     [0] Operand, 
+                         [1] IMPLICIT SEQUENCE { 
+                                        RPNStructure, 
+                                             RPNStructure, 
+                                             Operator }} 
+--
+               Operand  ::=  CHOICE{
+                    AttributesPlusTerm, 
+                    ResultSetId}
+               AttributesPlusTerm::=  [102]  IMPLICIT SEQUENCE{
+                    AttributeList, 
+                    Term}
+     AttributeList  ::=  [44]  IMPLICIT SEQUENCE OF AttributeElement
+     Term           ::=  [45]   IMPLICIT OCTET STRING
+          -- the type OCTET STRING is used to enable the inclusion of multibyte 
+          -- character representations which the types CharacterString and
+          -- VisibleString might impose on graphic character repertoire.
+     Operator       ::=  [46]   CHOICE{
+                 and          [0] IMPLICIT NULL,
+                 or      [1] IMPLICIT NULL,
+                      and-not [2] IMPLICIT NULL}
+--
+          AttributeElement  ::=  SEQUENCE{
+                    AttributeType,
+                    AttributeValue}
+               AttributeType  ::=  [120] IMPLICIT INTEGER
+               AttributeValue ::=  [121] IMPLICIT INTEGER
+          -- AttributeType and AttributeValue interpretation is governed by the 
+          -- values contained in the definition identified by AttributeSetId
+--
+  SearchResponse ::= SEQUENCE{
+     referenceId                   ReferenceId OPTIONAL,
+     resultCount                   [23]  IMPLICIT INTEGER,
+          -- number of hits resulting from the search.
+     numberOfRecordsReturned       NumberOfRecordsReturned,
+               -- number of records in the search results below.
+     nextResultSetPosition         NextResultSetPosition,
+          -- the ordinal number in the result set of the record appearing directly 
+          -- after the last record in the search Results below.
+     searchStatus                  [22]  IMPLICIT BOOLEAN,
+               -- result of the processing of the request at the target IRPM.
+          -- success = TRUE; failure = FALSE.
+     resultSetStatus               [26]  IMPLICIT INTEGER{
+                                 subset (1), 
+                                 interim     (2), 
+                                 none        (3)}   OPTIONAL,
+          -- occurs if and only if search-status is FALSE. Indicates the
+          -- presence and validity of the result set produced.
+     presentStatus                 PresentStatus  OPTIONAL,
+          -- occurs if and only if search-status is TRUE. Indicates
+          -- presence and validity of records appearing in the search results
+     databaseOrDiagnosticRecords   Records   OPTIONAL}
+          -- the records (diagnostic and/or bibliographic) resulting
+          -- from the search (see description below).
+   PresentRequest ::= SEQUENCE{
+     referenceId                   ReferenceId OPTIONAL,
+     resultSetId                   ResultSetId,
+          -- identification of the result set from which to retrieve records 
+     resultSetStartPoint           [30] IMPLICIT INTEGER,
+          -- ordinal number in the result set of the first record to
+          -- appear in the present results in the PresentResponse.
+     numberOfRecordsRequested      [29] IMPLICIT INTEGER,
+          -- specifies the maximum number of records to be returned in the present 
+          -- results in the PresentResponse (within the limits given by the 
+          -- negotiated message and record size parameters), composed as specified 
+          -- by the element set names parameter below.
+     ElementSetNames               OPTIONAL,
+               -- origin proposal for the composition of the records to be
+          -- returned in the Present Response 
+     preferredRecordSyntax         PreferredRecordSyntax OPTIONAL}
+          -- origin proposal for abstract syntax of the database records to be returned 
+          -- in the present results in the Present Response.  Values subject 
+          -- to registration, at present by specification in Appendix E.
+--
+--
+  PresentResponse ::= SEQUENCE{
+     referenceId                   ReferenceId OPTIONAL,
+     numberOfRecordsReturned       NumberOfRecordsReturned,
+          -- number of records returned in the records parameter below.
+     nextResultSetPosition              NextResultSetPosition,
+          -- ordinal number in the result set of the record 
+          -- appearing directly after the last record returned
+     presentStatus                 PresentStatus,
+          -- indicates the presence and validity of the records 
+     databaseOrDiagnosticRecords        Records OPTIONAL} -- the presented records
+--
+--
+-- begin auxiliary definitions for search and present APDUs
+  Records ::= CHOICE{
+     dataBaseOrSurDiagnostics [28]  IMPLICIT SEQUENCE OF NamePlusRecord,
+     nonSurrogateDiagnostic   [130] IMPLICIT  DiagRec}
+--
+     NamePlusRecord  ::=  SEQUENCE{
+          [0] IMPLICIT DatabaseName OPTIONAL,
+          -- presence of DatabaseName is conditional. See 3.2.2.1.7 and 3.2.3.1.5.
+          [1] CHOICE{    databaseRecord           [1] DatabaseRecord,
+                    surrogateDiagnostic [2] DiagRec}}
+-- 
+          DatabaseRecord  ::=  EXTERNAL
+               -- the database record syntax is defined outside of this standard. 
+               -- For bibliographic data, USMARC is a prime example.
+--
+     DiagRec  ::=  SEQUENCE{ 
+          diagnosticSetId     OBJECT IDENTIFIER,
+          condition      INTEGER,
+               -- interpretation of condition is governed by values
+               -- contained in definition identified by DiagnosticSetId.
+           addinfo            VisibleString} -- add'l information.
+ 
+
+
+  ElementSetNames  ::=  [19]   CHOICE{
+       generic           [0] IMPLICIT ElementSetName,
+       databaseSpecific  [1] IMPLICIT SEQUENCE OF SEQUENCE{
+                    DatabaseName,
+                                        ElementSetName}}
+
+
+--
+                    ElementSetName  ::=  [103]   IMPLICIT VisibleString
+                    -- A target must always recognize the value "F" to mean "full record". 
+--
+-- begin miscellaneous definitions for search and present APDUs
+     NumberOfRecordsReturned  ::=  [24]   IMPLICIT INTEGER
+     NextResultSetPosition         ::=  [25]   IMPLICIT INTEGER 
+     PresentStatus                 ::=  [27]   IMPLICIT INTEGER{
+                                                            success   (0),
+                                                            partial-1      (1),
+                                                            partial-2      (2),
+                                        partial-3      (3),
+                                                            partial-4      (4),
+                                                       failure        (5)}
+  PreferredRecordSyntax       ::=  [104]   IMPLICIT OBJECT IDENTIFIER
+-- end miscellaneous definitions for search and present APDUs
+-- end auxiliary definitions for search and present APDUs
+--
+--
+  DeleteResultSetRequest ::=SEQUENCE{
+     referenceId              ReferenceId OPTIONAL,
+     deleteOperation          [32]  IMPLICIT INTEGER{
+                                   list      (0),
+                                   all  (1)},
+     resultSetList            SEQUENCE OF ResultSetId OPTIONAL } 
+          -- identification of result sets to be deleted if operation is "list"
+--
+  DeleteResultSetResponse ::= SEQUENCE{
+     referenceId              ReferenceId OPTIONAL,
+     deleteOperationStatus         [0]  IMPLICIT DeleteSetStatus,
+          -- Reports status for entire delete operation.  Values limited to
+          -- "success" or "failure-3" through "failure-9". Values of "failure-7" 
+          -- and "failure-8" may be used  only if operation is "all".
+     deleteListStatuses       [1]  IMPLICIT ListStatuses OPTIONAL,
+          -- Must occur if operation is "list".  Individual status
+          -- values limited to  "success" through "failure-6".
+     numberNotDeleted         [34] IMPLICIT INTEGER OPTIONAL,
+               -- No. sets target failed to delete. Occurs only if operation is "all".
+     bulkStatuses             [35] IMPLICIT ListStatuses OPTIONAL,
+               -- occurs if and only if DeleteSetStatus equals 8.  Individual
+          -- statuses limited to  "success" through "failure-6"
+     deleteMessage            [36] IMPLICIT VisibleString OPTIONAL}
+          -- textual message concerning the delete operation.
+--
+-- begin auxiliary definitions for delete
+     ListStatuses ::= SEQUENCE OF SEQUENCE{ 
+          ResultSetId, 
+          DeleteSetStatus}
+
+
+     DeleteSetStatus ::= [33] IMPLICIT INTEGER{
+               success                  (0),
+                    resultSetDidNotExist               (1),
+                    previouslyDeletedByTarget          (2),
+                    systemProblemAtTarget         (3),
+                    accessNotAllowed              (4),
+          resourceControlAtOrigin       (5),
+                    resourceControlAtTarget       (6),
+                    bulkDeleteNotSupported        (7),
+                    notAllRsltSetsDeletedOnBulkDlte    (8),
+          notAllRequestedResultSetsDeleted   (9)}
+                    -- 7 and 8 used only if operation is "all".
+-- end auxiliary definitions for delete
+--
+  AccessControlRequest ::= SEQUENCE{
+     referenceId              ReferenceId OPTIONAL,
+     securityChallenge        CHOICE{
+                         oldway    [37] IMPLICIT OCTET STRING,
+                         newway    [0] EXTERNAL}}
+--
+  AccessControlResponse ::= SEQUENCE{
+     referenceId              ReferenceId OPTIONAL,
+     securityChallengeResponse     CHOICE{
+                         oldway    [38] IMPLICIT OCTET STRING,
+                         newway    [0] EXTERNAL}}
+
+--
+--
+  ResourceControlRequest ::= SEQUENCE{
+     referenceId              ReferenceId OPTIONAL,
+     suspendedFlag            [39] IMPLICIT BOOLEAN OPTIONAL,
+           -- "true" = suspended 
+     resourceReport                [40] ResourceReport OPTIONAL,
+     partialResultsAvailable       [41] IMPLICIT INTEGER{
+                              subset         (1),
+                              interim   (2),
+                              none           (3)} OPTIONAL,
+     responseRequired         [42] IMPLICIT BOOLEAN, 
+          -- "true" means that the target requires a response
+     triggeredRequestFlag          [43] IMPLICIT BOOLEAN OPTIONAL}
+          -- "true" means request triggered by a trigger-resource-control request
+--
+  ResourceControlResponse ::= SEQUENCE{
+     referenceId                   ReferenceId OPTIONAL,
+     continueFlag                  [44] IMPLICIT BOOLEAN, -- true = continue
+     resultSetWanted               [45] IMPLICIT BOOLEAN OPTIONAL}
+          -- "true" = "result set wanted", required during a search if
+          -- Continue flag is false; otherwise should not occur
+
+
+
+
+
+
+
+  TriggerResourceControlRequest ::= SEQUENCE{
+     referenceId                   ReferenceId OPTIONAL,
+     requestedOperation            [46] IMPLICIT INTEGER{
+                                   resourceReport (1),
+                                   resourceControl     (2),
+                                   cancel         (3)}, 
+     preferredResourceReportFormat [47] IMPLICIT ResourceReportId OPTIONAL,
+     resultSetWanted               [48] IMPLICIT BOOLEAN OPTIONAL}
+--
+--
+  ResourceReportRequest ::= SEQUENCE{
+     referenceId                   ReferenceId OPTIONAL,
+     preferredResourceReportFormat [49] IMPLICIT ResourceReportId OPTIONAL}
+--
+--
+  ResourceReportResponse ::= SEQUENCE{
+     referenceId                   ReferenceId OPTIONAL,
+     resourceReportStatus               [50] IMPLICIT INTEGER{
+                                   success        (0),
+                                   partial             (1),
+                                   failure-1      (2),
+                                   failure-2      (3),
+                                   failure-3      (4),
+                                   failure-4      (5)},
+     resourceReport                     [51] ResourceReport OPTIONAL}
+--
+--
+-- Begin auxiliary definitions for resource control
+     ResourceReport ::= EXTERNAL
+     ResourceReportId ::=  OBJECT IDENTIFIER
+-- End auxiliary definitions for resource control
+--
+-- begin global auxiliary definitions
+     ReferenceId         ::=  [2]   IMPLICIT OCTET STRING
+               -- value provided by the service originator in the Request APDU, target
+          -- required to send it back unaltered in corresponding response APDU
+     DatabaseName   ::=  [105] IMPLICIT VisibleString
+     ResultSetId         ::=  [31]  IMPLICIT VisibleString
+-- end global auxiliary definitions
+END -- IR

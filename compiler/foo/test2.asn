@@ -1,0 +1,6 @@
+Foo 
+DEFINITIONS ::=  
+BEGIN
+     A ::= SEQUENCE OF Attribute
+     Term           ::=  INTEGER
+END

@@ -1,0 +1,830 @@
+
+<!doctype html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module PyZ3950/zoom</title>
+<style type="text/css"><!--
+TT { font-family: lucidatypewriter, lucida console, courier }
+--></style></head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>PyZ3950/zoom</strong></big></big> (version 0.9)</font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/asl2/src/PyZ3950/PyZ3950/zoom.py">/home/asl2/src/PyZ3950/PyZ3950/zoom.py</a></font></td></tr></table>
+    <p><tt>Implements&nbsp;the&nbsp;ZOOM&nbsp;1.1&nbsp;API&nbsp;(<a href="http://zoom.z3950.org/api">http://zoom.z3950.org/api</a>)<br>
+for&nbsp;Z39.50.<br>
+&nbsp;<br>
+Some&nbsp;global&nbsp;notes&nbsp;on&nbsp;the&nbsp;binding&nbsp;(these&nbsp;will&nbsp;only&nbsp;make&nbsp;sense&nbsp;when&nbsp;read<br>
+after&nbsp;the&nbsp;API&nbsp;document):<br>
+&nbsp;<br>
+Get/Set&nbsp;Option&nbsp;is&nbsp;implemented&nbsp;as&nbsp;member&nbsp;attribute&nbsp;access&nbsp;or<br>
+assignment.&nbsp;&nbsp;Implementations&nbsp;are&nbsp;encouraged&nbsp;to&nbsp;throw&nbsp;an&nbsp;AttributeError<br>
+for&nbsp;unsupported&nbsp;(or,&nbsp;possibly,&nbsp;mistyped)&nbsp;attributes.&nbsp;&nbsp;(Production<br>
+applications&nbsp;are&nbsp;encouraged&nbsp;to&nbsp;catch&nbsp;such&nbsp;errors.)<br>
+&nbsp;<br>
+All&nbsp;errors&nbsp;are&nbsp;reported&nbsp;as&nbsp;exceptions&nbsp;deriving&nbsp;from&nbsp;<a href="#ZoomError">ZoomError</a>&nbsp;(or,&nbsp;at<br>
+least,&nbsp;it's&nbsp;a&nbsp;bug&nbsp;if&nbsp;they&nbsp;aren't).&nbsp;&nbsp;<a href="#Bib1Err">Bib1Err</a>&nbsp;is&nbsp;defined&nbsp;as&nbsp;part&nbsp;of&nbsp;the<br>
+binding;&nbsp;all&nbsp;the&nbsp;rest&nbsp;are&nbsp;specific&nbsp;to&nbsp;this&nbsp;implementation.<br>
+&nbsp;<br>
+<a href="#ResultSet">ResultSet</a>&nbsp;provides&nbsp;a&nbsp;sequence&nbsp;interface,&nbsp;with&nbsp;standard&nbsp;Python<br>
+iteration,&nbsp;indexing,&nbsp;and&nbsp;slicing.&nbsp;&nbsp;So&nbsp;if&nbsp;rs&nbsp;is&nbsp;a&nbsp;<a href="#ResultSet">ResultSet</a>,&nbsp;use&nbsp;len<br>
+(rs)&nbsp;for&nbsp;Get_Size&nbsp;and&nbsp;rs[i]&nbsp;for&nbsp;Get_Record,&nbsp;or&nbsp;iterate&nbsp;with&nbsp;for&nbsp;r&nbsp;in<br>
+rs:&nbsp;foo(r).&nbsp;&nbsp;Any&nbsp;attempt&nbsp;to&nbsp;access&nbsp;a&nbsp;record&nbsp;for&nbsp;which&nbsp;the&nbsp;server<br>
+returned&nbsp;a&nbsp;surrogate&nbsp;diagnostic&nbsp;will&nbsp;raise&nbsp;the&nbsp;appropriate&nbsp;<a href="#Bib1Err">Bib1Err</a><br>
+exception.<br>
+&nbsp;<br>
+For&nbsp;<a href="#Record">Record</a>,&nbsp;Render_Record&nbsp;is&nbsp;implemented&nbsp;as&nbsp;Python&nbsp;__str__.&nbsp;&nbsp;The<br>
+'syntax'&nbsp;member&nbsp;contains&nbsp;the&nbsp;string-format&nbsp;record&nbsp;syntax,&nbsp;and&nbsp;the<br>
+'data'&nbsp;member&nbsp;contains&nbsp;the&nbsp;raw&nbsp;data.&nbsp;<br>
+&nbsp;<br>
+<a href="#ScanSet">ScanSet</a>,&nbsp;like&nbsp;<a href="#ResultSet">ResultSet</a>,&nbsp;has&nbsp;a&nbsp;sequence&nbsp;interface.&nbsp;&nbsp;The&nbsp;i-th&nbsp;element<br>
+is&nbsp;a&nbsp;dictionary.&nbsp;&nbsp;See&nbsp;the&nbsp;<a href="#ScanSet">ScanSet</a>&nbsp;documentation&nbsp;for&nbsp;supported&nbsp;keys.<br>
+&nbsp;<br>
+Sample&nbsp;usage:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;import&nbsp;zoom<br>
+&nbsp;&nbsp;&nbsp;&nbsp;conn&nbsp;=&nbsp;zoom.<a href="#Connection">Connection</a>&nbsp;('z3950.loc.gov',&nbsp;7090)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;conn.databaseName&nbsp;=&nbsp;'VOYAGER'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;conn.preferredRecordSyntax&nbsp;=&nbsp;'USMARC'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;query&nbsp;=&nbsp;zoom.<a href="#Query">Query</a>&nbsp;('CCL',&nbsp;'ti="1066&nbsp;and&nbsp;all&nbsp;that"')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;res&nbsp;=&nbsp;conn.search&nbsp;(query)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;r&nbsp;in&nbsp;res:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print&nbsp;str(r)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;conn.close&nbsp;()<br>
+I&nbsp;hope&nbsp;everything&nbsp;else&nbsp;is&nbsp;clear&nbsp;from&nbsp;the&nbsp;docstrings&nbsp;and&nbsp;the&nbsp;abstract<br>
+API:&nbsp;let&nbsp;me&nbsp;know&nbsp;if&nbsp;that's&nbsp;wrong,&nbsp;and&nbsp;I'll&nbsp;try&nbsp;to&nbsp;do&nbsp;better.<br>
+&nbsp;<br>
+For&nbsp;some&nbsp;purposes&nbsp;(I&nbsp;think&nbsp;the&nbsp;only&nbsp;one&nbsp;is&nbsp;writing&nbsp;Z39.50&nbsp;servers),<br>
+you&nbsp;may&nbsp;want&nbsp;to&nbsp;use&nbsp;the&nbsp;functions&nbsp;in&nbsp;the&nbsp;z3950&nbsp;module&nbsp;instead.</tt></p>
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#fffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="asn1.html">PyZ3950.asn1</a><br>
+<a href="bib1msg.html">PyZ3950.bib1msg</a><br>
+<a href="ccl.html">PyZ3950.ccl</a><br>
+</td><td width="25%" valign=top><a href="charneg.html">PyZ3950.charneg</a><br>
+getopt<br>
+<a href="grs1.html">PyZ3950.grs1</a><br>
+</td><td width="25%" valign=top>sys<br>
+<a href="z3950.html">PyZ3950.z3950</a><br>
+<a href="zmarc.html">PyZ3950.zmarc</a><br>
+</td><td width="25%" valign=top></td></tr></table></td></tr></table>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="exceptions.html#Exception">exceptions.Exception</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="PyZ3950/zoom.html#ZoomError">ZoomError</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="PyZ3950/zoom.html#Bib1Err">Bib1Err</a>
+</font></dt><dt><font face="helvetica, arial"><a href="PyZ3950/zoom.html#ClientNotImplError">ClientNotImplError</a>
+</font></dt><dt><font face="helvetica, arial"><a href="PyZ3950/zoom.html#ConnectionError">ConnectionError</a>
+</font></dt><dt><font face="helvetica, arial"><a href="PyZ3950/zoom.html#ProtocolError">ProtocolError</a>
+</font></dt><dt><font face="helvetica, arial"><a href="PyZ3950/zoom.html#QuerySyntaxError">QuerySyntaxError</a>
+</font></dt><dt><font face="helvetica, arial"><a href="PyZ3950/zoom.html#ServerNotImplError">ServerNotImplError</a>
+</font></dt><dt><font face="helvetica, arial"><a href="PyZ3950/zoom.html#UnknownRecSyn">UnknownRecSyn</a>
+</font></dt></dl>
+</dd>
+</dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="PyZ3950/zoom.html#Query">Query</a>
+</font></dt><dt><font face="helvetica, arial"><a href="PyZ3950/zoom.html#Record">Record</a>
+</font></dt><dt><font face="helvetica, arial"><a href="PyZ3950/zoom.html#_AttrCheck">_AttrCheck</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="PyZ3950/zoom.html#Connection">Connection</a>(<a href="PyZ3950/zoom.html#_AttrCheck">_AttrCheck</a>, <a href="PyZ3950/zoom.html#_ErrHdlr">_ErrHdlr</a>)
+</font></dt><dt><font face="helvetica, arial"><a href="PyZ3950/zoom.html#ResultSet">ResultSet</a>(<a href="PyZ3950/zoom.html#_AttrCheck">_AttrCheck</a>, <a href="PyZ3950/zoom.html#_ErrHdlr">_ErrHdlr</a>)
+</font></dt><dt><font face="helvetica, arial"><a href="PyZ3950/zoom.html#ScanSet">ScanSet</a>(<a href="PyZ3950/zoom.html#_AttrCheck">_AttrCheck</a>, <a href="PyZ3950/zoom.html#_ErrHdlr">_ErrHdlr</a>)
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="PyZ3950/zoom.html#_ErrHdlr">_ErrHdlr</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="PyZ3950/zoom.html#SurrogateDiagnostic">SurrogateDiagnostic</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="PyZ3950/zoom.html#_RecordType">_RecordType</a>
+</font></dt></dl>
+ 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Bib1Err">class <strong>Bib1Err</strong></a>(<a href="PyZ3950/zoom.html#ZoomError">ZoomError</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="exceptions.html#Exception">Exception</a>&nbsp;for&nbsp;BIB-1&nbsp;error<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="PyZ3950/zoom.html#Bib1Err">Bib1Err</a></dd>
+<dd><a href="PyZ3950/zoom.html#ZoomError">ZoomError</a></dd>
+<dd><a href="exceptions.html#Exception">exceptions.Exception</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="Bib1Err-__init__"><strong>__init__</strong></a>(self, condition, message, addtlInfo)</dt></dl>
+
+<dl><dt><a name="Bib1Err-__str__"><strong>__str__</strong></a>(self)</dt></dl>
+
+<hr>
+Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = 'Exception for BIB-1 error'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/zoom'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<hr>
+Methods inherited from <a href="exceptions.html#Exception">exceptions.Exception</a>:<br>
+<dl><dt><a name="Bib1Err-__getitem__"><strong>__getitem__</strong></a>(...)</dt></dl>
+
+</td></tr></table> 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ClientNotImplError">class <strong>ClientNotImplError</strong></a>(<a href="PyZ3950/zoom.html#ZoomError">ZoomError</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="exceptions.html#Exception">Exception</a>&nbsp;for&nbsp;ZOOM&nbsp;client-side&nbsp;functionality&nbsp;not&nbsp;implemented&nbsp;(bug<br>
+author)<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="PyZ3950/zoom.html#ClientNotImplError">ClientNotImplError</a></dd>
+<dd><a href="PyZ3950/zoom.html#ZoomError">ZoomError</a></dd>
+<dd><a href="exceptions.html#Exception">exceptions.Exception</a></dd>
+</dl>
+<hr>
+Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = 'Exception for ZOOM client-side functionality not implemented (bug<font color="#c040c0">\n</font>       author)'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/zoom'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<hr>
+Methods inherited from <a href="exceptions.html#Exception">exceptions.Exception</a>:<br>
+<dl><dt><a name="ClientNotImplError-__getitem__"><strong>__getitem__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="ClientNotImplError-__init__"><strong>__init__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="ClientNotImplError-__str__"><strong>__str__</strong></a>(...)</dt></dl>
+
+</td></tr></table> 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Connection">class <strong>Connection</strong></a>(<a href="PyZ3950/zoom.html#_AttrCheck">_AttrCheck</a>, <a href="PyZ3950/zoom.html#_ErrHdlr">_ErrHdlr</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#Connection">Connection</a>&nbsp;object<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="PyZ3950/zoom.html#Connection">Connection</a></dd>
+<dd><a href="PyZ3950/zoom.html#_AttrCheck">_AttrCheck</a></dd>
+<dd><a href="PyZ3950/zoom.html#_ErrHdlr">_ErrHdlr</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="Connection-__init__"><strong>__init__</strong></a>(self, hostname, port, **kw)</dt><dd><tt>Establish&nbsp;connection&nbsp;to&nbsp;hostname:port.&nbsp;&nbsp;kw&nbsp;contains&nbsp;initial<br>
+values&nbsp;for&nbsp;options,&nbsp;and&nbsp;is&nbsp;useful&nbsp;for&nbsp;options&nbsp;which&nbsp;affect<br>
+the&nbsp;InitializeRequest.&nbsp;&nbsp;Currently&nbsp;supported&nbsp;values:<br>
+&nbsp;<br>
+authentication&nbsp;-&nbsp;for&nbsp;now,&nbsp;either&nbsp;(user,&nbsp;password)&nbsp;or&nbsp;(user,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;password,&nbsp;group)&nbsp;sequence,&nbsp;any&nbsp;of&nbsp;which&nbsp;can<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;be&nbsp;None</tt></dd></dl>
+
+<dl><dt><a name="Connection-_make_rsn"><strong>_make_rsn</strong></a>(self)</dt><dd><tt>Return&nbsp;result&nbsp;set&nbsp;name</tt></dd></dl>
+
+<dl><dt><a name="Connection-close"><strong>close</strong></a>(self)</dt><dd><tt>Close&nbsp;connection</tt></dd></dl>
+
+<dl><dt><a name="Connection-scan"><strong>scan</strong></a>(self, query)</dt><dd><tt>#&nbsp;and&nbsp;'Error&nbsp;Code',&nbsp;'Error&nbsp;Message',&nbsp;and&nbsp;'Addt'l&nbsp;Info'&nbsp;methods&nbsp;still<br>
+#&nbsp;eeded</tt></dd></dl>
+
+<dl><dt><a name="Connection-search"><strong>search</strong></a>(self, query)</dt><dd><tt>Search,&nbsp;taking&nbsp;<a href="#Query">Query</a>&nbsp;object,&nbsp;returning&nbsp;<a href="#ResultSet">ResultSet</a></tt></dd></dl>
+
+<hr>
+Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = 'Connection object'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/zoom'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>attrlist</strong> = ['smallSetUpperBound', 'largeSetLowerBound', 'mediumSetPresentNumber', 'smallSetElementSetNames', 'mediumSetElementSetNames', 'authentication', 'stepSize', 'numberOfEntries', 'responsePosition', 'databaseName', 'preferredRecordSyntax', 'elementSetName', 'xmultipleResultSets']<dd><tt>list()&nbsp;-&gt;&nbsp;new&nbsp;list<br>
+list(sequence)&nbsp;-&gt;&nbsp;new&nbsp;list&nbsp;initialized&nbsp;from&nbsp;sequence's&nbsp;items</tt></dl>
+
+<dl><dt><strong>elementSetName</strong> = 'F'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>init_attrs</strong> = ['authentication']<dd><tt>list()&nbsp;-&gt;&nbsp;new&nbsp;list<br>
+list(sequence)&nbsp;-&gt;&nbsp;new&nbsp;list&nbsp;initialized&nbsp;from&nbsp;sequence's&nbsp;items</tt></dl>
+
+<dl><dt><strong>preferredRecordSyntax</strong> = 'USMARC'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>scan_zoom_to_z3950</strong> = {'numberOfEntries': 'numberOfTermsRequested', 'responsePosition': 'preferredPositionInResponse', 'stepSize': 'stepSize'}<dd><tt>dict()&nbsp;-&gt;&nbsp;new&nbsp;empty&nbsp;dictionary.<br>
+dict(mapping)&nbsp;-&gt;&nbsp;new&nbsp;dictionary&nbsp;initialized&nbsp;from&nbsp;a&nbsp;mapping&nbsp;object's<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(key,&nbsp;value)&nbsp;pairs.<br>
+dict(seq)&nbsp;-&gt;&nbsp;new&nbsp;dictionary&nbsp;initialized&nbsp;as&nbsp;if&nbsp;via:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;d&nbsp;=&nbsp;{}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;k,&nbsp;v&nbsp;in&nbsp;seq:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;d[k]&nbsp;=&nbsp;v</tt></dl>
+
+<dl><dt><strong>search_attrs</strong> = ['smallSetUpperBound', 'largeSetLowerBound', 'mediumSetPresentNumber', 'smallSetElementSetNames', 'mediumSetElementSetNames']<dd><tt>list()&nbsp;-&gt;&nbsp;new&nbsp;list<br>
+list(sequence)&nbsp;-&gt;&nbsp;new&nbsp;list&nbsp;initialized&nbsp;from&nbsp;sequence's&nbsp;items</tt></dl>
+
+<hr>
+Methods inherited from <a href="PyZ3950/zoom.html#_AttrCheck">_AttrCheck</a>:<br>
+<dl><dt><a name="Connection-__setattr__"><strong>__setattr__</strong></a>(self, attr, val)</dt><dd><tt>Ensure&nbsp;attr&nbsp;is&nbsp;in&nbsp;attrlist&nbsp;(list&nbsp;of&nbsp;allowed&nbsp;attributes),&nbsp;or<br>
+private&nbsp;(begins&nbsp;w/&nbsp;'_')</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="PyZ3950/zoom.html#_ErrHdlr">_ErrHdlr</a>:<br>
+<dl><dt><a name="Connection-err"><strong>err</strong></a>(self, condition, addtlInfo, oid)</dt><dd><tt>Translate&nbsp;condition&nbsp;+&nbsp;oid&nbsp;to&nbsp;message,&nbsp;save,&nbsp;and&nbsp;raise&nbsp;exception</tt></dd></dl>
+
+<dl><dt><a name="Connection-err_diagrec"><strong>err_diagrec</strong></a>(self, diagrec)</dt></dl>
+
+</td></tr></table> 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ConnectionError">class <strong>ConnectionError</strong></a>(<a href="PyZ3950/zoom.html#ZoomError">ZoomError</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="exceptions.html#Exception">Exception</a>&nbsp;for&nbsp;TCP&nbsp;error<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="PyZ3950/zoom.html#ConnectionError">ConnectionError</a></dd>
+<dd><a href="PyZ3950/zoom.html#ZoomError">ZoomError</a></dd>
+<dd><a href="exceptions.html#Exception">exceptions.Exception</a></dd>
+</dl>
+<hr>
+Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = 'Exception for TCP error'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/zoom'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<hr>
+Methods inherited from <a href="exceptions.html#Exception">exceptions.Exception</a>:<br>
+<dl><dt><a name="ConnectionError-__getitem__"><strong>__getitem__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="ConnectionError-__init__"><strong>__init__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="ConnectionError-__str__"><strong>__str__</strong></a>(...)</dt></dl>
+
+</td></tr></table> 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ProtocolError">class <strong>ProtocolError</strong></a>(<a href="PyZ3950/zoom.html#ZoomError">ZoomError</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="exceptions.html#Exception">Exception</a>&nbsp;for&nbsp;malformatted&nbsp;server&nbsp;response<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="PyZ3950/zoom.html#ProtocolError">ProtocolError</a></dd>
+<dd><a href="PyZ3950/zoom.html#ZoomError">ZoomError</a></dd>
+<dd><a href="exceptions.html#Exception">exceptions.Exception</a></dd>
+</dl>
+<hr>
+Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = 'Exception for malformatted server response'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/zoom'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<hr>
+Methods inherited from <a href="exceptions.html#Exception">exceptions.Exception</a>:<br>
+<dl><dt><a name="ProtocolError-__getitem__"><strong>__getitem__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="ProtocolError-__init__"><strong>__init__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="ProtocolError-__str__"><strong>__str__</strong></a>(...)</dt></dl>
+
+</td></tr></table> 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Query">class <strong>Query</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2>&nbsp;</td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="Query-__init__"><strong>__init__</strong></a>(self, typ, query)</dt><dd><tt>Creates&nbsp;<a href="#Query">Query</a>&nbsp;object:&nbsp;only&nbsp;typ&nbsp;==&nbsp;'CCL'&nbsp;currently&nbsp;supported.<br>
+See&nbsp;ccl&nbsp;module&nbsp;documentation&nbsp;for&nbsp;details.</tt></dd></dl>
+
+<hr>
+Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = None</dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/zoom'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+</td></tr></table> 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="QuerySyntaxError">class <strong>QuerySyntaxError</strong></a>(<a href="PyZ3950/zoom.html#ZoomError">ZoomError</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="exceptions.html#Exception">Exception</a>&nbsp;for&nbsp;query&nbsp;not&nbsp;parsable&nbsp;by&nbsp;client<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="PyZ3950/zoom.html#QuerySyntaxError">QuerySyntaxError</a></dd>
+<dd><a href="PyZ3950/zoom.html#ZoomError">ZoomError</a></dd>
+<dd><a href="exceptions.html#Exception">exceptions.Exception</a></dd>
+</dl>
+<hr>
+Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = 'Exception for query not parsable by client'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/zoom'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<hr>
+Methods inherited from <a href="exceptions.html#Exception">exceptions.Exception</a>:<br>
+<dl><dt><a name="QuerySyntaxError-__getitem__"><strong>__getitem__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="QuerySyntaxError-__init__"><strong>__init__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="QuerySyntaxError-__str__"><strong>__str__</strong></a>(...)</dt></dl>
+
+</td></tr></table> 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Record">class <strong>Record</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Represent&nbsp;retrieved&nbsp;record.&nbsp;&nbsp;'syntax'&nbsp;attribute&nbsp;is&nbsp;a&nbsp;string,<br>
+'data'&nbsp;attribute&nbsp;is&nbsp;the&nbsp;data,&nbsp;which&nbsp;is:<br>
+&nbsp;<br>
+USMARC&nbsp;&nbsp;&nbsp;--&nbsp;raw&nbsp;MARC&nbsp;data<br>
+SUTRS&nbsp;&nbsp;&nbsp;&nbsp;--&nbsp;a&nbsp;string&nbsp;(possibly&nbsp;in&nbsp;the&nbsp;future&nbsp;unicode)<br>
+XML&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--&nbsp;ditto<br>
+GRS-1&nbsp;&nbsp;&nbsp;&nbsp;--&nbsp;a&nbsp;tree&nbsp;(see&nbsp;grs1.py&nbsp;for&nbsp;details)<br>
+OPAC&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--&nbsp;a&nbsp;hard-to-describe&nbsp;format&nbsp;(contact&nbsp;me&nbsp;if&nbsp;you're&nbsp;actually&nbsp;using&nbsp;this)<br>
+&nbsp;<br>
+Other&nbsp;representations&nbsp;are&nbsp;not&nbsp;yet&nbsp;defined.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="Record-__init__"><strong>__init__</strong></a>(self, oid, data)</dt><dd><tt>Only&nbsp;for&nbsp;use&nbsp;by&nbsp;<a href="#ResultSet">ResultSet</a></tt></dd></dl>
+
+<dl><dt><a name="Record-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Render&nbsp;printably</tt></dd></dl>
+
+<dl><dt><a name="Record-get_field"><strong>get_field</strong></a>(self, spec)</dt><dd><tt>Get&nbsp;field</tt></dd></dl>
+
+<dl><dt><a name="Record-get_fieldcount"><strong>get_fieldcount</strong></a>(self)</dt><dd><tt>Get&nbsp;number&nbsp;of&nbsp;fields</tt></dd></dl>
+
+<dl><dt><a name="Record-is_surrogate_diag"><strong>is_surrogate_diag</strong></a>(self)</dt></dl>
+
+<hr>
+Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = "Represent retrieved record.  'syntax' attribute ...<font color="#c040c0">\n</font>      Other representations are not yet defined."<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/zoom'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+</td></tr></table> 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ResultSet">class <strong>ResultSet</strong></a>(<a href="PyZ3950/zoom.html#_AttrCheck">_AttrCheck</a>, <a href="PyZ3950/zoom.html#_ErrHdlr">_ErrHdlr</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Cache&nbsp;results,&nbsp;presenting&nbsp;read-only&nbsp;sequence&nbsp;interface.&nbsp;&nbsp;If<br>
+a&nbsp;surrogate&nbsp;diagnostic&nbsp;is&nbsp;returned&nbsp;for&nbsp;the&nbsp;i-th&nbsp;record,&nbsp;an<br>
+appropriate&nbsp;exception&nbsp;will&nbsp;be&nbsp;raised&nbsp;on&nbsp;access&nbsp;to&nbsp;the&nbsp;i-th<br>
+element&nbsp;(either&nbsp;access&nbsp;by&nbsp;itself&nbsp;or&nbsp;as&nbsp;part&nbsp;of&nbsp;a&nbsp;slice).<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="PyZ3950/zoom.html#ResultSet">ResultSet</a></dd>
+<dd><a href="PyZ3950/zoom.html#_AttrCheck">_AttrCheck</a></dd>
+<dd><a href="PyZ3950/zoom.html#_ErrHdlr">_ErrHdlr</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="ResultSet-__getattr__"><strong>__getattr__</strong></a>(self, key)</dt><dd><tt>Forward&nbsp;attribute&nbsp;access&nbsp;to&nbsp;<a href="#Connection">Connection</a>&nbsp;if&nbsp;appropriate</tt></dd></dl>
+
+<dl><dt><a name="ResultSet-__getitem__"><strong>__getitem__</strong></a>(self, i)</dt><dd><tt>Ensure&nbsp;item&nbsp;is&nbsp;present,&nbsp;and&nbsp;return&nbsp;a&nbsp;<a href="#Record">Record</a></tt></dd></dl>
+
+<dl><dt><a name="ResultSet-__getslice__"><strong>__getslice__</strong></a>(self, i, j)</dt></dl>
+
+<dl><dt><a name="ResultSet-__init__"><strong>__init__</strong></a>(self, conn, searchResult, resultSetName, ctr)</dt><dd><tt>Only&nbsp;for&nbsp;creation&nbsp;by&nbsp;<a href="#Connection">Connection</a>&nbsp;object</tt></dd></dl>
+
+<dl><dt><a name="ResultSet-__len__"><strong>__len__</strong></a>(self)</dt><dd><tt>Get&nbsp;number&nbsp;of&nbsp;records</tt></dd></dl>
+
+<dl><dt><a name="ResultSet-_ensure_present"><strong>_ensure_present</strong></a>(self, i)</dt></dl>
+
+<dl><dt><a name="ResultSet-_ensure_recs"><strong>_ensure_recs</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="ResultSet-_extract_recs"><strong>_extract_recs</strong></a>(self, records, lbound)</dt></dl>
+
+<dl><dt><a name="ResultSet-_get_rec"><strong>_get_rec</strong></a>(self, i)</dt></dl>
+
+<dl><dt><a name="ResultSet-_make_keywords"><strong>_make_keywords</strong></a>(self)</dt><dd><tt>Set&nbsp;up&nbsp;dict&nbsp;of&nbsp;parms&nbsp;for&nbsp;present&nbsp;request</tt></dd></dl>
+
+<dl><dt><a name="ResultSet-_pin"><strong>_pin</strong></a>(self, i)</dt><dd><tt>Handle&nbsp;negative&nbsp;indices</tt></dd></dl>
+
+<dl><dt><a name="ResultSet-delete"><strong>delete</strong></a>(self)</dt><dd><tt>Delete&nbsp;result&nbsp;set</tt></dd></dl>
+
+<hr>
+Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = 'Cache results, presenting read-only sequence int... (either access by itself or as part of a slice).'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/zoom'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>attrlist</strong> = ['elementSetName', 'preferredRecordSyntax', 'errCode', 'errMsg', 'addtlInfo']<dd><tt>list()&nbsp;-&gt;&nbsp;new&nbsp;list<br>
+list(sequence)&nbsp;-&gt;&nbsp;new&nbsp;list&nbsp;initialized&nbsp;from&nbsp;sequence's&nbsp;items</tt></dl>
+
+<dl><dt><strong>inherited_elts</strong> = ['elementSetName', 'preferredRecordSyntax']<dd><tt>list()&nbsp;-&gt;&nbsp;new&nbsp;list<br>
+list(sequence)&nbsp;-&gt;&nbsp;new&nbsp;list&nbsp;initialized&nbsp;from&nbsp;sequence's&nbsp;items</tt></dl>
+
+<hr>
+Methods inherited from <a href="PyZ3950/zoom.html#_AttrCheck">_AttrCheck</a>:<br>
+<dl><dt><a name="ResultSet-__setattr__"><strong>__setattr__</strong></a>(self, attr, val)</dt><dd><tt>Ensure&nbsp;attr&nbsp;is&nbsp;in&nbsp;attrlist&nbsp;(list&nbsp;of&nbsp;allowed&nbsp;attributes),&nbsp;or<br>
+private&nbsp;(begins&nbsp;w/&nbsp;'_')</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="PyZ3950/zoom.html#_ErrHdlr">_ErrHdlr</a>:<br>
+<dl><dt><a name="ResultSet-err"><strong>err</strong></a>(self, condition, addtlInfo, oid)</dt><dd><tt>Translate&nbsp;condition&nbsp;+&nbsp;oid&nbsp;to&nbsp;message,&nbsp;save,&nbsp;and&nbsp;raise&nbsp;exception</tt></dd></dl>
+
+<dl><dt><a name="ResultSet-err_diagrec"><strong>err_diagrec</strong></a>(self, diagrec)</dt></dl>
+
+</td></tr></table> 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ScanSet">class <strong>ScanSet</strong></a>(<a href="PyZ3950/zoom.html#_AttrCheck">_AttrCheck</a>, <a href="PyZ3950/zoom.html#_ErrHdlr">_ErrHdlr</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Hold&nbsp;result&nbsp;of&nbsp;scan.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="PyZ3950/zoom.html#ScanSet">ScanSet</a></dd>
+<dd><a href="PyZ3950/zoom.html#_AttrCheck">_AttrCheck</a></dd>
+<dd><a href="PyZ3950/zoom.html#_ErrHdlr">_ErrHdlr</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="ScanSet-__getitem__"><strong>__getitem__</strong></a>(self, i)</dt></dl>
+
+<dl><dt><a name="ScanSet-__getslice__"><strong>__getslice__</strong></a>(self, i, j)</dt></dl>
+
+<dl><dt><a name="ScanSet-__init__"><strong>__init__</strong></a>(self, scanresp)</dt><dd><tt>For&nbsp;internal&nbsp;use&nbsp;only!</tt></dd></dl>
+
+<dl><dt><a name="ScanSet-__len__"><strong>__len__</strong></a>(self)</dt><dd><tt>Return&nbsp;number&nbsp;of&nbsp;entries</tt></dd></dl>
+
+<dl><dt><a name="ScanSet-_get_rec"><strong>_get_rec</strong></a>(self, i)</dt></dl>
+
+<dl><dt><a name="ScanSet-_pin"><strong>_pin</strong></a>(self, i)</dt></dl>
+
+<dl><dt><a name="ScanSet-get_field"><strong>get_field</strong></a>(self, field, i)</dt><dd><tt>Returns&nbsp;value&nbsp;of&nbsp;field:<br>
+term:&nbsp;term<br>
+freq:&nbsp;integer<br>
+display:&nbsp;string<br>
+attrs:&nbsp;currently&nbsp;z3950&nbsp;structure,&nbsp;should&nbsp;be&nbsp;string&nbsp;of&nbsp;attributes<br>
+alt:&nbsp;currently&nbsp;z3950&nbsp;structure,&nbsp;should&nbsp;be&nbsp;[string&nbsp;of&nbsp;attrs,&nbsp;term]&nbsp;<br>
+other:&nbsp;currently&nbsp;z3950&nbsp;structure,&nbsp;dunno&nbsp;what&nbsp;the&nbsp;best&nbsp;Python&nbsp;representation&nbsp;would&nbsp;be</tt></dd></dl>
+
+<dl><dt><a name="ScanSet-get_fields"><strong>get_fields</strong></a>(self, i)</dt><dd><tt>Return&nbsp;a&nbsp;dictionary&nbsp;mapping&nbsp;ZOOM's&nbsp;field&nbsp;names&nbsp;to&nbsp;values<br>
+present&nbsp;in&nbsp;the&nbsp;response.&nbsp;&nbsp;(Like&nbsp;get_field,&nbsp;but&nbsp;for&nbsp;all&nbsp;fields.)</tt></dd></dl>
+
+<dl><dt><a name="ScanSet-get_term"><strong>get_term</strong></a>(self, i)</dt><dd><tt>Return&nbsp;term.&nbsp;&nbsp;Note&nbsp;that&nbsp;get_{term,field,fields}&nbsp;can&nbsp;throw&nbsp;an<br>
+exception&nbsp;if&nbsp;the&nbsp;i'th&nbsp;term&nbsp;is&nbsp;a&nbsp;surrogate&nbsp;diagnostic.</tt></dd></dl>
+
+<hr>
+Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = 'Hold result of scan.<font color="#c040c0">\n</font>    '<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/zoom'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>zoom_to_z3950</strong> = {'alt': 'alternativeTerm', 'attrs': 'suggestedAttributes', 'display': 'displayTerm', 'freq': 'globalOccurrences', 'other': 'otherTermInfo'}<dd><tt>dict()&nbsp;-&gt;&nbsp;new&nbsp;empty&nbsp;dictionary.<br>
+dict(mapping)&nbsp;-&gt;&nbsp;new&nbsp;dictionary&nbsp;initialized&nbsp;from&nbsp;a&nbsp;mapping&nbsp;object's<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(key,&nbsp;value)&nbsp;pairs.<br>
+dict(seq)&nbsp;-&gt;&nbsp;new&nbsp;dictionary&nbsp;initialized&nbsp;as&nbsp;if&nbsp;via:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;d&nbsp;=&nbsp;{}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;k,&nbsp;v&nbsp;in&nbsp;seq:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;d[k]&nbsp;=&nbsp;v</tt></dl>
+
+<hr>
+Methods inherited from <a href="PyZ3950/zoom.html#_AttrCheck">_AttrCheck</a>:<br>
+<dl><dt><a name="ScanSet-__setattr__"><strong>__setattr__</strong></a>(self, attr, val)</dt><dd><tt>Ensure&nbsp;attr&nbsp;is&nbsp;in&nbsp;attrlist&nbsp;(list&nbsp;of&nbsp;allowed&nbsp;attributes),&nbsp;or<br>
+private&nbsp;(begins&nbsp;w/&nbsp;'_')</tt></dd></dl>
+
+<hr>
+Data and non-method functions inherited from <a href="PyZ3950/zoom.html#_AttrCheck">_AttrCheck</a>:<br>
+<dl><dt><strong>attrlist</strong> = []<dd><tt>list()&nbsp;-&gt;&nbsp;new&nbsp;list<br>
+list(sequence)&nbsp;-&gt;&nbsp;new&nbsp;list&nbsp;initialized&nbsp;from&nbsp;sequence's&nbsp;items</tt></dl>
+
+<hr>
+Methods inherited from <a href="PyZ3950/zoom.html#_ErrHdlr">_ErrHdlr</a>:<br>
+<dl><dt><a name="ScanSet-err"><strong>err</strong></a>(self, condition, addtlInfo, oid)</dt><dd><tt>Translate&nbsp;condition&nbsp;+&nbsp;oid&nbsp;to&nbsp;message,&nbsp;save,&nbsp;and&nbsp;raise&nbsp;exception</tt></dd></dl>
+
+<dl><dt><a name="ScanSet-err_diagrec"><strong>err_diagrec</strong></a>(self, diagrec)</dt></dl>
+
+</td></tr></table> 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ServerNotImplError">class <strong>ServerNotImplError</strong></a>(<a href="PyZ3950/zoom.html#ZoomError">ZoomError</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="exceptions.html#Exception">Exception</a>&nbsp;for&nbsp;function&nbsp;not&nbsp;implemented&nbsp;on&nbsp;server<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="PyZ3950/zoom.html#ServerNotImplError">ServerNotImplError</a></dd>
+<dd><a href="PyZ3950/zoom.html#ZoomError">ZoomError</a></dd>
+<dd><a href="exceptions.html#Exception">exceptions.Exception</a></dd>
+</dl>
+<hr>
+Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = 'Exception for function not implemented on server'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/zoom'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<hr>
+Methods inherited from <a href="exceptions.html#Exception">exceptions.Exception</a>:<br>
+<dl><dt><a name="ServerNotImplError-__getitem__"><strong>__getitem__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="ServerNotImplError-__init__"><strong>__init__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="ServerNotImplError-__str__"><strong>__str__</strong></a>(...)</dt></dl>
+
+</td></tr></table> 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="SurrogateDiagnostic">class <strong>SurrogateDiagnostic</strong></a>(<a href="PyZ3950/zoom.html#_ErrHdlr">_ErrHdlr</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Represent&nbsp;surrogate&nbsp;diagnostic.&nbsp;&nbsp;Raise&nbsp;appropriate&nbsp;exception<br>
+on&nbsp;access&nbsp;to&nbsp;syntax&nbsp;or&nbsp;data,&nbsp;or&nbsp;when&nbsp;raise_exn&nbsp;method&nbsp;is&nbsp;called.<br>
+Currently,&nbsp;RecordSet&nbsp;relies&nbsp;on&nbsp;the&nbsp;return&nbsp;from&nbsp;is_surrogate_diag&nbsp;(),<br>
+and&nbsp;calls&nbsp;raise_exn&nbsp;based&nbsp;on&nbsp;that.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="SurrogateDiagnostic-__getattr__"><strong>__getattr__</strong></a>(self, attr)</dt></dl>
+
+<dl><dt><a name="SurrogateDiagnostic-__init__"><strong>__init__</strong></a>(self, diagrec)</dt></dl>
+
+<dl><dt><a name="SurrogateDiagnostic-is_surrogate_diag"><strong>is_surrogate_diag</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="SurrogateDiagnostic-raise_exn"><strong>raise_exn</strong></a>(self)</dt></dl>
+
+<hr>
+Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = 'Represent surrogate diagnostic.  Raise appropria...e_diag (),<font color="#c040c0">\n</font>    and calls raise_exn based on that.'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/zoom'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<hr>
+Methods inherited from <a href="PyZ3950/zoom.html#_ErrHdlr">_ErrHdlr</a>:<br>
+<dl><dt><a name="SurrogateDiagnostic-err"><strong>err</strong></a>(self, condition, addtlInfo, oid)</dt><dd><tt>Translate&nbsp;condition&nbsp;+&nbsp;oid&nbsp;to&nbsp;message,&nbsp;save,&nbsp;and&nbsp;raise&nbsp;exception</tt></dd></dl>
+
+<dl><dt><a name="SurrogateDiagnostic-err_diagrec"><strong>err_diagrec</strong></a>(self, diagrec)</dt></dl>
+
+</td></tr></table> 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="UnknownRecSyn">class <strong>UnknownRecSyn</strong></a>(<a href="PyZ3950/zoom.html#ZoomError">ZoomError</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="exceptions.html#Exception">Exception</a>&nbsp;for&nbsp;unknown&nbsp;record&nbsp;syntax&nbsp;returned&nbsp;from&nbsp;server<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="PyZ3950/zoom.html#UnknownRecSyn">UnknownRecSyn</a></dd>
+<dd><a href="PyZ3950/zoom.html#ZoomError">ZoomError</a></dd>
+<dd><a href="exceptions.html#Exception">exceptions.Exception</a></dd>
+</dl>
+<hr>
+Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = 'Exception for unknown record syntax returned from server'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/zoom'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<hr>
+Methods inherited from <a href="exceptions.html#Exception">exceptions.Exception</a>:<br>
+<dl><dt><a name="UnknownRecSyn-__getitem__"><strong>__getitem__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="UnknownRecSyn-__init__"><strong>__init__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="UnknownRecSyn-__str__"><strong>__str__</strong></a>(...)</dt></dl>
+
+</td></tr></table> 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ZoomError">class <strong>ZoomError</strong></a>(<a href="exceptions.html#Exception">exceptions.Exception</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Base&nbsp;class&nbsp;for&nbsp;all&nbsp;errors&nbsp;reported&nbsp;from&nbsp;this&nbsp;module<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%">Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = 'Base class for all errors reported from this module'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/zoom'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<hr>
+Methods inherited from <a href="exceptions.html#Exception">exceptions.Exception</a>:<br>
+<dl><dt><a name="ZoomError-__getitem__"><strong>__getitem__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="ZoomError-__init__"><strong>__init__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="ZoomError-__str__"><strong>__str__</strong></a>(...)</dt></dl>
+
+</td></tr></table> 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="_AttrCheck">class <strong>_AttrCheck</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Prevent&nbsp;typos<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="_AttrCheck-__setattr__"><strong>__setattr__</strong></a>(self, attr, val)</dt><dd><tt>Ensure&nbsp;attr&nbsp;is&nbsp;in&nbsp;attrlist&nbsp;(list&nbsp;of&nbsp;allowed&nbsp;attributes),&nbsp;or<br>
+private&nbsp;(begins&nbsp;w/&nbsp;'_')</tt></dd></dl>
+
+<hr>
+Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = 'Prevent typos'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/zoom'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>attrlist</strong> = []<dd><tt>list()&nbsp;-&gt;&nbsp;new&nbsp;list<br>
+list(sequence)&nbsp;-&gt;&nbsp;new&nbsp;list&nbsp;initialized&nbsp;from&nbsp;sequence's&nbsp;items</tt></dl>
+
+</td></tr></table> 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="_ErrHdlr">class <strong>_ErrHdlr</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Error-handling&nbsp;services<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="_ErrHdlr-err"><strong>err</strong></a>(self, condition, addtlInfo, oid)</dt><dd><tt>Translate&nbsp;condition&nbsp;+&nbsp;oid&nbsp;to&nbsp;message,&nbsp;save,&nbsp;and&nbsp;raise&nbsp;exception</tt></dd></dl>
+
+<dl><dt><a name="_ErrHdlr-err_diagrec"><strong>err_diagrec</strong></a>(self, diagrec)</dt></dl>
+
+<hr>
+Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = 'Error-handling services'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/zoom'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+</td></tr></table> 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="_RecordType">class <strong>_RecordType</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Map&nbsp;syntax&nbsp;string&nbsp;to&nbsp;OID&nbsp;and&nbsp;per-syntax&nbsp;utility&nbsp;functions<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="_RecordType-__init__"><strong>__init__</strong></a>(self, name, oid, renderer<font color="#909090">=&lt;function &lt;lambda&gt;&gt;</font>, fieldcount<font color="#909090">=&lt;function &lt;lambda&gt;&gt;</font>, field<font color="#909090">=None</font>, preproc<font color="#909090">=&lt;function &lt;lambda&gt;&gt;</font>)</dt><dd><tt>Register&nbsp;syntax</tt></dd></dl>
+
+<hr>
+Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = 'Map syntax string to OID and per-syntax utility functions'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/zoom'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+</td></tr></table></td></tr></table>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;&nbsp;</td>
+<td width="100%"><dl><dt><a name="-_extract_attrs"><strong>_extract_attrs</strong></a>(obj, attrlist)</dt></dl>
+ <dl><dt><a name="-_oid_to_key"><strong>_oid_to_key</strong></a>(oid)</dt></dl>
+ <dl><dt><a name="-render_OPAC"><strong>render_OPAC</strong></a>(opac_data)</dt></dl>
+</td></tr></table>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;&nbsp;</td>
+<td width="100%"><strong>__author__</strong> = 'Aaron Lav (asl2@pobox.com)'<br>
+<strong>__file__</strong> = './PyZ3950/zoom.pyc'<br>
+<strong>__name__</strong> = 'PyZ3950/zoom'<br>
+<strong>__version__</strong> = '0.9'<br>
+<strong>_record_type_dict</strong> = {'GRS-1': &lt;PyZ3950/zoom._RecordType instance&gt;, 'OPAC': &lt;PyZ3950/zoom._RecordType instance&gt;, 'SGML': &lt;PyZ3950/zoom._RecordType instance&gt;, 'SUTRS': &lt;PyZ3950/zoom._RecordType instance&gt;, 'USMARC': &lt;PyZ3950/zoom._RecordType instance&gt;, 'XML': &lt;PyZ3950/zoom._RecordType instance&gt;}<br>
+<strong>nested_scopes</strong> = _Feature((2, 1, 0, 'beta', 1), (2, 2, 0, 'alpha', 0), 16)<br>
+<strong>trace_extract</strong> = 0</td></tr></table>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#7799ee">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Author</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#7799ee"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;&nbsp;</td>
+<td width="100%">Aaron&nbsp;Lav&nbsp;(asl2@pobox.com)</td></tr></table>
+</body></html>

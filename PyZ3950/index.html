@@ -1,0 +1,118 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+ "http://www.w3.org/TR/html4/strict.dtd">
+<html><head><title>PyZ3950 - Python Z39.50 and ASN.1 BER implementations
+</title></head><body>
+<p>I wrote these modules to support
+<a href="http://www.pobox.com/~asl2/software/Tyrannio">Tyrannioware</a>,
+my home book cataloging program.  The modules are distributed together
+partly for my convenience, and partly because the Z39.50 code may serve
+as an illustration of the ASN.1 API.  (I wrote my own ASN.1 code because
+I wanted its client to be able to use normal Python data types, and use
+a declarative syntax fairly close to the original ASN.1 specification
+to encode and decode: neither <a href="http://sourceforge.net/projects/pysnmp">
+PySNMP</a> nor <a href="http://www.cnri.reston.va.us/software/pisces/">Pisces
+</a> offer this.)  The only other Python Z39.50 implementation I know of
+is part of a larger commercial product, 
+<a href="http://www.bsn.com/Z39.50/wxPresso.html">wxPresso</a>.
+<p>There's also a MARC module in zmarc.py (handles parsing only), and
+a graphical <a href="http://zthes.z3950.org">Zthes</a> browser as
+an example.</p>
+<p>The software requires Python 2.1 or later, and is licensed under
+the X licence (details in the files themselves), but the zoom
+interface requires Dave Beazley's <a
+href="http://systems.cs.uchicago.edu/ply/">PLY package</a>, licensed
+under the LGPL.  Click <a href="PyZ3950-0.97.tar.gz">here</a> to
+download version 0.97 of PyZ3950.  It's packaged with distutils, so
+unzip and untar, run <code>python setup.py build</code>, and then
+<code>python setup.py install</code>.  Here's the <a
+href="CHANGELOG">CHANGELOG</a>.  Most development has been done under
+Linux, but I've tested briefly under Win98 (and, in theory, the code
+should run anywhere Python runs).<p>
+
+
+<H1>ZOOM</H1><p><a href="zoom.html">Link to pydoc documentation for zoom
+        implementation (recommended interface).</a><H1>z3950</H1><p>PyZ3950 currently is capable of sending and receiving v2 PDUs
+Initialize, Search, Present, Scan, Close, and Delete.  For client
+work, you probably want to use ZOOM, which should be in the same
+distribution as this file, in zoom.py.  The Server class in this file
+implements a server, but could use some work.  Both interoperate with
+the <a href="http://www.indexdata.dk/yaz"> Yaz toolkit</a> and the
+client interoperates with a variety of libraries.  <p>
+
+Useful resources:
+<ul>
+<li><a href="http://lcweb.loc.gov/z3950/agency/">
+Library of Congress Z39.50 Maintenance Agency Page</a></li>
+<li><a href="http://lcweb.loc.gov/z3950/agency/document.html">
+Official Specification</a></li>
+<li><a href="http://www.loc.gov/z3950/agency/clarify/">Clarifications</a></li>
+</ul>
+<H1>asn1</H1><p>asn1 is a relatively general-purpose ASN.1 BER encoder and decoder.
+Encoding and
+decoding functions  (asn1.encode and asn1.decode) take an ASN.1 spec, and
+transform back and forth between a byte stream and what I consider a natural
+Python representation of the data.  (Decoding applications where the length of
+the BER is not provided externally and indefinite-length encodings are allowed
+will have to instantiate their own decoding context: see the comments near
+and source of decode.)
+<p>Separating the ASN.1 specification from the code allows me to,
+if it becomes desirable, compile the specification to inline Python or C
+code, or to a specification for a C-based engine.
+<p>I support the following ASN.1 types:
+<ul>
+<li>BOOLEAN - encoder takes any Python value, decoder produces 0 or 1</li>
+<li>INTEGER - as in Python</li>
+<li>BITSTRING - asn1.BitStringVal</li>
+<li>OCTSTRING - Python string</li>
+<li>NULL - ignore value on encoding, return None on decoding</li>
+<li>OID - OidVal</li>
+<li>EXTERNAL - as SEQUENCE, see below (or read the source)</li>
+<li>all string types - Python string (no validity checking is done)</li>
+</ul>
+<p>For all the above types, the ASN.1 spec is just the name of the type.
+Inherently constructed types:
+<ul>
+<li>SEQUENCE_OF (ASN1.spec) - Python representation is a list of values.</li>
+<li>
+SEQUENCE, CHOICE - the ASN.1 spec is a list of tuples, either (name, tag, type)
+or, for SEQUENCE, (name, tag, type, optionalflag), where:
+tag can be None, asn1.EXPLICIT(tag), asn1.IMPLICIT(tag), or an integer
+interpreted as either an explicit or an implicit tag according to the setting
+of asn1.implicit_default; type is recursively an ASN.1 spec.</li>
+</ul>
+<p>For CHOICE, the Python representation is (name, val).  For SEQUENCE, on
+decoding,
+the Python representation is an instance of an asn1-synthesized class.
+On encoding, any class with the appropriate attributes is acceptable, but you
+can obtain a fresh instance of the synthesized class by calling the SEQUENCE
+specification: this class overrides setattr to provide attribute-name error
+checking.  (The rationale for the seemingly unPythonic errorchecking is that
+misspelled optional attributes would otherwise be hard to detect.  If you don't
+like it, it should be easy to turn off.)
+<p>
+For examples, see the test code at the end of this file, or the
+Z39.50 code that should be distributed with this file.
+<p>
+There is not yet support for:
+<ul>
+<li>Constructed encodings for BITSTRINGs</li>
+<li>REAL, UTCTime, ENUM, SET, SET OF, or some more obscure types</li>
+<li>APPLICATION or PRIVATE class tags</li>
+<li>Symbolic names for enumerated values</li>
+</ul>
+<p>Useful ASN.1 references:
+<ul>
+<li><a href="ftp://ftp.rsasecurity.com/pub/pkcs/ascii/layman.asc">
+Burton S. Kaliski's "A Layman's guide to a Subset of ASN.1, BER, and DER"
+</a></li>
+<li><a href="http://www.oss.com/asn1/booksintro.html">Olivier Dubuisson's
+_ASN.1: Communication between Heterogeneous Systems_</a>
+(or available in book form)</li>
+</ul>
+<p>Acknowledgement:  <a href="http://www.indexdata.dk">Index
+Data</a>'s C Z39.50 implementation, Yaz, has been invaluable for doing 
+interoperability testing on my local machine.
+<p>If you have any questions, bug reports, feature requests, or whatever, email
+<a href="mailto:asl2@pobox.com">Aaron Lav</a>
+<p><a href="http://www.pobox.com/~asl2/">Aaron's Home Page</a>
+</body></html>
