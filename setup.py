@@ -38,16 +38,23 @@ class PLYBuild(build_ext):
 
 foo = Extension ("parsetab", ["ccl"])
 
+classifiers = """\
+Development Status :: 5 - Production/Stable
+Intended Audience :: Developers
+Programming Language :: Python
+Topic :: Internet :: Z39.50"""
+
 setup (name="PyZ3950",
        version= vers.version,
        author = "Aaron Lav",
        author_email = "asl2@pobox.com",
        license = "X",
-       description = 'Z39.50 (ZOOM API), ASN.1, and MARC',
+       description = 'Z39.50 (ZOOM API), ASN.1, and MARC implementations',
        long_description =
        """Pure Python implementation of ASN.1 and Z39.50 v3,
        with a simple MARC parser thrown in.  See the URL for details.""",
-       platforms = "Any Python 2.2 or later",
+       platforms = ["any"],
+       classifiers = filter(None, classifiers.split("\n")),
        url = "http://www.pobox.com/~asl2/software/PyZ3950",
        packages = ["PyZ3950"],
        cmdclass = {'build_ext' : PLYBuild},
