@@ -11,10 +11,8 @@ from shlex import shlex
 from xml.sax.saxutils import escape
 from xml.dom.minidom import Node, parseString
 from PyZ3950.SRWDiagnostics import *
-try:
-    from cStringIO import StringIO
-except:
-    from StringIO import StringIO
+# Don't use cStringIO as it borks Unicode (apparently)
+from StringIO import StringIO
 import types
 
 # Parsing strictness flags
@@ -455,6 +453,7 @@ class CQLshlex(shlex):
     def __init__(self, thing):
         shlex.__init__(self, thing)
         self.wordchars += "!@#$%^&*-+{}[];,.?|~`:\\"
+        self.wordchars += ''.join(map(chr, range(128,254)))
 
     def read_token(self):
         "Read a token from the input stream (no pushback or inclusions)"
@@ -924,9 +923,8 @@ def xcqlparse(query):
 def parse(query):
     """ API. Return a searchClause/triple object from CQL string"""
 
-    # XXX Find/Write full unicode capable shlex!
     try:
-        query = query.encode("ascii")
+        query = query.encode("utf-8")
     except:
         diag = Diagnostic10()
         diag.details = "Cannot parse non utf-8 characters"
