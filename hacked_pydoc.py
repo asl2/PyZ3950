@@ -420,7 +420,9 @@ TT { font-family: lucidatypewriter, lucida console, courier }
 
     def modulelink(self, object):
         """Make a link for a module."""
-        return '<a href="%s.html">%s</a>' % (object.__name__, object.__name__)
+        nms = object.__name__.split ('.')
+        
+        return '<a href="%s.html">%s</a>' % (nms[-1], object.__name__)
 
     def modpkglink(self, (name, path, ispackage, shadowed)):
         """Make a link for a module or package to display in an index."""
