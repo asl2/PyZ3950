@@ -8,9 +8,9 @@ except:
 from PyZ3950 import z3950, oids
 from types import IntType, StringType, ListType
 # We need "\"\""  to be one token
-from CQLParser import CQLshlex
-from CQLUtils import ZCQLConfig
-from zdefs import make_attr
+from PyZ3950.CQLParser import CQLshlex
+from PyZ3950.CQLUtils import ZCQLConfig
+from PyZ3950.zdefs import make_attr
 zconfig = ZCQLConfig()
 
 """
