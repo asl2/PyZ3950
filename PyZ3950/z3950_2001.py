@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Auto-generated from ../compiler/tests/z3950-2001.txt at Wed, 02 Jun 2004 15:30:47 +0000
+# Auto-generated from ../compiler/tests/z3950-2001.txt at Mon, 26 Jul 2004 17:30:19 +0000
 from PyZ3950 import asn1
 #module Module None
 KnownProximityUnit=asn1.INTEGER_class ([('character',1),('word',2),('sentence',3),('paragraph',4),('section',5),('chapter',6),('document',7),('element',8),('subelement',9),('elementType',10),('byte',11)],None,None)
@@ -65,12 +65,12 @@ InfoCategory=asn1.SEQUENCE ([('categoryTypeId',None,asn1.TYPE(asn1.IMPLICIT(1,cl
 AttributeList=asn1.TYPE(asn1.IMPLICIT(44,cls=asn1.CONTEXT_FLAG),asn1.SEQUENCE_OF (AttributeElement))
 ResultSetId=asn1.TYPE(asn1.IMPLICIT(31,cls=asn1.CONTEXT_FLAG),InternationalString)
 DatabaseName=asn1.TYPE(asn1.IMPLICIT(105,cls=asn1.CONTEXT_FLAG),InternationalString)
-IdAuthentication=asn1.TYPE(asn1.EXPLICIT(7,cls=asn1.CONTEXT_FLAG),asn1.CHOICE ([('open',None,asn1.VisibleString),
+IdAuthentication=asn1.CHOICE ([('open',None,asn1.VisibleString),
     ('idPass',None,    asn1.SEQUENCE ([('groupId',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),InternationalString),1),
         ('userId',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),1),
         ('password',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString),1)], seq_name = None)),
     ('anonymous',None,asn1.NULL),
-    ('other',None,asn1.EXTERNAL)]))
+    ('other',None,asn1.EXTERNAL)])
 SortCriterion=asn1.CHOICE ([('mostComprehensive',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.NULL)),
     ('leastComprehensive',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.NULL)),
     ('mostRecent',None,asn1.TYPE(asn1.IMPLICIT(3,cls=asn1.CONTEXT_FLAG),asn1.NULL)),
@@ -1050,7 +1050,7 @@ Espec_q_RPNStructure['rpnRpnOp'] =  ('rpnRpnOp', 1, Espec_q_RpnRpnOp)
 
 
 #!/usr/bin/env python
-# Auto-generated from auth_file_info.asn at Wed, 02 Jun 2004 15:30:48 +0000
+# Auto-generated from auth_file_info.asn at Mon, 26 Jul 2004 17:30:20 +0000
 from PyZ3950 import asn1
 #module UserInfoFormat_authorityFileInfo None
 AuthorityFileInfo=asn1.SEQUENCE ([('name',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),HumanString),0),
@@ -1059,7 +1059,7 @@ AuthorityFileInfo=asn1.SEQUENCE ([('name',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn
 
 
 #!/usr/bin/env python
-# Auto-generated from charset_1.asn at Wed, 02 Jun 2004 15:30:48 +0000
+# Auto-generated from charset_1.asn at Mon, 26 Jul 2004 17:30:20 +0000
 from PyZ3950 import asn1
 #module UserInfoFormat_charSetandLanguageNegotiation_1 None
 Environment=asn1.CHOICE ([('sevenBit',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.NULL)),
@@ -1102,7 +1102,7 @@ CharSetandLanguageNegotiation=asn1.CHOICE ([('proposal',None,asn1.TYPE(asn1.IMPL
 
 
 #!/usr/bin/env python
-# Auto-generated from charset_2.asn at Wed, 02 Jun 2004 15:30:48 +0000
+# Auto-generated from charset_2.asn at Mon, 26 Jul 2004 17:30:20 +0000
 from PyZ3950 import asn1
 #module NegotiationRecordDefinition_charSetandLanguageNegotiation_2 None
 InitialSet_2=asn1.SEQUENCE ([('g0',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([],None,None)),1),
@@ -1145,7 +1145,7 @@ CharSetandLanguageNegotiation2=asn1.CHOICE ([('proposal',None,asn1.TYPE(asn1.IMP
 
 
 #!/usr/bin/env python
-# Auto-generated from charset_3.asn at Wed, 02 Jun 2004 15:30:49 +0000
+# Auto-generated from charset_3.asn at Mon, 26 Jul 2004 17:30:21 +0000
 from PyZ3950 import asn1
 #module NegotiationRecordDefinition_charSetandLanguageNegotiation_3 None
 Environment_3=asn1.CHOICE ([('sevenBit',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.NULL)),
@@ -1188,7 +1188,7 @@ CharSetandLanguageNegotiation_3=asn1.CHOICE ([('proposal',None,asn1.TYPE(asn1.IM
 
 
 #!/usr/bin/env python
-# Auto-generated from edit_replace_qual.asn at Wed, 02 Jun 2004 15:30:49 +0000
+# Auto-generated from edit_replace_qual.asn at Mon, 26 Jul 2004 17:30:21 +0000
 from PyZ3950 import asn1
 #module ERAQ None
 EditReplaceActionQualifier=asn1.SEQUENCE ([('persistentResultSetPackageName',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),0),
@@ -1208,7 +1208,7 @@ EditReplaceActionQualifier=asn1.SEQUENCE ([('persistentResultSetPackageName',Non
 
 
 #!/usr/bin/env python
-# Auto-generated from frag.asn at Wed, 02 Jun 2004 15:30:49 +0000
+# Auto-generated from frag.asn at Mon, 26 Jul 2004 17:30:21 +0000
 from PyZ3950 import asn1
 #module FragmentSyntax None
 Fragment=asn1.SEQUENCE ([('realSyntax',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.OBJECT_IDENTIFIER),1),
@@ -1217,7 +1217,7 @@ Fragment=asn1.SEQUENCE ([('realSyntax',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.C
 
 
 #!/usr/bin/env python
-# Auto-generated from ins_qualifier.asn at Wed, 02 Jun 2004 15:30:49 +0000
+# Auto-generated from ins_qualifier.asn at Mon, 26 Jul 2004 17:30:21 +0000
 from PyZ3950 import asn1
 #module RIAQ None
 RecordInsertActionQualifier=asn1.SEQUENCE ([('idsOrCode',None,asn1.TYPE(asn1.EXPLICIT(1,cls=asn1.CONTEXT_FLAG),    asn1.CHOICE ([('nonDupRecordIds',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),        asn1.SEQUENCE_OF (InternationalString))),
@@ -1226,14 +1226,14 @@ RecordInsertActionQualifier=asn1.SEQUENCE ([('idsOrCode',None,asn1.TYPE(asn1.EXP
 
 
 #!/usr/bin/env python
-# Auto-generated from multiple_search_term_1.asn at Wed, 02 Jun 2004 15:30:49 +0000
+# Auto-generated from multiple_search_term_1.asn at Mon, 26 Jul 2004 17:30:21 +0000
 from PyZ3950 import asn1
 #module UserInfoFormat_multipleSearchTerms_1 None
 MultipleSearchTerms_1=asn1.SEQUENCE_OF (Term)
 
 
 #!/usr/bin/env python
-# Auto-generated from multiple_search_term_2.asn at Wed, 02 Jun 2004 15:30:49 +0000
+# Auto-generated from multiple_search_term_2.asn at Mon, 26 Jul 2004 17:30:21 +0000
 from PyZ3950 import asn1
 #module UserInfoFormat_multipleSearchTerms_2 None
 MultipleSearchTerms_2=asn1.SEQUENCE_OF (asn1.SEQUENCE ([('term',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),Term),0),
@@ -1241,7 +1241,7 @@ MultipleSearchTerms_2=asn1.SEQUENCE_OF (asn1.SEQUENCE ([('term',None,asn1.TYPE(a
 
 
 #!/usr/bin/env python
-# Auto-generated from negot_es_size.asn at Wed, 02 Jun 2004 15:30:49 +0000
+# Auto-generated from negot_es_size.asn at Mon, 26 Jul 2004 17:30:21 +0000
 from PyZ3950 import asn1
 #module NegotiationRecordDefinition_NegotiateEsSizes None
 NegotiateEsSizes=asn1.SEQUENCE ([('maxMsgSize',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([],None,None)),1),
@@ -1250,7 +1250,7 @@ NegotiateEsSizes=asn1.SEQUENCE ([('maxMsgSize',None,asn1.TYPE(asn1.IMPLICIT(1,cl
 
 
 #!/usr/bin/env python
-# Auto-generated from oclc.asn at Wed, 02 Jun 2004 15:30:49 +0000
+# Auto-generated from oclc.asn at Mon, 26 Jul 2004 17:30:21 +0000
 from PyZ3950 import asn1
 #module UserInfoFormat_OCLC_Info None
 DBName=asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.VisibleString)
@@ -1261,7 +1261,7 @@ OCLC_UserInformation=asn1.SEQUENCE ([('motd',None,asn1.TYPE(asn1.IMPLICIT(1,cls=
 
 
 #!/usr/bin/env python
-# Auto-generated from opac.asn at Wed, 02 Jun 2004 15:30:49 +0000
+# Auto-generated from opac.asn at Mon, 26 Jul 2004 17:30:21 +0000
 from PyZ3950 import asn1
 #module RecordSyntax_opac None
 Volume=asn1.SEQUENCE ([('enumeration',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),1),
@@ -1303,7 +1303,7 @@ OPACRecord=asn1.SEQUENCE ([('bibliographicRecord',None,asn1.TYPE(asn1.IMPLICIT(1
 
 
 #!/usr/bin/env python
-# Auto-generated from update_es_rev1.asn at Wed, 02 Jun 2004 15:30:49 +0000
+# Auto-generated from update_es_rev1.asn at Mon, 26 Jul 2004 17:30:21 +0000
 from PyZ3950 import asn1
 #module ESFormat_Update None
 CorrelationInfo_updrev1=asn1.SEQUENCE ([('note',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),1),
@@ -1337,7 +1337,7 @@ Update_updrev1=asn1.CHOICE ([('esRequest',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn
 
 
 #!/usr/bin/env python
-# Auto-generated from zsql.asn at Wed, 02 Jun 2004 15:30:50 +0000
+# Auto-generated from zsql.asn at Mon, 26 Jul 2004 17:30:22 +0000
 from PyZ3950 import asn1
 #module Z39_50_EXTERNALS_SQL_RS None
 SQLCharacterSetClause=asn1.SEQUENCE ([('characterSetCatalog',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),InternationalString),1),
