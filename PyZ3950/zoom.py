@@ -291,7 +291,11 @@ class Connection(_AttrCheck, _ErrHdlr):
         for k in keys:
             zk = z3950.SortKeySpec()
             zk.sortRelation = self.sortrelations.index(k.relation)
-            zk.caseSensitivity = k.caseSensitive
+            zk.caseSensitivity = k.caseInsensitive
+            if (k.missingValueAction):
+                zk.missingValueAction = (k.missingValueAction, None)
+            if (k.missingValueData):
+                zk.missingValueAction = ('missingValueData', k.missingValueData)
             value = k.sequence
             if (k.type == 'accessPoint'):
                 if (value.typ <> 'RPN'):
@@ -313,6 +317,7 @@ class Connection(_AttrCheck, _ErrHdlr):
             zkeys.append(zk)
         req.sortSequence = zkeys
         recv = self._cli.transact(('sortRequest', req), 'sortResponse')
+
         self._resultSetCtr += 1
         if (hasattr(recv, 'diagnostics')):
             diag = recv.diagnostics[0][1]
@@ -327,7 +332,7 @@ class Connection(_AttrCheck, _ErrHdlr):
             try:
                 val = recv.otherInfo[0].information[1]
                 if (val[:14] == 'Result-count: '):
-                    recv.resultCount = int(val[15:])
+                    recv.resultCount = int(val[14:])
             except:
                 pass
 
@@ -337,9 +342,9 @@ class Connection(_AttrCheck, _ErrHdlr):
 
 
 class SortKey(_AttrCheck):
-    attrlist = ['relation', 'caseSensitive', 'missingValueAction', 'missingValueData', 'type', 'sequence']
+    attrlist = ['relation', 'caseInsensitive', 'missingValueAction', 'missingValueData', 'type', 'sequence']
     relation = "ascending"
-    caseSensitive = 1
+    caseInsensitive = 1
     missingValueAction = ""
     missingValueData = ""
     type = "accessPoint"
