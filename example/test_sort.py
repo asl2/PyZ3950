@@ -1,0 +1,26 @@
+#!/usr/local/bin/python2.3 -i
+
+from zoom import *
+c = Connection('gondolin.hist.liv.ac.uk', 210)
+c.databaseName = 'l5r'
+#c = Connection('z3950.copac.ac.uk', 210)
+#c.databaseName = 'COPAC'
+c.preferredRecordSyntax = 'SUTRS'
+q = Query('pqf', '@attr 1=4 "sword"')
+q2 = Query('pqf', '@attr 1=3201 foo')
+rs = c.search(q)
+print len(rs)
+print rs[0].data
+sk = SortKey()
+
+#sk.sequence = q2
+
+sk.type = "private"
+sk.sequence = "/card/name"
+sk.relation = "descending"
+
+#sk.sequence = "rank"
+#sk.type = "elementSetName"
+
+rs2 = c.sort([rs], [sk])
+print rs2[0].data
