@@ -601,6 +601,11 @@ def p_sequence_type (t):
         else:
             t[0] = Sequence (elt_list = t[3]['elt_list'], ext_list = None)
 
+def p_sequence_type_2 (t):
+    'sequence_type : SEQUENCE LBRACE RBRACE'
+    t[0] = Sequence (elt_list=[], ext_list  =None)
+
+
 def p_extension_and_exception_1 (t):
     'extension_and_exception : ELLIPSIS'
     t[0] = []
