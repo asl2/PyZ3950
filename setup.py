@@ -4,6 +4,7 @@ from distutils.core import setup
 
 import vers
 import os
+import os.path
 
 # Because PLY compiles the yacc grammar to Python code, we need to run
 # that compilation at install time to avoid dropping the created files
@@ -17,16 +18,16 @@ from distutils.util import byte_compile
 from distutils.command.build_ext import build_ext
 from distutils.extension import Extension
 
-pyz_dir = "PyZ3950/"
+pyz_dir = "PyZ3950"
 
 class PLYBuild(build_ext):
     def run(self):
         for ext in self.extensions:
             nm =  self.get_ext_fullname (ext.sources[0])
-            print "name", nm
-            os.chdir (pyz_dir)
-            mod = __import__ (nm)
-            os.chdir ("..")
+            print "running %s to generate parsing tables" % (nm,)
+
+            mod = __import__ (os.path.join (pyz_dir,nm))
+
 
 
 foo = Extension ("parsetab", ["ccl"])
