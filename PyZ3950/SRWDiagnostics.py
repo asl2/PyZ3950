@@ -12,7 +12,7 @@ class SRWDiagnostic (Exception):
     fatal = 1
 
     def __str__(self):
-        return "%i [%s]: %s" % (self.uri, self.message, self.details)
+        return "%s [%s]: %s" % (self.uri, self.message, self.details)
 
     # NB 'Need' name for serialization in SRW 
     def __init__(self, name=None):
