@@ -320,7 +320,12 @@ def make_initreq (optionslist = None, authentication = None, v3 = 0,
         for val, attr in zip (authentication, upAttrList): # silently truncate
             if val <> None:
                 setattr (up, attr, val)
-        InitReq.idAuthentication = ('idPass', up)
+        data = asn1.encode (IdAuthentication, ('idPass', up))
+        any_data = asn1.decode (asn1.ANY, data)
+        # XXX this hack is needed because idAuthentication is specified
+        # as ANY, and encode/decode is the easiest way to get the right
+        # stuff into idAuthentication.
+        InitReq.idAuthentication = any_data
 
     return InitReq
 
