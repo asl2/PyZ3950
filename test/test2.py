@@ -5,8 +5,9 @@ from PyZ3950 import zoom
 #conn.databaseName = 'VOYAGER'
 conn = zoom.Connection ('z3950.bibsys.no', 2100)
 conn.databaseName = 'BIBSYS'
-conn.xmultipleResultSets = 1
+
 conn.preferredRecordSyntax = 'USMARC'
+
 query1 = zoom.Query ('CCL', 'au=Gould, Stephen Jay')
 res1 = conn.search (query1)
 query2 = zoom.Query ('CCL', 'au=Pynchon, Thomas')
