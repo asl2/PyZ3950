@@ -24,9 +24,24 @@ a single query, but for now I don't.
 from __future__ import nested_scopes
 import string
 
-from PyZ3950 import z3950
-from PyZ3950 import oids
-from PyZ3950 import asn1
+in_setup = 0
+
+try:
+    from PyZ3950 import z3950
+    from PyZ3950 import oids
+    from PyZ3950 import asn1
+
+    _attrdict = {
+        'bib1'  :  oids.Z3950_ATTRS_BIB1_ov,
+        'zthes1': oids.Z3950_ATTRS_ZTHES_ov,
+        'xd1': oids.Z3950_ATTRS_XD1_ov,
+        'utility': oids.Z3950_ATTRS_UTIL_ov,
+        'exp1':  oids.Z3950_ATTRS_EXP1_ov
+        }
+    
+except ImportError, err:
+    print "Error importing (OK during setup)", err
+    in_setup = 1
 
 class QuerySyntaxError(Exception): pass
 class ParseError(QuerySyntaxError): pass
@@ -106,7 +121,10 @@ def t_error(t):
 import lex
 lexer = lex.lex()
 
-import yacc
+if in_setup:
+    import yacc
+else:
+    from PyZ3950 import yacc
 
 class Node:
     def __init__(self,type,children=None,leaf=None):
@@ -219,15 +237,8 @@ precedence = (
     ('left', 'LOGOP'),
     )
 
-yacc.yacc (debug=0, tabmodule='PyZ3950.parsetab')
+yacc.yacc (debug=0, tabpackage = 'PyZ3950', tabmodule='PyZ3950_parsetab')
 
-_attrdict = {
-    'bib1'  :  oids.Z3950_ATTRS_BIB1_ov,
-    'zthes1': oids.Z3950_ATTRS_ZTHES_ov,
-    'xd1': oids.Z3950_ATTRS_XD1_ov,
-    'utility': oids.Z3950_ATTRS_UTIL_ov,
-    'exp1':  oids.Z3950_ATTRS_EXP1_ov
-    }
 
 def attrset_to_oid (attrset):
     l = attrset.lower ()

@@ -5,10 +5,11 @@
 #         Department of Computer Science
 #         University of Chicago
 #         Chicago, IL 60637
-#
 # Copyright (C) 2001, David M. Beazley
 #
-# $Header$
+# Slightly hacked by Aaron Lav, asl2@pobox.com, to allow 
+# parsetab to be built at install time, so PyZ3950 doesn't
+# keep creating the parsetab in the current directory.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -1545,19 +1546,32 @@ del _lr_goto_items
         print e
         return
 
-def lr_read_tables(module=tab_module):
+def lr_read_tables(package, module=tab_module):
     global _lr_action, _lr_goto
     try:
-        exec "import %s as parsetab" % module
+        #        exec "import %s as parsetab" % module
+        mod = __import__ (package + '.' + module)
+
+        if yaccdebug:
+            print "yacc", package, module, mod
+        mod = getattr (mod, module)
+        if yaccdebug:
+            print "yacc 2", mod
         
-        if Signature.digest() == parsetab._lr_signature:
-            _lr_action = parsetab._lr_action
-            _lr_goto   = parsetab._lr_goto
+        if Signature.digest() == mod._lr_signature:
+            _lr_action = mod._lr_action
+            _lr_goto   = mod._lr_goto
+            if yaccdebug:
+                print "read OK"
             return 1
         else:
+            if yaccdebug:
+                print "not read OK calc/read", repr(Signature.digest ()), repr(mod._lr_signature)
             return 0
         
-    except (ImportError,AttributeError):
+    except (ImportError,AttributeError), err:
+        if yaccdebug:
+            print "err importing", err
         return 0
 
 # -----------------------------------------------------------------------------
@@ -1566,7 +1580,7 @@ def lr_read_tables(module=tab_module):
 # Build the parser module
 # -----------------------------------------------------------------------------
 
-def yacc(method=default_lr, debug=yaccdebug, module=None, tabmodule=tab_module, start=None, check_recursion=1):
+def yacc(method=default_lr, debug=yaccdebug, module=None, tabpackage = None, tabmodule=tab_module, start=None, check_recursion=1):
     global yaccdebug
     yaccdebug = debug
     
@@ -1694,7 +1708,7 @@ def yacc(method=default_lr, debug=yaccdebug, module=None, tabmodule=tab_module, 
     if error:
         raise YaccError,"Unable to construct parser."
 
-    if not lr_read_tables(tabmodule):
+    if not lr_read_tables(tabpackage, tabmodule):
 
         # Validate files
         for filename in files.keys():
@@ -1718,7 +1732,7 @@ def yacc(method=default_lr, debug=yaccdebug, module=None, tabmodule=tab_module, 
         build_lritems()
         compute_first1()
         compute_follow(start)
-        
+
         if method == 'SLR':
             slr_parse_table()
         elif method == 'LALR1':
@@ -1726,7 +1740,7 @@ def yacc(method=default_lr, debug=yaccdebug, module=None, tabmodule=tab_module, 
             return
         else:
             raise YaccError, "Unknown parsing method '%s'" % method
-            
+
         lr_write_tables(tabmodule)        
     
         if yaccdebug:
