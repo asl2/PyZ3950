@@ -270,15 +270,11 @@ class Connection(_AttrCheck, _ErrHdlr):
         self._cli.close ()
         
 
-    sorttypes = { 'accessPoint' : 'sortAttributes',
-    'private' : 'privateSortKey',
-    'elementSetName' : 'elementSpec'}
-    sortrelations = ['ascending', 'descending', 'ascendingByFrequency', 'descendingByFrequency']
-    
     def sort (self, sets, keys):
         """ Sort sets by keys, return resultset interface """
 
         # XXX This should probably be shuffled down into z3950.py
+        sortrelations = ['ascending', 'descending', 'ascendingByFrequency', 'descendingByFrequency']
 
         req = z3950.SortRequest()
         req.inputResultSetNames = []
@@ -290,7 +286,7 @@ class Connection(_AttrCheck, _ErrHdlr):
         zkeys = []
         for k in keys:
             zk = z3950.SortKeySpec()
-            zk.sortRelation = self.sortrelations.index(k.relation)
+            zk.sortRelation = sortrelations.index(k.relation)
             zk.caseSensitivity = k.caseInsensitive
             if (k.missingValueAction):
                 zk.missingValueAction = (k.missingValueAction, None)
@@ -584,6 +580,10 @@ class ResultSet(_AttrCheck, _ErrHdlr):
         # XXX should I throw an exn for delete errors?  Probably.
 
     # and 'Error Code', 'Error Message', and 'Addt'l Info' methods
+
+    def sort(self, keys):
+        return self._conn.sort([self], keys)
+
 
 class SurrogateDiagnostic(_ErrHdlr):
     """Represent surrogate diagnostic.  Raise appropriate exception
