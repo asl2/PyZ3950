@@ -296,6 +296,12 @@ class Choice (Node):
 
 class Subtype (Node):
     pass
+
+class Size(Node):
+    pass
+
+class From(Node):
+    pass
     
 class Constraint (Node):
     pass
@@ -310,6 +316,9 @@ class NamedNumber (Node):
     pass
 
 class NamedNumListBase(Node):
+    pass
+
+class ValueRange(Node):
     pass
 
 class Integer (NamedNumListBase):
@@ -784,9 +793,10 @@ def p_char_str_type (t):
 
 def p_sub_type_1 (t):
     'sub_type : type subtype_spec'
-    t[0] = Subtype (constr_type = 'subtype', typ = t[1], spec = t[2])
+    t[0] = t[1]
+    t[0].subtype = t[2]
 
-
+# XXX harmonize sub_type_[2-4] w/ _1
 def p_sub_type_2 (t):
     'sub_type : SET size_constraint OF type'
     t[0] = Subtype (constr_type = 'set', size_constr = t[2], typ = t[4])
@@ -834,7 +844,7 @@ def p_contained_subtype (t):
 
 def p_value_range (t):
     'value_range : lower_end_point RANGE upper_end_point'
-    t[0] = [t[1], t[3]]
+    t[0] = ValueRange(lo=t[1], hi=t[3])
 
 def p_lower_end_point_1 (t):
     'lower_end_point : lower_end_value '
@@ -865,11 +875,11 @@ def p_upper_end_value (t):
     
 def p_size_constraint (t):
     'size_constraint : SIZE subtype_spec'
-    t[0] = Constraint (type = 'size', subtype = t[2])
+    t[0] = Size(subtype = t[2])
 
 def p_permitted_alphabet (t):
     'permitted_alphabet : FROM subtype_spec'
-    t[0] = Constraint (type = 'from', subtype = t[2])
+    t[0] = From(subtype = t[2])
 
 def p_inner_type_constraints_1 (t):
     'inner_type_constraints : WITH COMPONENT single_type_constraint'
@@ -1017,9 +1027,12 @@ def p_number_form (t):
 # I've hacked the grammar to be liberal about what it accepts.
 # XXX should have -strict command-line flag to only accept lowercase
 # here, since that's what X.208 says.
+# XXX I've switched back, because this creates a shift/reduce conflict
+# which causes PLY 1.2 and 1.3 to blow up: cope and hack your input files,
+# or persuade ITU/ISO/whoever to provide correct specs.
+
 def p_name_form (t):
-    '''name_form : type_ref
-    | identifier'''
+    '''name_form : type_ref'''
     t[0] = t[1]
 
 def p_name_and_number_form_1 (t):
