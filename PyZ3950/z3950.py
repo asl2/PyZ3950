@@ -694,7 +694,7 @@ host_dict = {'BIBSYS': ('z3950.bibsys.no', 2100, 'BIBSYS'),
              'BL' :('blpcz.bl.uk', 21021, 'BLPC-ALL'),
              'BELLLABS' : ('z3950.bell-labs.com', 210, 'books'),
              'BIBHIT' : ('www.bibhit.dk', 210, 'Default'),
-             'YALE': ('webpac.library.yale.edu', 210, 'YALEOPAC'),
+#             'YALE': ('webpac.library.yale.edu', 210, 'YALEOPAC'),
              'OXFORD': ('library.ox.ac.uk', 210, 'ADVANCE'),
              'OVID': ('z3950.ovid.com', 2213, 'pmed'), # scan only
              'UC':   ('ipac.lib.uchicago.edu', 210, 'uofc'),
