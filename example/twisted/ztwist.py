@@ -80,9 +80,12 @@ class Z3950Server(protocol.Protocol, ErrRaiser):
         self.decode_ctx = asn1.IncrementalDecodeCtx (zdefs.APDU)
         self.encode_ctx = asn1.Ctx ()
         self.result_sets = {}
+        self.close_sent = 0
+        self.closed = 0
     def connectionLost (self, reason):
         self.transport.loseConnection ()
-        print "lost conn for reason", reason
+        if not self.closed:
+            print "lost conn for reason", reason
     def handle_error (self, errobj):
         raise errobj
     def dataReceived (self, data):
@@ -137,6 +140,7 @@ class Z3950Server(protocol.Protocol, ErrRaiser):
         ir.implementationVersion = self.get_implementation_ver ()
         ir.result = 1
         self.send_PDU ('initResponse', ir)
+        
     def process_searchRequest (self, sreq):
         def cb (l):
             self.result_sets [sreq.resultSetName] = l
@@ -250,12 +254,15 @@ class Z3950Server(protocol.Protocol, ErrRaiser):
                 self.server.send_PDU ('presentResponse', self.presp)
         pinfo = PresentInfo (self, self.result_sets [preq.resultSetId], preq)
 
-    def process_close (self, creq):
-        close = zdefs.Close ()
-        close.closeReason = zdefs.CloseReason.get_num_from_name (
-            'responseToPeer')
-        self.send_PDU ('close', close)
+    def process_close (self, val):
+        self.closed = 1
+        if not self.close_sent:
+            my_close = zdefs.Close ()
+            my_close.closeReason = zdefs.CloseReason.get_num_from_name (
+                'responseToPeer')
+            self.send_PDU ('close', my_close)
         self.transport.loseConnection ()
+
 
 # for sample usage, see textsearch.py in this directory.
         
