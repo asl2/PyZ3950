@@ -1,3 +1,10 @@
+2.01 (2004 Jun 04)
+Fixed bug in installation under Python 2.3 (couldn't find ccl
+to generate parsetab at install time)
+
+Fixed asn1.py to be backward compatible w/Python 2.1
+
+2.0
 [Note: superseded by CVS change tracking.  Or at least that's available,
 and a distilled version isn't yet.  Sorry.]
 
