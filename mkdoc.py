@@ -53,7 +53,8 @@ def do_imp (modname):
 do_header (fil, 'ZOOM')
 mainmod = 'zoom'
 do_pydoc (fil,mainmod, 1)
-for mod in ['ccl', 'grs1', 'zmarc','bib1msg']:
+for mod in ['ccl', 'grs1', 'zmarc','bib1msg', 'CQLParser', 'SRWDiagnostics',
+            'c2query', 'oids', 'pqf']:
     do_pydoc (fil, mod)
 
 NamesList = ['z3950','asn1']
