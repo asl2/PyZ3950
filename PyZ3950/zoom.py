@@ -305,7 +305,11 @@ class Connection(_AttrCheck, _ErrHdlr):
         self.targetImplementationName = getattr (self._cli.initresp, 'implementationName', None)
         self.targetImplementationVersion  = getattr (self._cli.initresp, 'implementationVersion', None)
         if (hasattr (self._cli.initresp, 'userInformationField')):
-            if (self._cli.initresp.userInformationField.direct_reference ==
+            # weird.  U of Chicago returns an EXTERNAL with nothing
+            # but 'encoding', ('octet-aligned', '2545') filled in.
+            if (hasattr (self._cli.initresp.userInformationField,
+                         'direct_reference') and
+                self._cli.initresp.userInformationField.direct_reference ==
                 oids.Z3950_USR_PRIVATE_OCLC_INFO_ov):
 # see http://www.oclc.org/support/documentation/firstsearch/z3950/fs_z39_config_guide/ for docs                
                 oclc_info = self._cli.initresp.userInformationField.encoding [1]
