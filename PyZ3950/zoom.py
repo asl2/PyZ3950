@@ -73,6 +73,10 @@ from PyZ3950 import bib1msg
 from PyZ3950 import grs1
 from PyZ3950 import oids
 
+# Azaroth 2003-12-04:
+from PyZ3950 import zcql, CQLParser, SRWDiagnostics
+
+
 def my_enumerate (l): # replace w/ enumerate when we go to Python 2.3
     return zip (range (len (l)), l)
 
@@ -188,6 +192,8 @@ class Connection(_AttrCheck, _ErrHdlr):
         ]
     # xmultipleResultSets is my addition to spec.
 
+    _queryTypes = ['CQL', 'S-CQL', 'CCL', 'S-CCL', 'RPN']
+
     # and now, some defaults
     elementSetName = 'F' 
     preferredRecordSyntax = 'USMARC'
@@ -258,6 +264,7 @@ class Query:
     def __init__ (self, typ, query):
         """Creates Query object: only typ == 'CCL' currently supported.
         See ccl module documentation for details."""
+        typ = typ.upper()
         if typ == 'CCL':
            self.typ = 'RPN'
            try:
@@ -269,6 +276,25 @@ class Query:
         elif typ == 'S-CCL': # server-side ccl
             self.typ = typ
             self.query =  ('type-2', query)
+        elif typ == 'S-CQL': # server-side cql
+            self.typ = typ
+            xq = asn1.EXTERNAL()
+            xq.direct_reference = oids.Z3950_QUERY_CQL_ov
+            xq.encoding = ('single-ASN1-type', query)
+            self.query = ('type_104', xq)
+        elif typ == 'CQL': # CQL to RPN transformation
+            self.typ = 'RPN'
+            try:
+                q = CQLParser.parse(query)
+                rpnq = z3950.RPNQuery()
+                # XXX Allow Attribute Architecture
+                rpnq.attributeSet = oids.Z3950_ATTRS_BIB1_ov
+                rpnq.rpn = q.toRPN()
+                self.query = ('type_1', rpnq)
+                print self.query
+            except SRWDiagnostics.SRWDiagnostic, err:
+                raise QuerySyntaxError
+
         else:
             raise ClientNotImplError ('%s queries not supported')
 
