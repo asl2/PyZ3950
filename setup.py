@@ -12,7 +12,13 @@ import os.path
 # depends on the MD5 hash of the repr() of assorted objects, and the
 # repr is subject to change between Python versions (maybe)).
 
-# We define a custom built_ext
+# I can't find a consistent way to import modules at build time,
+# so I've removed this code for now.  (Changing directories into
+# PyZ3950 works under Python 2.2 but not 2.3, importing with pathnames
+# works under Linux but not Win 98 or XP.)
+
+
+# We define a custom build_ext
 
 from distutils.util import byte_compile
 from distutils.command.build_ext import build_ext
@@ -24,9 +30,9 @@ class PLYBuild(build_ext):
     def run(self):
         for ext in self.extensions:
             nm =  self.get_ext_fullname (ext.sources[0])
-            print "running %s to generate parsing tables" % (nm,)
-
-            mod = __import__ (os.path.join (pyz_dir,nm))
+#            print "running %s to generate parsing tables" % (nm,)
+#
+#            mod = __import__ (os.path.join (pyz_dir,nm))
 
 
 
