@@ -1,3 +1,21 @@
+2.03 (2004 Jul 20)
+Added strict flag to zmarc.MARC to turn off assertions about charset,
+etc. (some servers return broken MARC)
+
+Added zmarc.MARC8_to_Unicode class to handle MARC8 to Unicode charset
+conversion.
+
+Fixed thread-safety bug which would cause multithreaded users of ccl
+to mysteriously get lexing errors.  Added code to report more info
+about lexing errors.
+
+Added an example Z39.50 server for use with twisted to  example/twisted/*.
+
+
+2.02 (2004 Jun 07)
+Removed code to generate parsetab at install time (too difficult
+to maintain across platforms, 2.01 was broken on Windows)
+
 2.01 (2004 Jun 04)
 Fixed bug in installation under Python 2.3 (couldn't find ccl
 to generate parsetab at install time)
