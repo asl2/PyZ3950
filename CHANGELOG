@@ -1,4 +1,4 @@
-2.03 (2004 Jul 20)
+2.04 (2004 Jul 20)
 Added strict flag to zmarc.MARC to turn off assertions about charset,
 etc. (some servers return broken MARC)
 
