@@ -1,0 +1,16 @@
+UserInfoFormat-OCLC-Info
+-- userInfoFormat.1000.17.1
+DEFINITIONS ::=
+BEGIN
+
+
+OCLC-UserInformation ::= SEQUENCE {
+         motd        [1] IMPLICIT VisibleString OPTIONAL,
+         dblist      SEQUENCE OF DBName OPTIONAL,
+         failReason  [3] IMPLICIT BOOLEAN OPTIONAL,  
+	 text        [2] IMPLICIT VisibleString OPTIONAL
+	 }
+
+	 DBName ::= [2] IMPLICIT VisibleString
+
+END
