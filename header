@@ -2,9 +2,11 @@
  "http://www.w3.org/TR/html4/strict.dtd">
 <html><head><title>PyZ3950 - Python Z39.50 and ASN.1 BER implementations
 </title></head><body>
-<p>I wrote these modules to support
+<p>Originally I wrote PyZ3950 to support
 <a href="http://www.pobox.com/~asl2/software/Tyrannio">Tyrannioware</a>,
-my home book cataloging program.  The modules are distributed together
+my home book cataloging program.  The <a href="http://cheshire.berkeley.edu/">Cheshire Project</a> at the <a href="http://www.liv.ac.uk">University
+of Liverpool</a> adopted it, and I would like to acknowledge their financial
+support and Rob Sanderson's contributions as co-developer.  The modules are distributed together
 partly for my convenience, and partly because the Z39.50 code may serve
 as an illustration of the ASN.1 API.  (I wrote my own ASN.1 code because
 I wanted its client to be able to use normal Python data types, and use
@@ -17,7 +19,7 @@ is part of a larger commercial product,
 <p>There's also a MARC module in zmarc.py (handles parsing only), and
 a graphical <a href="http://zthes.z3950.org">Zthes</a> browser as
 an example.</p>
-<p>The software requires Python 2.1 or later, and is licensed under
+<p>The software requires Python 2.2 or later, and is licensed under
 the X licence (details in the files themselves), but the zoom
 interface requires Dave Beazley's <a
 href="http://systems.cs.uchicago.edu/ply/">PLY package</a>, licensed
@@ -27,6 +29,6 @@ unzip and untar, run <code>python setup.py build</code>, and then
 <code>python setup.py install</code>.  Here's the <a
 href="CHANGELOG">CHANGELOG</a>.  Most development has been done under
 Linux, but I've tested briefly under Win98 (and, in theory, the code
-should run anywhere Python runs).<p>
+should run anywhere Python runs).  The <a href="http://cvs.sourceforge.net/viewcvs.py/tyrannioware">CVS</a> repository is at sourceforge.<p>
 
 
