@@ -170,6 +170,8 @@ class Visitor:
         def strify_one (named_num):
             return "%s=%s" % (named_num.ident, named_num.val)
         self.output ("asn1.ENUM(%s)" % ",".join (map (strify_one, node.val)))
+    def visitBaseType (self, node):
+        self.output ("asn1.%s" % node.val)
     def visitLiteral (self, node):
         self.output (node.val)
     def visitSequence (self, node):
