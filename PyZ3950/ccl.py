@@ -116,7 +116,7 @@ def t_LOGOP(t):
 t_ignore = " \t"
 
 def t_error(t):
-    raise LexError
+    raise LexError ('t_error: ' + str (t))
     
 import lex
 lexer = lex.lex()
@@ -183,7 +183,7 @@ class QuallistVal:
     def __getitem__ (self, i):
         if i == 0: return self.quallist
         if i == 1: return self.val
-        raise IndexError
+        raise IndexError ('QuallistVal err ' + str (i))
     
 def xlate_qualifier (x):
     if x[0] == '(' and x[-1] == ')':
@@ -195,7 +195,7 @@ def xlate_qualifier (x):
 def p_elements_2 (t):
     'elements : SET RELOP WORD'
     if t[2] <> '=':
-        raise QuerySyntaxError
+        raise QuerySyntaxError (str (t[1], str (t[2]), str (t[3])))
     t[0] = Node ('set', leaf = t[3])
 
 def p_elements_3(t):
@@ -233,7 +233,7 @@ def p_val_3(t):
 # XXX also don't yet handle proximity operator
 
 def p_error(t):
-    raise ParseError
+    raise ParseError ('Parse p_error ' + str (t))
 
 precedence = (
     ('left', 'LOGOP'),
@@ -291,7 +291,25 @@ def tree_to_q (ast):
     raise UnimplError("Bad ast type " + str(ast.type))
 
 def mk_rpn_query (query):
-    ast = yacc.parse (query)
+    """Transform a CCL query into an RPN query."""
+    # need to copy or create a new lexer because it contains globals
+    # PLY 1.0 lacks __copy__
+    # PLY 1.3.1-1.5 have __copy__, but it's broken and returns None
+    # I sent David Beazley a patch, so future PLY releases will
+    # presumably work correctly.
+    # Recreating the lexer each time is noticeably slower, so this solution
+    # is suboptimal for PLY <= 1.5, but better than being thread-unsafe.
+    # Perhaps I should have per-thread lexer instead XXX
+    # with example/twisted/test.py set to parse_only, I get 277 parses/sec
+    # with fixed PLY, vs. 63 parses/sec with broken PLY, on my 500 MHz PIII
+    # laptop.
+    
+    copiedlexer = None
+    if hasattr (lexer, '__copy__'):
+        copiedlexer = lexer.__copy__ ()
+    if copiedlexer == None:
+        copiedlexer = lex.lex ()
+    ast = yacc.parse (query, copiedlexer)
     return ast_to_rpn (ast)
 
 def ast_to_rpn (ast):
@@ -313,7 +331,8 @@ def testlex (s):
         print token
             
 def testyacc (s):
-    ast = yacc.parse (s)
+    copylex = lexer.__copy__ ()
+    ast = yacc.parse (s, lexer = copylex)
     print "AST:", ast
     print "RPN Query:", ast_to_rpn (ast)
 
@@ -328,4 +347,3 @@ if __name__ == '__main__':
         testfn (s)
 #    testyacc ()
 #    testlex ()
-
