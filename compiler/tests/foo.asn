@@ -6,4 +6,18 @@ Foo ::= SEQUENCE OF Bar
 
 Bar ::= INTEGER
 
+Baz ::= [5] INTEGER { zero (0), one (1)}
+
+Seq ::= SEQUENCE {
+        int	[0]	IMPLICIT Baz,
+	int-seq [1]	IMPLICIT Foo OPTIONAL}
+
+Seq2 ::= SEQUENCE {
+        int     Baz,
+	int-seq Foo OPTIONAL}
+
+Choice ::= CHOICE{ 
+int INTEGER,
+int-seq Foo}
+
 END
