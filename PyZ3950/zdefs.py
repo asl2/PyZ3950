@@ -24,6 +24,7 @@ asn1.register_oid (Z3950_ES_EXPORTINV, ExportInvocation)
 asn1.register_oid (Z3950_USR_SEARCHRES1, SearchInfoReport)
 asn1.register_oid (Z3950_USR_INFO1, OtherInformation)
 asn1.register_oid (Z3950_NEG_CHARSET3, CharSetandLanguageNegotiation_3)
+asn1.register_oid (Z3950_USR_PRIVATE_OCLC_INFO, OCLC_UserInformation)
 
 # below here is subject to change without notice, as I try to
 # figure out the appropriate balance between convenience and flexibility
