@@ -40,8 +40,8 @@
 # Correctly close connection when done
 # Handle receiving diagnostics instead of records a little better
 
-"""<p>PyZ3950 currently is capable of sending and receiving v2 PDUs
-Initialize, Search, Present, Scan, Close, and Delete.  For client
+"""<p>PyZ3950 currently is capable of sending and receiving v2 or v3 PDUs
+Initialize, Search, Present, Scan, Sort, Close, and Delete.  For client
 work, you probably want to use ZOOM, which should be in the same
 distribution as this file, in zoom.py.  The Server class in this file
 implements a server, but could use some work.  Both interoperate with
