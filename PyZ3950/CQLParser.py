@@ -10,7 +10,7 @@
 from shlex import shlex
 from xml.sax.saxutils import escape
 from xml.dom.minidom import Node, parseString
-from SRWDiagnostics import *
+from PyZ3950.SRWDiagnostics import *
 try:
     from cStringIO import StringIO
 except:
