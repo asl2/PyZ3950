@@ -201,11 +201,15 @@ class Conn:
                 register_retrieval_record_oids(self.encode_ctx)
             
     def readproc (self):
+        if self.sock == None:
+            raise self.ConnectionError ('disconnected')
         try:
             b = self.sock.recv (self.rdsz)
         except socket.error, val:
+            self.sock = None
             raise self.ConnectionError ('socket', str (val))
         if len (b) == 0: # graceful close
+            self.sock = None
             raise self.ConnectionError ('graceful close')
         if trace_recv:
             print map (lambda x: hex(ord(x)), b)
@@ -464,6 +468,7 @@ class Client (Conn):
         try:
             self.sock.connect ((addr, port))
         except socket.error, val:
+            self.sock = None
             raise self.ConnectionError ('socket', str(val))
         try_v3 =  Z3950_VERS == 3
 
@@ -527,10 +532,12 @@ class Client (Conn):
             decoded = self.read_PDU ()
             print "to_send", to_send, "decoded", decoded
             assert (to_send == decoded)
-
+        if self.sock == None:
+            raise self.ConnectionError ('disconnected')
         try:
             self.sock.send (b)
         except socket.error, val:
+            self.sock = None
             raise self.ConnectionError('socket', str(val))
 
         if expected == None:
@@ -639,6 +646,7 @@ class Client (Conn):
         except self.ConnectionError:
             rv = None
         self.sock.close ()
+        self.sock = None
         return rv
 
 
