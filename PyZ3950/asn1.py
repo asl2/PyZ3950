@@ -1084,6 +1084,7 @@ class ANY_class(OCTSTRING_class): # inherit decode_val
         return (ctx.decoded_tag, v, 0) # only called for primitive def-len encoding, thus "0"
 
 ANY = ANY_class ()
+REAL = ANY_class () # XXX quick hack so defn's don't barf
 
 class BitStringVal:
     def __init__ (self, top, bits = 0, defn = None):
@@ -1281,7 +1282,12 @@ class SEQUENCE_BASE (ELTBASE):
             if e[0] == key:
                 return e[1]
         raise KeyError (key)
-    
+    def __setitem__ (self, key, val):
+        for i in range (len (self.seq)):
+            if self.seq[i][0] == key:
+                self.seq[i] = self.mung (val)
+                return
+        raise "not found" + str (key)
     def get_attribs (self):
         return map (lambda e: e[0], self.seq)
 
