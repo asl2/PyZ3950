@@ -1,0 +1,2 @@
+# XXXX Yup, this directory structure is annoyingly "just growed".  Redo
+../compiler/py_output.py ../compiler/tests/z3950-2001.txt *.asn > ../PyZ3950/z3950_2001.py

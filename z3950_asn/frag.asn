@@ -1,0 +1,33 @@
+
+
+
+FragmentSyntax
+{Z39-50-recordSyntax fragment (107)} DEFINITIONS ::=
+BEGIN
+--
+-- For level 2 segmentation when a record is segmented into fragments, each
+-- fragment may take the form OCTET STRING or EXTERNAL. When the target
+-- chooses to send fragments as EXTERNAL, it may use the format below. This
+-- format is provided to allow the target to reflect the real syntax (i.e. the
+-- OBJECT IDENTIFIER which would have otherwise been used within the
+-- EXTERNAL if the record were not segmented) in a way that does not violate
+-- ASN.1 encoding rules.
+--
+-- This fragment syntax should be used with the following two provisions:
+--  (1) If the target uses this format for the starting fragment of a record,
+--       then it should use this format for all subsequent fragments
+--       (intermediate fragments and final fragment) of that record.
+--  (2) 'syntax' (the OBJECT IDENTIFIER that identifies the real syntax of the
+--       record) must occur in the starting fragment and only in the starting
+--       fragment (must be omitted in intermediate fragments and final
+--       fragment).
+
+Fragment ::= SEQUENCE {
+  realSyntax      [1] IMPLICIT OBJECT IDENTIFIER OPTIONAL,
+                       -- Required in starting fragment. 
+                       -- Must be omitted in subsequent fragments.
+  remainingOctets [2] IMPLICIT INTEGER OPTIONAL,
+                       -- Target estimate of how many octets 
+                       -- left after this fragment.
+  fragment        [3] IMPLICIT OCTET STRING}
+END

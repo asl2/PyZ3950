@@ -1,0 +1,19 @@
+
+
+UserInfoFormat-authorityFileInfo 
+{Z39-50-userInfoFormat authorityFileInfo (11)} DEFINITIONS ::=
+BEGIN
+IMPORTS HumanString FROM RecordSyntax-explain -- XXX had ';'
+InternationalString FROM Z39-50-APDU-1995;
+AuthorityFileInfo ::= SEQUENCE {
+        name        [1] IMPLICIT HumanString,  -- for display
+        database    [2] IMPLICIT InternationalString,
+                         -- z39.50s URL to the authority database.
+                         -- Simplifies to a database name if on the same server.
+        exclusive   [3] IMPLICIT NULL OPTIONAL
+                         -- If present, all terms in the term
+                         -- list come from this authority file.
+                         -- If absent, other terms may or may not
+                         -- be present in the term list.
+    }
+END

@@ -1,0 +1,11 @@
+
+NegotiationRecordDefinition-NegotiateEsSizes
+{Z39-50-negotiationRecordDefinition NegotiateEsSizes (2)} 
+DEFINITIONS ::= BEGIN
+
+NegotiateEsSizes ::= SEQUENCE{
+	maxMsgSize                       [1] IMPLICIT INTEGER OPTIONAL,
+	maxTaskPackageSize               [2] IMPLICIT INTEGER OPTIONAL,
+	maxRecordSize	                 [3] IMPLICIT INTEGER OPTIONAL}
+
+END				

@@ -1,0 +1,91 @@
+ERAQ -- XXX added
+
+{Z39-50-userInfoFormat editReplaceActionQualifier  (10)} 
+DEFINITIONS ::= BEGIN
+-- Batch edit / replace is a form of special update enabling an origin to convey 
+-- instructions to a target for a group of records to be changed in a similar way. 
+-- The special action reduces the traffic that would be required to process 
+-- multiple element update requests.
+-- To request a batch edit / replace, the origin:
+	 	--  - Conducts a search to identify candidate records 
+	 	--  - Uses the Persistent Result Set Extended Service to request 
+  		-- 	the target to create a persistent result from the transient result 
+		-- 	set with a specific name. 
+	 	--  - Creates an edit / replace record. 
+	 	--  - Sends a special update request to the target 
+		--	with the edit / replace record as an external 
+		--	parameter in the actionQualifier. 
+--The target may fail some, e.g. because a record is not available for update, 
+-- or because its version is incorrect, but process others. 
+-- Detailed results are reported to the task package including results for each 
+-- record processed or not processed.
+
+
+EditReplaceActionQualifier ::= SEQUENCE{
+persistentResultSetPackageName	[1] IMPLICIT InternationalString,
+numberOfRecords	[2] IMPLICIT INTEGER,
+		-- number of records from the transient result 
+		-- set is included as a check. If this differs 
+		-- from the number of records in the persistent 
+		-- result set, the target should not proceed 
+		-- with the update request.
+creationDateTime	[3] IMPLICIT EXTERNAL,
+		 -- use Z39.50 Date/Time 1.2.840.10003.10.6
+		-- Date and time the persistent result set task 
+		-- package was created by the target. 
+		-- If the date and time of last update of a record 
+		-- in the persistent result set is more recent, 
+		-- the target should not process the update for that record.
+reviewCode		[4] IMPLICIT InternationalString OPTIONAL,
+reviewNote		[5] IMPLICIT InternationalString OPTIONAL,
+changeDataInfo		[6] IMPLICIT SEQUENCE OF SEQUENCE{
+		fieldIdentifier		[1] IMPLICIT 
+					InternationalString OPTIONAL,
+		  -- The field identifiers must correlate with the database 
+		  -- name and schema cited in the element update package. 
+		  -- If there is more than a single occurrence of a specified 
+		  -- field in the record, the update should be applied to all 
+		  -- occurrences of the field matching the update criteria. 
+		  -- If the origin does not specify any field identifiers in the 
+		  -- edit / replace record, the target should look for the 
+		  -- old value anywhere in the record.
+		oldValue		[2] IMPLICIT InternationalString OPTIONAL,
+		  -- The old value should consist of the entire value to be 
+		  -- replaced or deleted as it would appear in the field, 
+		  -- with punctuation and spaces. The old value truncation 
+		  -- attribute should include values from Bib1 Table A3-5, e.g. 
+		  -- 1 = right truncation, 100 = do not truncate. In the absence 
+		  -- of a truncation attribute, the target defines the default.
+		oldValueTruncationAttribute	
+					[3] IMPLICIT 
+					InternationalString OPTIONAL,	
+		conditionalField		[4] IMPLICIT 
+					InternationalString OPTIONAL,
+		conditionalValue	[5] IMPLICIT 
+					InternationalString OPTIONAL,
+		  -- The update should only occur if the conditional 
+		  -- field/ value pair is present in the record, taking 
+		  -- into account the specified conditional truncation attribute.
+		conditionalTruncationAttribute	
+					[6] IMPLICIT 
+					InternationalString OPTIONAL, 	
+		newValue		[7] IMPLICIT 
+					InternationalString OPTIONAL,
+		 -- The new value is a mandatory field except where the 
+		 -- edit / replace type is set to field or subfield delete.
+		editReplaceType		[8] IMPLICIT INTEGER{
+							fieldInsert (0),
+							fieldDelete (1),
+							fieldReplace (2),
+							subfieldInsert (3),
+							subfieldDelete (4),
+							subfieldReplace (5),
+							subfieldMerge (6),
+							indicatorChange (7),
+							dataStringChange (8)},
+
+		case			[9] IMPLICIT BOOLEAN OPTIONAL
+			-- 'true' means 'case dependent' 
+}}
+END
+

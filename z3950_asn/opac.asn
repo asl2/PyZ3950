@@ -1,0 +1,92 @@
+-- XXX Mysteriously gone missing from 2001 draft
+RecordSyntax-opac
+--{Z39-50-recordSyntax opac (102)}
+ DEFINITIONS ::=
+BEGIN
+IMPORTS InternationalString  FROM Z39-50-APDU-1995;
+
+OPACRecord ::= SEQUENCE {
+   bibliographicRecord    [1] IMPLICIT EXTERNAL OPTIONAL,
+   holdingsData           [2] IMPLICIT SEQUENCE OF HoldingsRecord OPTIONAL}
+
+HoldingsRecord ::=  CHOICE {
+   marcHoldingsRecord     [1] IMPLICIT EXTERNAL,
+   holdingsAndCirc        [2] IMPLICIT HoldingsAndCircData}
+
+HoldingsAndCircData ::=  SEQUENCE {
+                             -- the following elements are required to display
+                             -- holdings in conformance with NISO standards.
+   typeOfRecord       [1]    IMPLICIT InternationalString
+OPTIONAL,-- LDR 06
+   encodingLevel      [2]    IMPLICIT InternationalString
+OPTIONAL, -- LDR 017
+   format             [3]    IMPLICIT InternationalString
+OPTIONAL, -- 007
+                                                                           -- 00-01
+   receiptAcqStatus   [4]    IMPLICIT InternationalString
+OPTIONAL, -- 008 06
+   generalRetention   [5]    IMPLICIT InternationalString
+OPTIONAL, -- 008 12
+   completeness       [6]    IMPLICIT InternationalString
+OPTIONAL, -- 008 16
+   dateOfReport       [7]    IMPLICIT InternationalString
+OPTIONAL, -- 008
+                                                                           -- 26-31
+   nucCode            [8]    IMPLICIT InternationalString
+OPTIONAL, -- 852 $a
+   localLocation      [9]    IMPLICIT InternationalString
+OPTIONAL, -- 852 $b
+   shelvingLocation   [10]   IMPLICIT InternationalString
+OPTIONAL, -- 852 $c
+   callNumber         [11]   IMPLICIT InternationalString
+OPTIONAL, -- 852 $h
+                                                                       -- and $i
+   shelvingData       [12]   IMPLICIT InternationalString
+OPTIONAL, -- 852 $j
+                                                                       -- thru $m
+   copyNumber         [13]   IMPLICIT InternationalString
+OPTIONAL, -- 852 $t
+   publicNote         [14]   IMPLICIT InternationalString
+OPTIONAL, -- 852 $z
+   reproductionNote   [15]   IMPLICIT InternationalString
+OPTIONAL, -- 843
+   termsUseRepro      [16]   IMPLICIT InternationalString
+OPTIONAL, -- 845
+   enumAndChron       [17]   IMPLICIT InternationalString
+OPTIONAL, -- all 85x,
+                                                                           --  86x
+   volumes            [18]   IMPLICIT SEQUENCE OF Volume
+OPTIONAL,
+                                -- repeats for each volume held
+   circulationData    [19]   IMPLICIT SEQUENCE OF CircRecord
+OPTIONAL
+                                -- repeats for each circulating item.
+                  }
+
+Volume ::=  SEQUENCE {
+   enumeration        [1]    IMPLICIT InternationalString
+OPTIONAL,
+   chronology         [2]    IMPLICIT InternationalString
+OPTIONAL,
+   enumAndChron       [3]    IMPLICIT InternationalString
+OPTIONAL }
+
+CircRecord ::=  SEQUENCE {
+   availableNow       [1]    IMPLICIT BOOLEAN,
+   availablityDate    [2]    IMPLICIT InternationalString
+OPTIONAL,
+   availableThru      [3]    IMPLICIT InternationalString
+OPTIONAL,
+   restrictions       [4]    IMPLICIT InternationalString
+OPTIONAL,
+   itemId             [5]    IMPLICIT InternationalString
+OPTIONAL,
+   renewable          [6]    IMPLICIT BOOLEAN,
+   onHold             [7]    IMPLICIT BOOLEAN,
+   enumAndChron       [8]    IMPLICIT InternationalString
+OPTIONAL,
+   midspine           [9]    IMPLICIT InternationalString
+OPTIONAL,
+   temporaryLocation  [10]   IMPLICIT InternationalString
+OPTIONAL}
+END

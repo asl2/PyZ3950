@@ -1,0 +1,27 @@
+RIAQ -- XXX added
+
+{Z39-50-userInfoFormat recordInsertActionQualifier  (9)} 
+DEFINITIONS ::= BEGIN
+--
+-- The origin may send a "does not duplicate list" 
+-- attached to a record, in a record insert action 
+-- of a database update ES task, to convey to the target 
+--  that certain records retrieved in a search had been 
+-- considered and rejected before this record was created. 
+-- If a record insert action contains only one record, 
+-- then the "does not duplicate" list may be sent in the 
+-- action qualifier using this format. 
+-- (Where multiple records are sent in one request, 
+-- this format should not be used; instead,  
+-- GRS-1 with the record insert schema should be used.)
+--
+RecordInsertActionQualifier ::= SEQUENCE{
+idsOrCode         [1] CHOICE{
+                        nonDupRecordIds      [1]     
+                             IMPLICIT SEQUENCE OF 
+                             InternationalString,
+                       recordReviewCode      [2]    -- XXX was recordReviewCode
+                       IMPLICIT InternationalString},
+recordReviewNote  [2] IMPLICIT InternationalString OPTIONAL}
+END
+
