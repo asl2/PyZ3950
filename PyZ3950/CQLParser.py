@@ -300,7 +300,7 @@ class Relation(PrefixedObject, ModifiableObject):
 
         xml ["%s<relation%s>\n" % (space, ns)]
 
-        xml.append("%s  <value>%s</value>\n" % (space, escape(self.value))
+        xml.append("%s  <value>%s</value>\n" % (space, escape(self.value)))
         if self.modifiers:
             xml.append("%s  <modifiers>\n" % (space))
             for m in self.modifiers:
