@@ -645,8 +645,9 @@ class Client (Conn):
             rv =  self.transact (('close', close), 'close')
         except self.ConnectionError:
             rv = None
-        self.sock.close ()
-        self.sock = None
+        if self.sock <> None:
+            self.sock.close ()
+            self.sock = None
         return rv
 
 
