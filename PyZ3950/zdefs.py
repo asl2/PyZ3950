@@ -271,7 +271,10 @@ def_msg_size = 0x10000
 # turn off multiple result sets for testing (see tests/test2.py),
 # but that doesn't have to be the default.
 def make_initreq (optionslist = None, authentication = None, v3 = 0,
-                  negotiate_charset = 0):
+                  negotiate_charset = 0, preferredMessageSize = 0x100000,
+                  maximumRecordSize = 0x100000, implementationId = "",
+                  implementationName = "", implementationVersion = ""):
+
     # see http://lcweb.loc.gov/z3950/agency/wisdom/unicode.html
     InitReq = InitializeRequest ()
     InitReq.protocolVersion = ProtocolVersion ()
@@ -289,16 +292,26 @@ def make_initreq (optionslist = None, authentication = None, v3 = 0,
     InitReq.options ['sort'] = 1
     InitReq.options ['extendedServices'] = 1
     InitReq.options ['dedup'] = 1
-    
     InitReq.options ['negotiation'] = negotiate_charset # XXX can negotiate other stuff, too
 
 # Preferred and Exceptional msg sizes are pretty arbitrary --
 # we dynamically allocate no matter what
-    InitReq.preferredMessageSize = def_msg_size
-    InitReq.exceptionalRecordSize = def_msg_size
-    InitReq.implementationId = implementationId
-    InitReq.implementationName = 'PyZ3950'
-    InitReq.implementationVersion = impl_vers
+    InitReq.preferredMessageSize = preferredMessageSize
+    InitReq.exceptionalRecordSize = maximumRecordSize
+
+    if (implementationId):
+        InitReq.implementationId = implementationId
+    else:
+        InitReq.implementationId = impl_id
+    if (implementationName):
+        InitReq.implementationName = implementationName
+    else:
+        InitReq.implementationName = 'PyZ3950'
+    if (implementationVersion):
+        InitReq.implementationVersion = implementationVersion
+    else:
+        InitReq.implementationVersion = impl_vers
+
     if authentication <> None:
         class UP: pass
         up = UP ()

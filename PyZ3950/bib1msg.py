@@ -117,7 +117,7 @@ msg_dict = {
 245: "Type-1 query: restriction ('resultAttr') operand not supported:", # (unspecified),
 246: "Type-1 query: 'complex' attributeValue not supported", # (unspecified),
 247: "Type-1 query: 'attributeSet' as part of AttributeElement not supported", # (unspecified),
-1001: 'Malformed APDU.', #  ,
+1001: 'Malformed APDU',
 1002: 'ES: EXTERNAL form of Item Order request not supported.', #  ,
 1003: 'ES: Result set item form of Item Order request not supported.', #  ,
 1004: 'ES: Extended services not supported unless access control is in effect.', #  ,

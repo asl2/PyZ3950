@@ -450,24 +450,41 @@ def extract_apt (rpnQuery):
 class Client (Conn):
     test = 0
     def __init__ (self, addr, port = DEFAULT_PORT, optionslist = None,
-                  authentication = None, charset_list = None,
-                  lang_list = None):
+                  charset = None, lang = None, user = None, password = None, 
+                  preferredMessageSize = 0x100000, group = None,
+                  maximumRecordSize = 0x100000, implementationId = "",
+                  implementationName = "", implementationVersion = ""):
         Conn.__init__ (self)
         try:
             self.sock.connect ((addr, port))
         except socket.error, val:
             raise self.ConnectionError ('socket', str(val))
         try_v3 =  Z3950_VERS == 3
-        negotiate_charset = charset_list <> None or lang_list <> None
+
+        if (charset and not isinstance(charset, list)):
+            charset = [charset]
+        if (lang and not isinstance(lang, list)):
+            charset = [lang]
+        negotiate_charset = charset or lang
+
+        if (user or password or group):
+            authentication = (user, password, group)
+        else:
+            authentication = None
+
         InitReq = make_initreq (optionslist, authentication = authentication,
                                 v3 = try_v3,
+                                preferredMessageSize = preferredMessageSize,
+                                maximumRecordSize = maximumRecordSize,
+                                implementationId = implementationId,
+                                implementationName = implementationName,
+                                implementationVersion = implementationVersion,
                                 negotiate_charset = negotiate_charset)
         if negotiate_charset:
-#            languages = ['eng', 'fre', 'enm']
+            # languages = ['eng', 'fre', 'enm']
             # Thanne longen folk to looken in catalogues
             # and clerkes for to seken straunge bookes ...
-            cnr = CharsetNegotReq (charset_list, lang_list,
-                 random.choice ((0,1,None)))
+            cnr = CharsetNegotReq (charset, lang, random.choice((0,1,None)))
             if trace_charset:
                 print cnr
             set_charset_negot (InitReq, cnr.pack_proposal (), try_v3)
@@ -695,8 +712,8 @@ if __name__ == '__main__':
 
     host = host.upper ()
     (name, port, dbname) = host_dict.get (host, host_dict[def_host])
-    cli = Client (name, port, charset_list = charset_list,
-                  lang_list = lang_list)
+    cli = Client (name, port, charset = charset_list,
+                  lang = lang_list)
     cli.test = test
     cli.set_dbnames ([dbname])
     print "Starting search"

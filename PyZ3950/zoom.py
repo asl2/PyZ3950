@@ -48,22 +48,17 @@ you may want to use the functions in the z3950 module instead.  """
 from __future__ import nested_scopes    
 
 __author__ = 'Aaron Lav (asl2@pobox.com)'
-__version__ = '0.9' # XXX
+__version__ = '1.0' # XXX
 
 import getopt
 import sys 
 
 # TODO:
-# implement create-but-don't connect, and connect later
-# implement ImplementationId, implementationName, implementationVersion setting
-# change auth: implement user, group, pass options
-# implement maximumRecordSize, preferredMessageSize
-# implement lang/charset (requires charset normalization, confer w/ Adam)
-# implement namedResultSets as syn for xmultipleResultSets
-# implement piggyback
+# finish lang/charset (requires charset normalization, confer w/ Adam)
+# implement piggyback   
 # implement presentChunk
-# implement schema
-# implement setname
+# implement schema    (Non useful)
+# implement setname   (Impossible?)
 
 from PyZ3950 import z3950
 from PyZ3950 import ccl
@@ -77,7 +72,6 @@ from PyZ3950 import oids
 from PyZ3950 import CQLParser, SRWDiagnostics, pqf
 from PyZ3950 import c2query as c2
 asn1.register_oid (oids.Z3950_QUERY_SQL, z3950.SQLQuery)
-
 
 
 def my_enumerate (l): # replace w/ enumerate when we go to Python 2.3
@@ -166,22 +160,40 @@ def _extract_attrs (obj, attrlist):
 class _AttrCheck:
     """Prevent typos"""
     attrlist = []
+    not_implement_attrs = []
     def __setattr__ (self, attr, val):
         """Ensure attr is in attrlist (list of allowed attributes), or
         private (begins w/ '_'), or begins with 'X-' (reserved for users)"""
         if attr[0] == '_' or attr in self.attrlist or attr[0:2] == 'X-':
             self.__dict__[attr] = val
+        elif (attr in self.not_implement_attrs):
+            raise ClientNotImplError(attr)
         else:
             raise AttributeError (attr, val)
     
 class Connection(_AttrCheck, _ErrHdlr):
     """Connection object"""
+
+    not_implement_attrs = ['piggyback',
+                        'presentChunk',
+                        'schema',
+                        'proxy',
+                        'async']
     search_attrs = ['smallSetUpperBound',
                 'largeSetLowerBound',
                 'mediumSetPresentNumber',
                 'smallSetElementSetNames',
                 'mediumSetElementSetNames']
-    init_attrs = ['authentication']
+    init_attrs = ['user',
+               'password',
+               'group',
+               'maximumRecordSize',
+               'preferredMessageSize',
+               'lang',
+               'charset',
+               'implementationId',
+               'implementationName',
+               'implementationVersion']
     scan_zoom_to_z3950 = {
         # translate names from ZOOM spec to Z39.50 spec names
         'stepSize' : 'stepSize',
@@ -191,55 +203,90 @@ class Connection(_AttrCheck, _ErrHdlr):
 
     attrlist = search_attrs + init_attrs + scan_zoom_to_z3950.keys () + [
         'databaseName',
+        'namedResultSets',
         'preferredRecordSyntax', # next two inheritable by RecordSet
         'elementSetName',
-        'xmultipleResultSets',
         'targetImplementationId',
         'targetImplementationName',
-        'targetImplementationVersion'
-        ] + ['errCode','errMsg', 'addtlInfo']
-
-    # xmultipleResultSets is my addition to spec.
+        'targetImplementationVersion',
+        'host',
+        'port'
+        ] + _ErrHdlr.err_attrslist
 
     _queryTypes = ['S-CQL', 'S-CCL', 'RPN', 'ZSQL']
+    _cli = None
+    host = ""
+    port = 0
 
     # and now, some defaults
+    namedResultSets = 1
     elementSetName = 'F' 
     preferredRecordSyntax = 'USMARC'
-    def __init__(self,hostname, port, **kw):
+    preferredMessageSize = 0x100000
+    maximumRecordSize = 0x100000
+    stepSize = 0
+    numberOfEntries = 20
+    responsePosition = 1
+    databaseName = 'Default'
+    implementationId = 'PyZ3950'
+    implementationName = 'PyZ3950 1.0/ZOOM v1.4'
+    implementationVersion = '1.0'
+    lang = None
+    charset = None
+    user = None
+    password = None
+    group = None
+
+    def __init__(self, host, port, connect=1, **kw):
         """Establish connection to hostname:port.  kw contains initial
         values for options, and is useful for options which affect
         the InitializeRequest.  Currently supported values:
         
-        authentication - for now, either (user, password) or (user,
-                         password, group) sequence, any of which can
-                         be None
+        user                   Username for authentication
+        password               Password for authentication
+        group                  Group for authentication
+        maximumRecordSize      Maximum size in bytes of one record
+        preferredMessageSize   Maximum size in bytes for response
+        lang                   3 letter language code
+        charset                Character set
+        implementationId       Id for client implementation
+        implementationName     Name for client implementation
+        implementationVersion  Version of client implementation
         
         """
-        kwauth = {}
+
+        self.host = host
+        self.port = port
         for (k,v) in kw.items ():
-            if k in self.init_attrs:
-                kwauth [k] = v
             setattr (self, k, v)
+        if (connect):
+            self.connect()
+
+    def connect(self):
+        initkw = {}
+        for attr in self.init_attrs:
+            initkw[attr] = getattr(self, attr)
+        if (self.namedResultSets):
+            options = ['namedResultSets']
+        else:
+            options = []
+
         try:
-            nRS = 'namedResultSets'
-            options = [nRS] # don't let user override this for now
-            self._cli = z3950.Client (hostname, port,
-                                      optionslist = options, **kwauth)
+            self._cli = z3950.Client (self.host, self.port,
+                                      optionslist = options, **initkw)
             self._cli.set_exns (ConnectionError, ProtocolError, UnexpectedCloseError)
-            self.xmultipleResultSets = self._cli.get_option (nRS)
+            self.namedResultSets = self._cli.get_option ('namedResultSets')
         except z3950.ConnectionError, val:
             raise ConnectionError (val)
         self.targetImplementationId = self._cli.initresp.implementationId
         self.targetImplementationName = self._cli.initresp.implementationName
         self.targetImplementationVersion  = self._cli.initresp.implementationVersion
         self._resultSetCtr = 0
-        self.stepSize = 0
-        self.numberOfEntries = 20
-        self.responsePosition = 1
-        self.databaseName = 'Default'
+
     def search (self, query):
         """Search, taking Query object, returning ResultSet"""
+        if (not self._cli):
+            self.connect()
         assert (query.typ in self._queryTypes)
         dbnames = self.databaseName.split ('+')
         self._cli.set_dbnames (dbnames)
@@ -253,6 +300,8 @@ class Connection(_AttrCheck, _ErrHdlr):
     # and 'Error Code', 'Error Message', and 'Addt'l Info' methods still
     # eeded
     def scan (self, query):
+        if (not self._cli):
+            self.connect()
         self._cli.set_dbnames ([self.databaseName])
         kw = {}
         for k, xl in self.scan_zoom_to_z3950.items ():
@@ -261,7 +310,7 @@ class Connection(_AttrCheck, _ErrHdlr):
         return ScanSet (self._cli.scan (query.query, **kw))
     def _make_rsn (self):
         """Return result set name"""
-        if self.xmultipleResultSets:
+        if self.namedResultSets:
             return "rs%d" % self._resultSetCtr
         else:
             return z3950.default_resultSetName
@@ -269,9 +318,10 @@ class Connection(_AttrCheck, _ErrHdlr):
         """Close connection"""
         self._cli.close ()
         
-
     def sort (self, sets, keys):
         """ Sort sets by keys, return resultset interface """
+        if (not self._cli):
+            self.connect()
 
         # XXX This should probably be shuffled down into z3950.py
         sortrelations = ['ascending', 'descending', 'ascendingByFrequency', 'descendingByFrequency']
@@ -336,7 +386,6 @@ class Connection(_AttrCheck, _ErrHdlr):
         return rs
 
 
-
 class SortKey(_AttrCheck):
     attrlist = ['relation', 'caseInsensitive', 'missingValueAction', 'missingValueData', 'type', 'sequence']
     relation = "ascending"
@@ -352,8 +401,9 @@ class SortKey(_AttrCheck):
 
 class Query:
     def __init__ (self, typ, query):
-        """Creates Query object: only typ == 'CCL' currently supported.
-        See ccl module documentation for details."""
+        """Creates Query object.
+Supported query types:  CCL, S-CCL, CQL, S-CQL, PQF, C2, ZSQL, CQL-TREE
+"""
         typ = typ.upper()
         if typ == 'CCL':
            self.typ = 'RPN'
@@ -374,15 +424,17 @@ class Query:
             self.query = ('type_104', xq)
         elif typ == 'CQL': # CQL to RPN transformation
             self.typ = 'RPN'
-            #try:
-            q = CQLParser.parse(query)
-            rpnq = z3950.RPNQuery()
-            # XXX Allow Attribute Architecture
-            rpnq.attributeSet = oids.Z3950_ATTRS_BIB1_ov
-            rpnq.rpn = q.toRPN()
-            self.query = ('type_1', rpnq)
-            #except SRWDiagnostics.SRWDiagnostic, err:
-            #    raise QuerySyntaxError
+            try:
+                q = CQLParser.parse(query)
+                rpnq = z3950.RPNQuery()
+                # XXX Allow Attribute Architecture somehow?
+                rpnq.attributeSet = oids.Z3950_ATTRS_BIB1_ov
+                rpnq.rpn = q.toRPN()
+                self.query = ('type_1', rpnq)
+            except SRWDiagnostics.SRWDiagnostic, err:
+                raise err
+            except:
+                raise QuerySyntaxError
         elif typ == 'PQF':  # PQF to RPN transformation
             self.typ = 'RPN'
             try:
@@ -407,14 +459,16 @@ class Query:
             self.query = ('type_104', xq)
         elif typ == 'CQL-TREE': # Tree to RPN
             self.typ = 'RPN'
-            #try:
-            rpnq = z3950.RPNQuery()
-            # XXX Allow Attribute Architecture
-            rpnq.attributeSet = oids.Z3950_ATTRS_BIB1_ov
-            rpnq.rpn = query.toRPN()
-            self.query = ('type_1', rpnq)
-            #except SRWDiagnostics.SRWDiagnostic, err:
-            #    raise QuerySyntaxError
+            try:
+                rpnq = z3950.RPNQuery()
+                # XXX Allow Attribute Architecture
+                rpnq.attributeSet = oids.Z3950_ATTRS_BIB1_ov
+                rpnq.rpn = query.toRPN()
+                self.query = ('type_1', rpnq)
+            except SRWDiagnostics.SRWDiagnostic, err:
+                raise err
+            except:
+                raise QuerySyntaxError
         else:
             raise ClientNotImplError ('%s queries not supported' % typ)
 
@@ -424,8 +478,13 @@ class ResultSet(_AttrCheck, _ErrHdlr):
     a surrogate diagnostic is returned for the i-th record, an
     appropriate exception will be raised on access to the i-th
     element (either access by itself or as part of a slice)."""
+
     inherited_elts = ['elementSetName', 'preferredRecordSyntax']
     attrlist = inherited_elts + _ErrHdlr.err_attrslist
+    not_implement_attrs = ['piggyback',
+                        'presentChunk',
+                        'schema']
+
     def __init__ (self, conn, searchResult, resultSetName, ctr):
         """Only for creation by Connection object"""
         self._conn = conn # needed for 'option inheritance', see ZOOM spec
@@ -489,7 +548,7 @@ class ResultSet(_AttrCheck, _ErrHdlr):
     def _ensure_present (self, i):
         self._ensure_recs ()
         if self._get_rec (i) == None:
-            if (not self._conn.xmultipleResultSets) and \
+            if (not self._conn.namedResultSets) and \
                self._ctr <> self._conn._resultSetCtr:
                 raise ServerNotImplError ('Multiple Result Sets')
             # XXX is this right?
@@ -815,7 +874,7 @@ if __name__ == '__main__':
     else:
         (name, port, dbname) = rv
     
-    conn = Connection (name, port, authentication = validation)
+    conn = Connection (name, port)
     conn.databaseName = dbname
 
     conn.preferredRecordSyntax = fmts [0]

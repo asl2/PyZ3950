@@ -76,7 +76,7 @@ class PQFParser:
             self.fetch_token()
             n = self.currentToken.upper()
             if (n[:14] == "1.2.840.10003."):
-                return asn1.OidVal(n.split('.'))
+                return asn1.OidVal(map(int, n.split('.')))
             return oids.oids['Z3950']['ATTRS'][n]['oid']
         else:
             return None
@@ -212,8 +212,6 @@ def parse(q):
     return parser.query()
 
 
-
-
 def rpn2pqf(rpn):
     # Turn RPN structure into PQF equivalent
     q = rpn[1]
@@ -243,8 +241,12 @@ def rpn2pqf(rpn):
         if (q[0] == 'attrTerm'):
             query = []
             for a in q[1].attributes:
-                query.append("@attr %i=%s " % (a.attributeType, str(a.attributeValue[1])))
-            query.append(' "%s" ' % (q[1].term[1]))
+                if (a.attributeValue[0] == 'numeric'):
+                    val = str(a.attributeValue[1])
+                else:
+                    val = a.attributeValue[1].list[0][1]
+                query.append("@attr %i=%s " % (a.attributeType, val))
+            query.append('"%s" ' % (q[1].term[1]))
             return ''.join(query)
         elif (q[0] == 'resultSet'):
             return "@set %s" % (q[1])
