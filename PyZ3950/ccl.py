@@ -216,7 +216,7 @@ precedence = (
     ('left', 'LOGOP'),
     )
 
-yacc.yacc (debug=0, tabmodule='parsetab')
+yacc.yacc (debug=0, tabmodule='PyZ3950.parsetab')
 
 _attrdict = {
     'bib1'  :  oids.Z3950_ATTRS_BIB1_ov,

@@ -34,7 +34,7 @@ booleans = ['and', 'or', 'not', 'prox']
 reservedPrefixes = {"srw" : "http://www.loc.gov/zing/cql/srw-indexes/v1.0/",
                     "cql" : "info:srw/cql-context-set/1/cql-v1.1"}
 
-XCQLNamespace = "http://www.loc.gov/zing/srw/xcql/"
+XCQLNamespace = "http://www.loc.gov/zing/cql/xcql/"
 
 # End of 'configurable' stuff
 
@@ -274,7 +274,11 @@ class Index(PrefixedObject):
     "Object to represent a CQL index"
 
     def toXCQL(self, depth=0):
-        return "%s<index>%s</index>\n" % ("  "*depth, escape(str(self)))
+        if (depth == 0):
+            ns = ' xmlns="%s"' % (XCQLNamespace)
+        else:
+            ns = ""
+        return "%s<index%s>%s</index>\n" % ("  "*depth, ns, escape(str(self)))
 
     def toCQL(self):
         return str(self)
@@ -286,18 +290,24 @@ class Relation(PrefixedObject, ModifiableObject):
         self.modifiers = mods
     def toXCQL(self, depth=0):
         "Create XCQL representation of object"
-        space = ""
-        for x in range(depth):
-            space = space + "  "
-        xml = space + "<relation>\n"
-        xml = xml + space + "  <value>" + escape(self.value) + "</value>\n"
+        if (depth == 0):
+            ns = ' xmlns="%s"' % (XCQLNamespace)
+        else:
+            ns = ""
+
+        space = "  " * depth
+        
+
+        xml ["%s<relation%s>\n" % (space, ns)]
+
+        xml.append("%s  <value>%s</value>\n" % (space, escape(self.value))
         if self.modifiers:
-            xml = xml + space + "  <modifiers>\n"
+            xml.append("%s  <modifiers>\n" % (space))
             for m in self.modifiers:
-                xml = xml + m.toXCQL(depth+2)
-                xml = xml + space + "  </modifiers>\n"
-        xml = xml + space + "</relation>\n"
-        return xml
+                xml.append(m.toXCQL(depth+2))
+                xml.append("%s  </modifiers>\n" % (space))
+        xml.append("%s</relation>\n" % (space))
+        return ''.join(xml)
 
     def toCQL(self):
         txt = [self.value]
@@ -355,7 +365,11 @@ class Term:
         return self.value
 
     def toXCQL(self, depth=0):
-        return "%s<term>%s</term>\n" % ("  "*depth, escape(self.value))
+        if (depth == 0):
+            ns = ' xmlns="%s"' % (XCQLNamespace)
+        else:
+            ns = ""
+        return "%s<term%s>%s</term>\n" % ("  "*depth, ns, escape(self.value))
 
 class Boolean(ModifiableObject):
     "Object to represent a CQL boolean"

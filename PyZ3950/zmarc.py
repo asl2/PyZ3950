@@ -602,6 +602,7 @@ class MARC:
         xml.append("</dc>")
         return ''.join(xml)
 
+
     def toMODS(self):
         """ Tranform MARC record into MODS according to CrossWalk """
         xml = ["<mods>\n"]
@@ -613,10 +614,10 @@ class MARC:
             insubtitle = 0
             for sub in instance:
                 if (sub[0] in ['a', 'f', 'g', 'k']):
-                    xml.append(sub[1])
+                    xml.append(escape(sub[1]))
                     xml.append(' ')
                 elif (sub[0] == 'b'):
-                    xml.append("</title>\n    <subtitle>%s " % (sub[1]))
+                    xml.append("</title>\n    <subtitle>%s " % (escape(sub[1])))
                     insubtitle = 1
             if (insubtitle):
                 xml.append("</subtitle>\n  </titleInfo>\n")
@@ -627,7 +628,7 @@ class MARC:
             instance = self.fields[210][0][2]
             subf = {}
             for sub in instance:
-                subf[sub[0]] = sub[1]
+                subf[sub[0]] = escape(sub[1])
             xml.append('  <titleInfo type="abbreviated">\n    <title>%s</title>\n' % (subf['a']))
             if (subf.has_key('b')):
                 xml.append('    <subtitle>%s</subtitle>\n' % (subf['b']))
@@ -637,7 +638,7 @@ class MARC:
             instance = self.fields[242][0][2]
             subf = {}
             for sub in instance:
-                subf[sub[0]] = sub[1]
+                subf[sub[0]] = escape(sub[1])
             if (subf.has_key('i')):
                 label = ' displayLabel="%s"' % (subf['i'])
             else:
@@ -658,7 +659,7 @@ class MARC:
             instance = full[2]
             subf = {}
             for sub in instance:
-                subf[sub[0]] = sub[1]
+                subf[sub[0]] = escape(sub[1])
             if (subfield2 == 1):
                 xml.append('  <titleInfo type="translated">\n    <title>%s</title>\n' % (subf['a']))
             else:
@@ -681,8 +682,8 @@ class MARC:
         if (uniform):
             subf = {}
             for sub in uniform:
-                subf[sub[0]] = sub[1]
-            xml.append('  <titleInfo type="uniform">\n    <title>%s</title>\n' % (subf[a]))
+                subf[sub[0]] = escape(sub[1])
+            xml.append('  <titleInfo type="uniform">\n    <title>%s</title>\n' % (subf['a']))
             if (subf.has_key('n')):
                 xml.append('    <partNumber>%s</partNumber>\n' % (subf['n']))
             if (subf.has_key('p')):
@@ -699,7 +700,7 @@ class MARC:
                 for instance in self.fields[k]:
                     subf = {}
                     for sub in instance[2]:
-                        subf[sub[0]] = sub[1]
+                        subf[sub[0]] = escape(sub[1])
                     xml.append('  <!-- Marc: %s -->\n' % (k))
                     xml.append('  <name type="%s">\n' % (authorKeyTypes[k]))
                     xml.append('    <role><roleTerm type="text">creator</roleTerm></role>\n')
@@ -739,7 +740,7 @@ class MARC:
             for instance in self.fields[655]:
                 gf = ''
                 for sub in instance[2]:
-                    gf  += sub[1] + " -- "
+                    gf  += escape(sub[1]) + " -- "
                 gf = gf[:-4]
                 xml.append("  <genre>%s</genre>\n" % (gf))
 
@@ -763,12 +764,12 @@ class MARC:
             if (f44):
                 for s in f44[0][2]:
                     if (s[0] == 'c'):
-                        xml.append('    <place><placeTerm type="code" authority="iso3166">%s</placeTerm></place>\n' % (loc))
+                        xml.append('    <place><placeTerm type="code" authority="iso3166">%s</placeTerm></place>\n' % (escape(s[1])))
             if (f260):
                 instance = self.fields[260][0][2]            
                 subf260 = {}
                 for sub in instance:
-                    subf260[sub[0]] = sub[1]
+                    subf260[sub[0]] = escape(sub[1])
                 if (subf260.has_key('a')):
                     xml.append('    <place><placeTerm type="text">%s</placeTerm></place>\n' % (subf260['a']))
                 if (subf260.has_key('b')):
@@ -796,13 +797,13 @@ class MARC:
 
             if (f260):
                 if subf260.has_key('g'):
-                    xml.append('    <dateCreated>%s</dateCreated>\n' % (subf260['g']))
+                    xml.append('    <dateCreated>%s</dateCreated>\n' % (escape(subf260['g'])))
 
             if (f46):
                 instance = f46[0][2]
                 subf46 = {}
                 for s in instance:
-                    subf46[s[0]] = s[1]
+                    subf46[s[0]] = escape(s[1])
                 if (subf46.has_key('k')):
                     xml.append('    <dateCreated point="start">%s</dateCreated>\n' % (subf46['k']))
                 if (subf46.has_key('l')):
@@ -817,7 +818,7 @@ class MARC:
             if (f250):
                 for s in f250[0][2]:
                     if (s[0] == 'a'):
-                        xml.append('    <edition>%s</edition>\n' % (s[1]))
+                        xml.append('    <edition>%s</edition>\n' % (escape(s[1])))
                         break
             
             if (self.fields.has_key(0) and len(self.fields[0][0]) > 2):
@@ -830,12 +831,12 @@ class MARC:
             if (f310):
                 subf310 = {'a' : '', 'b' : ''}
                 for s in f310[0][2]:
-                    subf310[s[0]] = s[1]
+                    subf310[s[0]] = escape(s[1])
                 xml.append('    <frequency>%s %s</frequency>\n' % (subf310['a'], subf310['b']))
             if (f321):
                 subf321 = {'a' : '', 'b' : ''}
                 for s in f321[0][2]:
-                    subf321[s[0]] = s[1]
+                    subf321[s[0]] = escape(s[1])
                 xml.append('    <frequency>%s %s</frequency>\n' % (subf321['a'], subf321['b']))
             xml.append('  </originInfo>\n')
                 
@@ -858,9 +859,9 @@ class MARC:
                     a = sub[1]
 
             if a and not two:
-                xml.append('  <language><languageTerm authority="iso639-2b">%s</languageTerm></language>\n' % (a))
+                xml.append('  <language><languageTerm authority="iso639-2b">%s</languageTerm></language>\n' % (escape(a)))
             elif a:
-                xml.append('  <language authority="%s">%s</language>\n' % (two, a))
+                xml.append('  <language authority="%s">%s</language>\n' % (escape(two), escape(a)))
 
         # --- Physical Description ---
         # XXX: Better field 008, 242,245,246$h, 256$a
@@ -876,7 +877,7 @@ class MARC:
             if f300:
                 desclist = []
                 for s in f300[0][2]:
-                    desclist.append(s[1])
+                    desclist.append(escape(s[1]))
                 desc = ' '.join(desclist)
                 xml.append("    <extent>%s</extent>\n" % (desc))
             xml.append("  </physicalDescription>\n")
@@ -886,7 +887,7 @@ class MARC:
             xml.append('  <abstract>')
             for sub in self.fields[520]:
                 if sub[0] == 'a' or sub[0] == 'b':
-                    xml.append(sub[1])
+                    xml.append(escape(sub[1]))
             xml.append("</abstract>\n")
 
         # --- Table of Contents ---
@@ -894,7 +895,7 @@ class MARC:
             desclist = []
             for s in self.fields[505][0][2]:
                 if (s[0] in ['a', 'g', 'r', 't']):
-                    desclist.append(s[1])
+                    desclist.append(escape(s[1]))
             toc = ' '.join(desclist)
             xml.append('  <tableOfContents>%s</tableOfContents>\n' % (toc))
 
@@ -906,7 +907,7 @@ class MARC:
                 xml.append('  <note>');
                 for s in n:
                     if (s[0] == 'a'):
-                        xml.append(s[1])
+                        xml.append(escape(s[1]))
                 xml.append('</note>\n')
 
         # --- Subject ---
@@ -929,62 +930,66 @@ class MARC:
                         stype = {600 : 'personal', 610 : 'corporate', 611 : 'conference'}[s]
                         xml.append('    <name type="%s">\n' % (stype))
                         for sub in instance[2]:
+                            val = escape(sub[1])
                             if (sub[0] == 'a'):
-                                xml.append('      <namePart>%s</namePart>\n' % (sub[1]))
+                                xml.append('      <namePart>%s</namePart>\n' % (val))
                             elif (sub[0] == 'b'):
                                 attrib = ''
                                 if (s == 600):
                                     attrib = ' type="termsOfAddress"'
-                                xml.append('      <namePart%s>%s</namePart>\n' % (attrib, sub[1]))
+                                xml.append('      <namePart%s>%s</namePart>\n' % (attrib, val))
                             elif (sub[0] == 'd'):
-                                xml.append('      <namePart type="date">%s</namePart>\n' % (sub[1]))
+                                xml.append('      <namePart type="date">%s</namePart>\n' % (val))
                             elif (sub[0] == 'e'):
-                                xml.append('      <role><roleTerm type="text">%s</roleTerm></role>\n' % (sub[1]))
+                                xml.append('      <role><roleTerm type="text">%s</roleTerm></role>\n' % (val))
                             elif (sub[0] == '4'):
-                                xml.append('      <role><roleTerm type="code">%s</roleTerm></role>\n' % (sub[1]))
+                                xml.append('      <role><roleTerm type="code">%s</roleTerm></role>\n' % (val))
                             elif (sub[0] == 'u'):
-                                xml.append('      <affiliation>%s</affiliation>\n' % (sub[1]))
+                                xml.append('      <affiliation>%s</affiliation>\n' % (val))
                             elif sub[0] in ['v', 'x']:
-                                xml.append('      <topic>%s</topic>\n' % (sub[1]))
+                                xml.append('      <topic>%s</topic>\n' % (val))
                             elif sub[0] == 'y':
-                                xml.append('      <temporal>%s</temporal>\n' % (sub[1]))
+                                xml.append('      <temporal>%s</temporal>\n' % (val))
                             elif sub[0] == 'z':
-                                xml.append('      <geographic>%s</geographic>\n' % (sub[1]))
-                        xml.append('    </name>')
+                                xml.append('      <geographic>%s</geographic>\n' % (val))
+                        xml.append('    </name>\n')
                     elif (s == 630):
                         for sub in instance[2]:
+                            val = escape(sub[1])
                             if (sub[0] == 'a'):
-                                xml.append('    <title>%s</title>\n' % (sub[1]))
+                                xml.append('    <title>%s</title>\n' % (val))
                             elif (sub[0] == 'p'):
-                                xml.append('    <partName>%s</partName>\n' % (sub[1]))
+                                xml.append('    <partName>%s</partName>\n' % (val))
                             elif (sub[0] == 'n'):
-                                xml.append('    <partNumber>%s</partNumber>\n' % (sub[1]))
+                                xml.append('    <partNumber>%s</partNumber>\n' % (val))
                             elif sub[0] in ['v', 'x']:
-                                xml.append('    <topic>%s</topic>\n' % (sub[1]))
+                                xml.append('    <topic>%s</topic>\n' % (val))
                             elif sub[0] == 'y':
-                                xml.append('    <temporal>%s</temporal>\n' % (sub[1]))
+                                xml.append('    <temporal>%s</temporal>\n' % (val))
                             elif sub[0] == 'z':
-                                xml.append('    <geographic>%s</geographic>\n' % (sub[1]))
+                                xml.append('    <geographic>%s</geographic>\n' % (val))
                     elif (s in [650, 653]):
                         for sub in instance[2]:
+                            val = escape(sub[1])
                             if (sub[0] == 'a'):
-                                xml.append('    <topic>%s</topic>\n' % (sub[1]))
+                                xml.append('    <topic>%s</topic>\n' % (val))
                             elif sub[0] in ['v', 'x']:
-                                xml.append('    <topic>%s</topic>\n' % (sub[1]))
+                                xml.append('    <topic>%s</topic>\n' % (val))
                             elif sub[0] == 'y':
-                                xml.append('    <temporal>%s</temporal>\n' % (sub[1]))
+                                xml.append('    <temporal>%s</temporal>\n' % (val))
                             elif sub[0] == 'z':
-                                xml.append('    <geographic>%s</geographic>\n' % (sub[1]))
+                                xml.append('    <geographic>%s</geographic>\n' % (val))
                     elif (s == 651):
                         for sub in instance[2]:
+                            val = escape(sub[1])
                             if (sub[0] == 'a'):
-                                xml.append('    <geographic>%s</geographic>\n' % (sub[1]))
+                                xml.append('    <geographic>%s</geographic>\n' % (val))
                             elif sub[0] in ['v', 'x']:
-                                xml.append('    <topic>%s</topic>\n' % (sub[1]))
+                                xml.append('    <topic>%s</topic>\n' % (val))
                             elif sub[0] == 'y':
-                                xml.append('    <temporal>%s</temporal>\n' % (sub[1]))
+                                xml.append('    <temporal>%s</temporal>\n' % (val))
                             elif sub[0] == 'z':
-                                xml.append('    <geographic>%s</geographic>\n' % (sub[1]))
+                                xml.append('    <geographic>%s</geographic>\n' % (val))
                                 
                     xml.append("  </subject>\n")
         if (self.fields.has_key(45)):
@@ -992,27 +997,27 @@ class MARC:
             if (full[0] in ['0', '1']):
                 for x in self.fields[2]:
                     if (x[0] == 'b'):
-                        xml.append('  <subject><temporal encoding="iso8601">%s</temporal></subject>\n' % (x[1]))
+                        xml.append('  <subject><temporal encoding="iso8601">%s</temporal></subject>\n' % (escape(x[1])))
                         
         if (self.fields.has_key(43)):
             for sub in self.fields[43][0][2]:
                 if (sub[0] == 'a'):
-                    xml.append('  <subject><geographicCode authority="marcgac">%s</geographicCode></subject>\n' % (sub[1]))
+                    xml.append('  <subject><geographicCode authority="marcgac">%s</geographicCode></subject>\n' % (escape(sub[1])))
                 elif (sub[0] == 'a'):
-                    xml.append('  <subject><geographicCode authority="iso3166">%s</geographicCode></subject>\n' % (sub[1]))
+                    xml.append('  <subject><geographicCode authority="iso3166">%s</geographicCode></subject>\n' % (escape(sub[1])))
 
         if (self.fields.has_key(752)):
             xml.append('  <subject><hierarchicalGeographic>\n')
             for sub in self.fields[43][0][2]:
+                val = escape(sub[1])
                 if (sub[0] == 'a'):
-                    xml.append('    <country>%s</country>\n' % (sub[1]))
+                    xml.append('    <country>%s</country>\n' % (val))
                 elif (sub[0] == 'b'):
-                    xml.append('    <state>%s</state>\n' % (sub[1]))
+                    xml.append('    <state>%s</state>\n' % (val))
                 elif (sub[0] == 'c'):
-                    xml.append('    <county>%s</county>\n' % (sub[1]))
+                    xml.append('    <county>%s</county>\n' % (val))
                 elif (sub[0] == 'd'):
-                    xml.append('    <city>%s</city>\n' % (sub[1]))
-                    
+                    xml.append('    <city>%s</city>\n' % (val))
             xml.append('  </hierarchicalGeographic></subject>')
             
 
@@ -1020,7 +1025,7 @@ class MARC:
             subf = {}
             xml.append('  <subject><cartographics>\n')
             for s in self.fields[255][0][2]:
-                subf[s[0]] = s[1]
+                subf[s[0]] = escape(s[1])
             if (subf.has_key('c')):
                 xml.append('    <coordinates>%s</coordinates>\n' % (subf['c']))
             if (subf.has_key('a')):
@@ -1044,9 +1049,9 @@ class MARC:
                 for sub in self.fields[k][0][2]:
                     stuff = []
                     if (sub[0] == 'a'):
-                        stuff.append(sub[1])
+                        stuff.append(escape(sub[1]))
                     elif (sub[0] == 'b'):
-                        stuff.append(sub[1])
+                        stuff.append(escape(sub[1]))
                 txt = ' '.join(stuff)
                 xml.append('  <classification authority="%s">%s</classification>\n' % (cfields[k], txt))
 
@@ -1062,7 +1067,7 @@ class MARC:
             if (auth):
                 for s in full[2]:
                     if (s[0] == 'a'):
-                        xml.append('  <classification authority="%s">%s</classification>\n' % (auth, s[1]))
+                        xml.append('  <classification authority="%s">%s</classification>\n' % (auth, escape(s[1])))
                 
                     
         # XXX:  relatedItem, 7XX
@@ -1072,22 +1077,22 @@ class MARC:
             for instance in self.fields[20]:
                 for sub in instance[2]:
                     if sub[0] == 'a':
-                        xml.append('  <identifier type="isbn">%s</identifier>\n' % (sub[1]))
+                        xml.append('  <identifier type="isbn">%s</identifier>\n' % (escape(sub[1])))
         if self.fields.has_key(22):
             for instance in self.fields[22]:
                 for sub in instance[2]:
                     if sub[0] == 'a':
-                        xml.append('  <identifier type="issn">%s</identifier>\n' % (sub[1]))
+                        xml.append('  <identifier type="issn">%s</identifier>\n' % (escape(sub[1])))
         if self.fields.has_key(24):
             for instance in self.fields[24]:
                 for sub in instance[2]:
                     if sub[0] == 'a':
-                        xml.append('  <identifier type="isrc">%s</identifier>\n' % (sub[1]))
+                        xml.append('  <identifier type="isrc">%s</identifier>\n' % (escape(sub[1])))
         if self.fields.has_key(28):
             for instance in self.fields[28]:
                 for sub in instance[2]:
                     if sub[0] == 'a':
-                        xml.append('  <identifier type="matrix number">%s</identifier>\n' % (sub[1]))
+                        xml.append('  <identifier type="matrix number">%s</identifier>\n' % (escape(sub[1])))
 
         # XXX: location, accessCondition
 
@@ -1097,7 +1102,7 @@ class MARC:
             for instance in self.fields[40]:
                 for sub in instance[2]:
                     if sub[0] == 'a':
-                        xml.append('    <recordContentSource authority="marcorg">%s</recordContentSource>\n' % (sub[1]))
+                        xml.append('    <recordContentSource authority="marcorg">%s</recordContentSource>\n' % (escape(sub[1])))
         if (self.fields.has_key(8)):
             date = self.fields[8][0][0:6]
             if (date <> '      '):
@@ -1109,12 +1114,12 @@ class MARC:
             instance = self.fields[40][0][2]
             for s in instance:
                 if (s[0] == 'b'):
-                    xml.append('    <languageOfCataloging><languageTerm authority="iso639-2b">%s</languageTerm></languageOfCataloging>\n' % (s[1]))
+                    xml.append('    <languageOfCataloging><languageTerm authority="iso639-2b">%s</languageTerm></languageOfCataloging>\n' % (escape(s[1])))
 
         xml.append('  </recordInformation>\n')
         xml.append("</mods>")
-        return ''.join(xml)
-
+        txt = ''.join(xml)
+        return txt
         
 
 if __name__ == '__main__':

@@ -12,6 +12,14 @@ asn1.register_oid (oids.Z3950_QUERY_CQL, asn1.GeneralString)
 
 class ZCQLConfig:
 
+    contextSets = {'dc' : 'info:srw/cql-context-set/1/dc-v1.1',
+                   'cql' : 'info:srw/cql-context-set/1/cql-v1.1',
+                   'bath' : 'http://zing.z3950.org/cql/bath/2.0/',
+                   'zthes' : 'http://zthes.z3950.org/cql/1.0/', 
+                   'ccg' : 'http://srw.cheshire3.org/contextSets/ccg/1.1/ ',
+                   'rec' : 'info:srw/cql-context-set/2/rec-1.0',
+                   'net' : 'info:srw/cql-context-set/2/net-1.0'}
+
     dc = {'title' : 4,
           'subject' : 21,
           'creator' : 1003,
@@ -189,6 +197,9 @@ class CSearchClause(SearchClause):
                 text.append('%s "%s"' % (idxrel, w))
             cql = bool.join(text)
             tree = parse(cql)
+            tree.prefixes = self.prefixes
+            tree.parent = self.parent
+            tree.config = self.config
             return tree.toRPN(top)
         else:
             # attributes, term
@@ -271,6 +282,13 @@ class CIndex(Index):
     def toRPN(self, top):
         self.resolvePrefix()
         pf = self.prefix
+        if (not pf and self.prefixURI):
+            # We have a default
+            for k in zConfig.contextSets:
+                if zConfig.contextSets[k] == self.prefixURI:
+                    pf = k
+                    break
+
         # Default BIB1
         set = oids.oids['Z3950']['ATTRS']['BIB1']['oid']
 
@@ -365,10 +383,10 @@ class CRelation(Relation):
         if self.value == 'exact':
             vals[3] = 1
             vals[5] = 100 
-            vals[6] = 3
+            # vals[6] = 3
         else:
             vals[3] = 3
-            vals[6] = 1
+            # vals[6] = 1
 
         attrs = {}
         for x in range(1,7):
