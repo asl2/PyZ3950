@@ -74,16 +74,28 @@ class Visitor:
                 if to_output_count == 0:
                     break
                 # OK, we detected a cycle
+                cycle_ident_list = []
                 cycle_list = []
                 for ident in self.assignments.iterkeys ():
                     if not already_output.has_key (ident):
+                        text_list.append ('%s = asn1.Promise("%s")' %
+                                          (ident, ident))
+                        cycle_ident_list.append (ident)
                         depend_list = [d for d in self.dependencies[ident] if d in assign_keys]
                         cycle_list.append ("%s(%s)" % (ident, ",".join (depend_list)))
                         
                 text_list.append ("# Cycle XXX " + ",".join (cycle_list))
-                for (ident, val) in self.assignments.iteritems ():
-                    if not already_output.has_key (ident):
-                        text_list.append ("%s=%s" % (ident, self.assignments [ident]))
+                promises_dict = {}
+                for ident in cycle_ident_list:
+                    text_list.append("%s=%s" % (ident,self.assignments[ident]))
+
+                text_list.append ("_promises_dict = {")
+                for ident in cycle_ident_list:
+                    text_list.append ("'%s' : %s," % (ident, ident))
+                text_list.append ("}")
+                for ident in cycle_ident_list:
+                    text_list.append ("%s.fulfill_promises (_promises_dict)"
+                                      % ident)
                 break
 
         self.output ("\n".join (text_list))
