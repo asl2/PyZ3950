@@ -340,8 +340,8 @@ class C2Parser:
 
         else:
             # Check for named index
-            if (zconfig.BIB1.has_key(self.currentToken.lower())):
-                attrs = [[oids.Z3950_ATTRS_BIB1_ov, 1, zconfig.BIB1[self.currentToken.lower()]]]
+            if (zconfig.bib1.has_key(self.currentToken.lower())):
+                attrs = [[oids.Z3950_ATTRS_BIB1_ov, 1, zconfig.bib1[self.currentToken.lower()]]]
             else:
                 # Just pass through the name
                 attrs = [[oids.Z3950_ATTRS_BIB1_ov, 1, self.currentToken]]
