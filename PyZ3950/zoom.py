@@ -838,6 +838,8 @@ class ScanSet (_AttrCheck, _ErrHdlr):
         """Return number of entries"""
         return self._scanresp.numberOfEntriesReturned
     def _get_rec (self, i):
+        if (not hasattr(self._scanresp.entries, 'entries')):
+            raise IndexError
         t = self._scanresp.entries.entries[i]
         if t[0] == 'termInfo':
             return t[1]
