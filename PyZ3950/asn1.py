@@ -809,7 +809,7 @@ class ELTBASE:
 class TAG: # base class for IMPLICIT and EXPLICIT
     def __init__ (self, tag, cls=CONTEXT_FLAG):
         if type (tag) == type (0):
-            tag = (CONTEXT_FLAG, tag)
+            tag = (cls, tag)
         self.tag = (tag[0] | self.flags, tag[1])
     def set_typ (self, typ):
         self.typ = typ
