@@ -175,7 +175,6 @@ class Connection(_AttrCheck, _ErrHdlr):
     """Connection object"""
 
     not_implement_attrs = ['piggyback',
-                        'presentChunk',
                         'schema',
                         'proxy',
                         'async']
@@ -185,15 +184,16 @@ class Connection(_AttrCheck, _ErrHdlr):
                 'smallSetElementSetNames',
                 'mediumSetElementSetNames']
     init_attrs = ['user',
-               'password',
-               'group',
-               'maximumRecordSize',
-               'preferredMessageSize',
-               'lang',
-               'charset',
-               'implementationId',
-               'implementationName',
-               'implementationVersion']
+                  'password',
+                  'group',
+                  'maximumRecordSize',
+                  'preferredMessageSize',
+                  'lang',
+                  'charset',
+                  'implementationId',
+                  'implementationName',
+                  'implementationVersion'
+                  ]
     scan_zoom_to_z3950 = {
         # translate names from ZOOM spec to Z39.50 spec names
         'stepSize' : 'stepSize',
@@ -204,13 +204,15 @@ class Connection(_AttrCheck, _ErrHdlr):
     attrlist = search_attrs + init_attrs + scan_zoom_to_z3950.keys () + [
         'databaseName',
         'namedResultSets',
-        'preferredRecordSyntax', # next two inheritable by RecordSet
+        'preferredRecordSyntax', # these three inheritable by RecordSet
         'elementSetName',
+        'presentChunk',
         'targetImplementationId',
         'targetImplementationName',
         'targetImplementationVersion',
         'host',
-        'port'
+        'port',
+
         ] + _ErrHdlr.err_attrslist
 
     _queryTypes = ['S-CQL', 'S-CCL', 'RPN', 'ZSQL']
@@ -225,7 +227,7 @@ class Connection(_AttrCheck, _ErrHdlr):
     preferredMessageSize = 0x100000
     maximumRecordSize = 0x100000
     stepSize = 0
-    numberOfEntries = 20
+    numberOfEntries = 20 # for SCAN
     responsePosition = 1
     databaseName = 'Default'
     implementationId = 'PyZ3950'
@@ -236,6 +238,7 @@ class Connection(_AttrCheck, _ErrHdlr):
     user = None
     password = None
     group = None
+    presentChunk = 20 # for result sets
 
     def __init__(self, host, port, connect=1, **kw):
         """Establish connection to hostname:port.  kw contains initial
@@ -488,10 +491,10 @@ class ResultSet(_AttrCheck, _ErrHdlr):
     appropriate exception will be raised on access to the i-th
     element (either access by itself or as part of a slice)."""
 
-    inherited_elts = ['elementSetName', 'preferredRecordSyntax']
+    inherited_elts = ['elementSetName', 'preferredRecordSyntax',
+                      'presentChunk']
     attrlist = inherited_elts + _ErrHdlr.err_attrslist
     not_implement_attrs = ['piggyback',
-                        'presentChunk',
                         'schema']
 
     def __init__ (self, conn, searchResult, resultSetName, ctr):
@@ -503,7 +506,6 @@ class ResultSet(_AttrCheck, _ErrHdlr):
         self._ctr = ctr
         # _records is a dict indexed by preferredRecordSyntax of
         # dicts indexed by elementSetName of lists of records
-        self._maxreq = 20
         self._ensure_recs ()
         
         # whether there are any records or not, there may be
@@ -567,8 +569,13 @@ class ResultSet(_AttrCheck, _ErrHdlr):
         self._ensure_recs ()
         if self._get_rec (i) == None:
             self._check_stale ()
-            lbound = (i / self._maxreq) * self._maxreq
-            count = min (self._maxreq, len (self) - lbound)
+            maxreq = self.presentChunk
+            if maxreq == 0: # get everything at once
+                lbound = i
+                count = len (self) - lbound
+            else:
+                lbound = (i / maxreq) * maxreq
+                count = min (maxreq, len (self) - lbound)
             kw = self._make_keywords ()
             if self._get_rec (lbound) == None:
                 presentResp = self._conn._cli.present (
