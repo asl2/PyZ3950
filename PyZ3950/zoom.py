@@ -270,14 +270,12 @@ class Connection(_AttrCheck, _ErrHdlr):
             options = ['namedResultSets']
         else:
             options = []
-
-        try:
-            self._cli = z3950.Client (self.host, self.port,
-                                      optionslist = options, **initkw)
-            self._cli.set_exns (ConnectionError, ProtocolError, UnexpectedCloseError)
-            self.namedResultSets = self._cli.get_option ('namedResultSets')
-        except z3950.ConnectionError, val:
-            raise ConnectionError (val)
+        initkw ['ConnectionError'] = ConnectionError
+        initkw ['ProtocolError'] = ProtocolError
+        initkw ['UnexpectedCloseError'] = UnexpectedCloseError
+        self._cli = z3950.Client (self.host, self.port,
+                                  optionslist = options, **initkw)
+        self.namedResultSets = self._cli.get_option ('namedResultSets')
         self.targetImplementationId = self._cli.initresp.implementationId
         self.targetImplementationName = self._cli.initresp.implementationName
         self.targetImplementationVersion  = self._cli.initresp.implementationVersion
@@ -411,8 +409,6 @@ Supported query types:  CCL, S-CCL, CQL, S-CQL, PQF, C2, ZSQL, CQL-TREE
                self.query = ccl.mk_rpn_query (query)
            except ccl.QuerySyntaxError, err:
                raise QuerySyntaxError
-           except z3950.ConnectionError, val:
-               raise ConnectionError (val)
         elif typ == 'S-CCL': # server-side ccl
             self.typ = typ
             self.query =  ('type-2', query)
