@@ -221,7 +221,14 @@ class MARC:
                 str_l.append (str(k) + " " + l[0] + l[1] + " ".join (sl))
             return "\n".join (str_l)
     def extract_int (self, start, end):
-        return string.atoi (self.marc[start:end+1])
+        bit = self.marc[start:end+1]
+        if bit.isspace():
+            return 0
+        try:
+            return string.atoi (bit)
+        except:
+            raise MarcError("Un-intable string: %r in %r" % (bit, self.marc))
+        
     def get_MARC (self):
         hdrlist = [' '] * 24
         zerostr = self.fields [0][0]
