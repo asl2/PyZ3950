@@ -83,6 +83,9 @@ print_hex = 0
 class Z3950Error(Exception):
     pass
 
+# Note: following 3 exceptions are defaults, but can be changed by
+# calling conn.set_exns
+
 class ConnectionError(Z3950Error): # TCP or other transport error
     pass
 
@@ -164,12 +167,18 @@ def disp_resp (resp):
 class Conn:
     rdsz = 65536
     def __init__ (self, sock = None):
+        self.set_exns (ConnectionError, ProtocolError, UnexpectedCloseError)
         if sock == None:
             self.sock = socket.socket (socket.AF_INET, socket.SOCK_STREAM)
         else:
             self.sock = sock
         self.decode_ctx = asn1.IncrementalDecodeCtx (APDU)
         self.encode_ctx = asn1.Ctx ()
+    def set_exns (self, conn, protocol, unexp_close):
+        self.ConnectionError = conn
+        self.ProtocolError = protocol
+        self.UnexpectedCloseError = unexp_close
+
     def set_codec (self, charset_name, charsets_in_records):
         self.charset_name = charset_name
         self.charsets_in_records = not not charsets_in_records # collapse None and 0
@@ -193,9 +202,9 @@ class Conn:
         try:
             b = self.sock.recv (self.rdsz)
         except socket.error, val:
-            raise ConnectionError ('socket', str (val))
+            raise self.ConnectionError ('socket', str (val))
         if len (b) == 0: # graceful close
-            raise ConnectionError ('graceful close')
+            raise self.ConnectionError ('graceful close')
         if trace_recv:
             print map (lambda x: hex(ord(x)), b)
         return b
@@ -207,7 +216,8 @@ class Conn:
                 b = self.readproc ()
                 self.decode_ctx.feed (map (ord, b))
             except asn1.BERError, val:
-                raise ProtocolError ('ASN1 BER', str(val))
+                raise self.ProtocolError ('ASN1 BER', str(val))
+
 
 class Server (Conn):
     test = 0
@@ -222,9 +232,9 @@ class Server (Conn):
             (typ, val) = self.read_PDU ()
             fn = self.fn_dict.get (typ, None)
             if fn == None:
-                raise ProtocolError ("Bad typ", typ + " " + str (val))
+                raise self.ProtocolError ("Bad typ", typ + " " + str (val))
             if typ <> 'initRequest' and self.expecting_init:
-                raise ProtocolError ("Init expected", typ)
+                raise self.ProtocolError ("Init expected", typ)
             fn (self, val)
     def send (self, val):
         b = self.encode_ctx.encode (APDU, val)
@@ -251,7 +261,7 @@ class Server (Conn):
     def search (self, sreq):
         if sreq.replaceIndicator == 0 and self.result_sets.has_key (
             sreq.resultSetName):
-            raise ProtocolError ("replaceIndicator 0")
+            raise self.ProtocolError ("replaceIndicator 0")
         result = self.search_child (sreq.query)
         sresp = SearchResponse ()
         self.result_sets[sreq.resultSetName] = result
@@ -446,7 +456,7 @@ class Client (Conn):
         try:
             self.sock.connect ((addr, port))
         except socket.error, val:
-            raise ConnectionError ('socket', str(val))
+            raise self.ConnectionError ('socket', str(val))
         try_v3 =  Z3950_VERS == 3
         negotiate_charset = charset_list <> None or lang_list <> None
         InitReq = make_initreq (optionslist, authentication = authentication,
@@ -498,7 +508,7 @@ class Client (Conn):
         try:
             self.sock.send (b)
         except socket.error, val:
-            raise ConnectionError('socket', str(val))
+            raise self.ConnectionError('socket', str(val))
 
         if expected == None:
             return
@@ -516,12 +526,12 @@ class Client (Conn):
         if arm == expected: # may be 'close'
             return val
         elif arm == 'close':
-            raise UnexpectedCloseError (
+            raise self.UnexpectedCloseError (
                 "Server closed connection reason %d diag info %s" % \
                 (getattr (val, 'closeReason', -1),
                  getattr (val, 'diagnosticInformation', 'None given')))
         else:
-            raise ProtocolError (
+            raise self.ProtocolError (
                 "Unexpected response from server %s %s " % (expected,
                                                             repr ((arm, val))))
     def set_dbnames (self, dbnames):
@@ -599,9 +609,8 @@ class Client (Conn):
         close.diagnosticInformation = 'Normal close'
         try:
             rv =  self.transact (('close', close), 'close')
-        except ConnectionError:
+        except self.ConnectionError:
             rv = None
-            pass
         self.sock.close ()
         return rv
 
