@@ -11,7 +11,6 @@ about lexing errors.
 
 Added an example Z39.50 server for use with twisted to  example/twisted/*.
 
-
 2.02 (2004 Jun 07)
 Removed code to generate parsetab at install time (too difficult
 to maintain across platforms, 2.01 was broken on Windows)
