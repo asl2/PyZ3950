@@ -3,7 +3,12 @@ include TODO
 include header
 include footer
 include mkdoc.py
+include hacked_pydoc.py
 include vers.py
+include MANIFEST.in
 graft example
 graft tools
 graft compiler
+graft ill
+graft z3950_asn
+graft test
