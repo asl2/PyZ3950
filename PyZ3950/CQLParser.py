@@ -34,6 +34,8 @@ booleans = ['and', 'or', 'not', 'prox']
 reservedPrefixes = {"srw" : "http://www.loc.gov/zing/cql/srw-indexes/v1.0/",
                     "cql" : "info:srw/cql-context-set/1/cql-v1.1"}
 
+XCQLNamespace = "http://www.loc.gov/zing/srw/xcql/"
+
 # End of 'configurable' stuff
 
 class PrefixableObject:
@@ -155,7 +157,11 @@ class Triple (PrefixableObject):
     def toXCQL(self, depth=0):
         "Create the XCQL representation of the object"
         space = "  " * depth
-        xml = ['%s<triple>\n' % (space)]
+        if (depth == 0):
+            xml = ['<triple xmlns="%s">\n' % (XCQLNamespace)]
+        else:
+            xml = ['%s<triple>\n' % (space)]
+            
         if self.prefixes:
             xml.append(PrefixableObject.toXCQL(self, depth+1))
 
@@ -232,14 +238,18 @@ class SearchClause (PrefixableObject):
     def toXCQL(self, depth=0):
         "Produce XCQL version of the object"
         space = "  " * depth
-        xml = [space + "<searchClause>\n"]
+        if (depth == 0):
+            xml = ['<searchClause xmlns="%s">\n' % (XCQLNamespace)]
+        else:
+            xml = ['%s<searchClause>\n' % (space)]
+
         if self.prefixes:
             xml.append(PrefixableObject.toXCQL(self, depth+1))
 
         xml.append(self.index.toXCQL(depth+1))
         xml.append(self.relation.toXCQL(depth+1))
         xml.append(self.term.toXCQL(depth+1))
-        xml.append(space + "</searchClause>\n")
+        xml.append("%s</searchClause>\n" % (space))
         return ''.join(xml)
 
     def toCQL(self):
@@ -252,7 +262,7 @@ class SearchClause (PrefixableObject):
         text.append('%s %s "%s"' % (self.index, self.relation.toCQL(), self.term))
         return ' '.join(text)
 
-    def getResultSetId(self):
+    def getResultSetId(self, top=None):
         idx = self.index
         idx.resolvePrefix()
         if (idx.prefixURI == reservedPrefixes['cql'] and idx.value.lower() == 'resultsetid'):
