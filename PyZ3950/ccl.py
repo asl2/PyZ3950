@@ -95,7 +95,9 @@ default_relop = '='
 def t_QUAL(t):
     return t
 
-t_QUAL.__doc__ = "(?i)" + ("|".join (map (lambda x: '(' + x + ')', qual_dict.keys()))) + r"|(\([0-9]+,[0-9]+\))"
+def mk_quals ():
+    quals = ("|".join (map (lambda x: '(' + x + ')', qual_dict.keys())))
+    t_QUAL.__doc__ = "(?i)" + quals + r"|(\([0-9]+,[0-9]+\))"
 
 def t_QUOTEDVALUE(t):
     r"(\".*?\")"
@@ -117,9 +119,23 @@ t_ignore = " \t"
 
 def t_error(t):
     raise LexError ('t_error: ' + str (t))
+
     
 import lex
-lexer = lex.lex()
+
+
+
+def relex ():
+    global lexer
+    mk_quals ()
+    lexer = lex.lex()
+
+relex ()
+
+def add_qual (qual_name, val):
+    """Add a qualifier definition, and regenerate the lexer."""
+    qual_dict[qual_name] = val
+    relex ()
 
 import yacc
 
