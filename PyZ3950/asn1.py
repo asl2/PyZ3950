@@ -36,7 +36,7 @@
 # 2002/05/23 - fix handling of ANY.  Needed for handling of SUTRS records
 # by Z3950.
 
-from __future__ import nested_scopes
+
 
 
 """<p>asn1 is a relatively general-purpose ASN.1 BER encoder and decoder.
@@ -120,6 +120,8 @@ _ASN.1: Communication between Heterogeneous Systems_</a>
 (or available in book form)</li>
 </ul>
 """
+
+from __future__ import nested_scopes
 vers = "0.83"
 
 import array

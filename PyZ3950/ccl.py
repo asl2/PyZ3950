@@ -121,10 +121,12 @@ def t_error(t):
 import lex
 lexer = lex.lex()
 
-if in_setup:
-    import yacc
-else:
-    from PyZ3950 import yacc
+import yacc
+
+#if in_setup:
+#    import yacc
+#else:
+#    from PyZ3950 import yacc
 
 class Node:
     def __init__(self,type,children=None,leaf=None):
@@ -237,7 +239,8 @@ precedence = (
     ('left', 'LOGOP'),
     )
 
-yacc.yacc (debug=0, tabpackage = 'PyZ3950', tabmodule='PyZ3950_parsetab')
+yacc.yacc (debug=0, tabmodule = 'PyZ3950_parsetab')
+#yacc.yacc (debug=0, tabpackage = 'PyZ3950', tabmodule='PyZ3950_parsetab')
 
 
 def attrset_to_oid (attrset):
