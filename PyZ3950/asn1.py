@@ -171,6 +171,8 @@ trace_codec = 0
 # Note: BERError is only for decoding errors (either input data is illegal
 # BER, or input data is legal BER but we don't support it.)
 
+# call encode_per and decode_per for PER?  Or check Ctx?
+
 class BERError (Exception): pass
 
 class EncodingError (Exception): pass
@@ -181,7 +183,7 @@ class EncodingError (Exception): pass
 # you need with appropriate codecs.
 
 def encode (spec, data):
-    ctx = Ctx (Ctx.dir_write)
+    ctx = Ctx ()
     spec.encode (ctx, data)
     return ctx.get_data ()
 
@@ -332,6 +334,7 @@ def read_base128 (buf, start):
     return (start, val)
 
 class CtxBase:
+    """Charset codec functionality, shared among all contexts."""
     def __init__ (self):
         self.charset_switch_oids = {}
         self.codec_dict_stack = [{}]
@@ -603,16 +606,11 @@ def len_to_buf (mylen):
         l.reverse ()
         return l
 
-class Ctx(CtxBase):
-#    dir_read = 0
-# use incremental decoder instead for read
-    dir_write = 1 
-    def __init__ (self, direction = dir_write):
+class WriteCtx (CtxBase):
+    def __init__ (self):
         CtxBase.__init__ (self)
-        assert (direction == self.dir_write)
         self.clear ()
     def clear (self):
-        self.cur_tag = None
         self.buf = array.array ('B')
     def encode (self, spec, data):
         self.clear ()
@@ -620,6 +618,65 @@ class Ctx(CtxBase):
         return self.get_data ()
     def get_data (self):
         return self.buf
+    def bytes_write (self, data):
+        # type-checking is icky but required by array i/f
+        if isinstance (data, type ([])):
+            self.buf.fromlist (data)
+        elif isinstance (data, type ('')):
+            self.buf.fromstring (data)
+        else:
+            raise EncodingError, "Bad type to bytes_write"
+
+BYTE_BITS = 8
+
+def extract_bits (val, lo_bit, hi_bit):
+    tmp = (val & (~0L << (lo_bit))) >> lo_bit
+    tmp = tmp & ((1L << (hi_bit - lo_bit + 1)) - 1)
+    return tmp
+
+    
+class PERWriteCtx(WriteCtx):
+    def __init__ (self, aligned = 0, canonical = 0):
+        self.aligned = aligned
+        self.canonical = canonical
+        self.bit_offset = 0
+
+        WriteCtx.__init__ (self)
+    def write_bits_unaligned (self, val, bit_len):
+        # write starting at bit_offset, no matter what
+        byte_count = (bit_len + self.bit_offset) / BYTE_BITS
+        if (bit_len + self.bit_offset) % BYTE_BITS <> 0:
+            byte_count += 1
+        my_range = range (byte_count - 1, -1, -1)
+        lo_bits = map (lambda x: x * BYTE_BITS, my_range)
+        def extract_val (lo_bit):
+            return extract_bits (val, lo_bit, lo_bit + BYTE_BITS - 1)
+        bytes = map (extract_val, lo_bits)
+
+        new_bit_offset = (bit_len + self.bit_offset) % BYTE_BITS
+        if new_bit_offset <> 0:
+            bytes [-1] = bytes [-1] << (BYTE_BITS - new_bit_offset)
+        if self.bit_offset <> 0:
+            self.buf[-1] = self.buf[-1] | bytes [0]
+            self.bytes_write (bytes[1:])
+        else:
+            self.bytes_write (bytes)
+        self.bit_offset = new_bit_offset
+        
+    def write_bits (self, val, bit_len):
+        if self.aligned and self.bit_offset <> 0:
+            self.write_bits_unaligned (0, BYTE_BITS - self.bit_offset)
+            self.bit_offset = 0
+        self.write_bits_unaligned (val, bit_len)
+
+
+                  
+class BERWriteCtx(WriteCtx):
+    def __init__ (self):
+        WriteCtx.__init__ (self)
+    def clear (self):
+        self.cur_tag = None
+        WriteCtx.clear (self)
     def set_implicit_tag (self, tag):
         if self.cur_tag == None:
             self.cur_tag = tag
@@ -664,24 +721,19 @@ class Ctx(CtxBase):
         # array.pop not available in Python 1.5.2.  We could just use a
         # less efficient length encoding (long form w/leading 0 bytes
         # where necessary), but ...
+        # XXX fix to use more efficient code, now that we don't support 1.5.2!
+        
         for i in range (len(l) - lenlen):
             self.buf.insert (pos, 0)
         for i in range(len(l)):
             self.buf[pos + i] = l [i]
 
-    def bytes_write (self, data):
-        # type-checking is icky but required by array i/f
-        if isinstance (data, type ([])):
-            self.buf.fromlist (data)
-        elif isinstance (data, type ('')):
-            self.buf.fromstring (data)
-        else:
-            raise EncodingError, "Bad type to bytes_write"
-
 
     def raise_error (self, descr):
         offset = len (self.buf)
         raise BERError, (descr, offset)
+
+Ctx = BERWriteCtx # Old synonym for historical reasons
 
 
 # EXPLICIT, IMPLICIT, CHOICE can't derive from eltbase b/c they need to do
@@ -1624,13 +1676,7 @@ class Tester:
 
 
     def run (self):
-        real_spec = TYPE(3,REAL)
-        real_spec2 = REAL
-        rval = REAL ()
-        rval.set_val (4.0)
-        assert 4.0 == rval.get_val ()
-        self.test (real_spec, rval)
-        self.test (real_spec2, rval)
+
         int_spec = TYPE (EXPLICIT(3), INTEGER)
         string_spec = TYPE (5, GeneralString)
         bitstring_spec = TYPE (5, BITSTRING)
@@ -1658,6 +1704,14 @@ class Tester:
         self.test (oid_spec, oid)
         null_spec = TYPE (65536, NULL)
         self.test (null_spec, None)
+
+        real_spec = TYPE(3,REAL)
+        real_spec2 = REAL
+        rval = REAL ()
+        rval.set_val (4.0)
+        assert 4.0 == rval.get_val ()
+        self.test (real_spec, rval)
+        self.test (real_spec2, rval)
 
         bs_test = BitStringVal (17, 0x1B977L) # 011011100101110111
         print "bs_test", bs_test
@@ -1771,6 +1825,17 @@ def run (print_flag):
 import profile
 
 if __name__ == '__main__':
+    pwc = PERWriteCtx (aligned = 0)
+    pwc.write_bits (1,1)
+    pwc.write_bits (1, 31)
+    print pwc.get_data ()
+    pwc.write_bits (1, 2)
+    print pwc.get_data ()
+    pwc.write_bits (1, 1)
+    print pwc.get_data ()
+    pwc.write_bits (1, 6)
+    pwc.write_bits (1, 2)
+    print pwc.get_data ()
     if 0:
         profile.run ("run (0)")
     else:
