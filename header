@@ -25,8 +25,7 @@ href="http://systems.cs.uchicago.edu/ply/">PLY package</a>, licensed
 under the LGPL.  Click <a href="PyZ3950-$version$.tar.gz">here</a> to
 download version $version$ of PyZ3950.  It's packaged with distutils, so
 unzip and untar, run <code>python setup.py build</code>, and then
-<code>python setup.py install</code>.  Here's the <a
-href="CHANGELOG">CHANGELOG</a>.  Most development has been done under
+<code>python setup.py install</code>.  Most development has been done under
 Linux, but I've tested briefly under Win98 (and, in theory, the code
 should run anywhere Python runs).  The <a href="http://cvs.sourceforge.net/viewcvs.py/tyrannioware">CVS</a> repository is at sourceforge.<p>
 
