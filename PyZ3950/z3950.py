@@ -494,7 +494,12 @@ class Client (Conn):
             decoded = self.read_PDU ()
             print "to_send", to_send, "decoded", decoded
             assert (to_send == decoded)
-        self.sock.send (b)
+
+        try:
+            self.sock.send (b)
+        except socket.error, val:
+            raise ConnectionError('socket', str(val))
+
         if expected == None:
             return
         pdu = self.read_PDU ()

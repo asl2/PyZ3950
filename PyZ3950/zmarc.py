@@ -8,7 +8,6 @@ which takes binary MARC data.
 # http://www.pobox.com/~asl2/software/PyZ3950/
 # and is licensed under the X Consortium license:
 # Copyright (c) 2001, Aaron S. Lav, asl2@pobox.com
-# XML code contributed by Robert Sanderson
 # All rights reserved. 
 
 # Permission is hereby granted, free of charge, to any person obtaining a
@@ -51,10 +50,6 @@ fieldsep = '\x1e'
 sep = '\x1f' # XXX or 1D for pseudo-marc output from z3950.c
 recsep = '\x1d'
 
-
-# XXX:  Python strings are immutable.  Rewrite XML translations to use
-# ''.join(list_of_strings) for performance, or, even better, use
-# xml.dom.minidom to construct, and then writexml ()
 
 # Attributes for SGML DTD (!!!)  If not present, then I1 I2
 attrHash = { 22 : ['ISDSLvl', 'I2'], 
@@ -267,27 +262,28 @@ class MARC:
         keys = self.fields.keys()
         keys.sort()
 
-        xml = "<record>\n"
-        xml += "  <leader>%s</leader>\n" % (self.get_MARC()[:24])
+
+        xmllist = ["<record>\n", "  <leader>%s</leader>\n" % (self.get_MARC()[:24])]
 
         for key in keys:
             if key == 0:
                 # XXX Skip?? What are these??
                 pass
             elif key < 10:
-                xml += "  <controlfield tag=\"00%d\">%s</controlfield>\n" % (key, self.fields[key][0])
+                xmllist.append("  <controlfield tag=\"00%d\">%s</controlfield>\n" % (key, self.fields[key][0]))
             else:
                 for instance in self.fields[key]:
                     if key < 100:
                         keystr = "0" + str(key)
                     else:
                         keystr = str(key)
-                    xml += "  <datafield tag=\"%s\" ind1=\"%s\" ind2=\"%s\">\n" % (keystr, instance[0], instance[1])
+                    xmllist.append("  <datafield tag=\"%s\" ind1=\"%s\" ind2=\"%s\">\n" % (keystr, instance[0], instance[1]))
                     for sub in instance[2]:
-                        xml += "    <subfield code=\"%s\">%s</subfield>\n" % (sub[0], escape(sub[1]))
-                    xml += "  </datafield>\n"
+                        xmllist.append("    <subfield code=\"%s\">%s</subfield>\n" % (sub[0], escape(sub[1])))
+                    xmllist.append("  </datafield>\n")
 
-        xml += "</record>"
+        xmllist.append("</record>")
+        xml = ''.join(xmllist)
         return xml
 
     def toOAIMARC(self):
@@ -299,22 +295,23 @@ class MARC:
         marc = self.get_MARC()
 
         # What should these attributes really be?
-        xml = '<oai_marc type="%s" level="%s">\n' % (marc[6], marc[7])
+        xmllist  = ['<oai_marc type="%s" level="%s">\n' % (marc[6], marc[7])]
 
         for key in keys:
             if key == 0:
                 # Skip?? What are these?
                 pass
             elif key < 10:
-                xml += "  <fixfield id=\"%d\">%s</fixfield>\n" % (key, self.fields[key][0])
+                xmllist.append("  <fixfield id=\"%d\">%s</fixfield>\n" % (key, self.fields[key][0]))
             else:
                 for instance in self.fields[key]:
-                    xml += "  <varfield tag=\"%d\" i1=\"%s\" i2=\"%s\">\n" % (key, instance[0], instance[1])
+                    xmllist.append("  <varfield tag=\"%d\" i1=\"%s\" i2=\"%s\">\n" % (key, instance[0], instance[1]))
                     for sub in instance[2]:
-                        xml += "    <subfield label=\"%s\">%s</subfield>\n" % (sub[0], escape(sub[1]))
-                    xml += "  </varfield>\n"
+                        xmllist.append("    <subfield label=\"%s\">%s</subfield>\n" % (sub[0], escape(sub[1])))
+                    xmllist.append("  </varfield>\n")
 
-        xml += "</oai_marc>"
+        xmllist.append("</oai_marc>")
+        xml = ''.join(xmllist)
         return xml        
 
     def sgml_processCode(self, k):
@@ -329,15 +326,16 @@ class MARC:
         else:
             keystr = str(k)
 
-        sgml = ""
+        sgmllist = []
         for instance in self.fields[k]:
-            sgml += '        <fld%s %s="%s" %s="%s">\n' % (keystr, i1, instance[0], i2, instance[1])
+            sgmllist.append('        <fld%s %s="%s" %s="%s">\n' % (keystr, i1, instance[0], i2, instance[1]))
             for sub in instance[2]:
                 stag = sub[0]
                 if subfieldHash.has_key(stag):
                     stag = subfieldHash[stag]
-                sgml += '          <%s>%s</%s>\n' % (stag, escape(sub[1]), stag)
-            sgml += '        </fld%s>\n' % (keystr)
+                sgmllist.append('          <%s>%s</%s>\n' % (stag, escape(sub[1]), stag))
+            sgmllist.append('        </fld%s>\n' % (keystr))
+        sgml = ''.join(sgmllist)
         return sgml
         
 
@@ -398,108 +396,109 @@ class MARC:
 
                  
         marc = self.get_MARC()
-        sgml = "<usmarc>\n"
-        sgml += "  <leader>\n"
-        sgml += "    <lrl>%s</lrl>\n" % (marc[:5])
-        sgml += "    <recstat>%s</recstat>\n" % (marc[5])
-        sgml += "    <rectype>%s</rectype>\n" % (marc[6])
-        sgml += "    <biblevel>%s</biblevel>\n" % (marc[7])
-        sgml += "    <ucp>%s</ucp>\n" % (marc[8:10])
-        sgml += "    <indcount>%s</indcount>\n" % (marc[10])
-        sgml += "    <sfcount>%s</sfcount>\n" % (marc[11])
-        sgml += "    <baseaddr>%s</baseaddr>\n" % (marc[12:17])
-        sgml += "    <enclevel>%s</enclevel>\n" % (marc[17])
-        sgml += "    <dsccatfm>%s</dsccatfm>\n" % (marc[18])
-        sgml += "    <linkrec>%s</linkrec>\n" % (marc[19])
-        sgml += "    <entrymap>\n"
-        sgml += "      <flength>%s</flength>\n" % (marc[20])
-        sgml += "      <scharpos>%s</scharpos>\n" % (marc[21])
-        sgml += "      <idlength>%s</idlength>\n" % (marc[22])
-        sgml += "      <emucp>%s</emucp>\n" % (marc[23])
-        sgml += "    </entrymap>\n"
-        sgml += "  </leader>\n"
-        sgml += "  <directry></directry>\n"
 
-        sgml += "  <varflds>\n"
-        sgml += "    <varcflds>\n"
+        sgml = ["<usmarc>\n"]
+        sgml.append("  <leader>\n")
+        sgml.append("    <lrl>%s</lrl>\n" % (marc[:5]))
+        sgml.append("    <recstat>%s</recstat>\n" % (marc[5]))
+        sgml.append("    <rectype>%s</rectype>\n" % (marc[6]))
+        sgml.append("    <biblevel>%s</biblevel>\n" % (marc[7]))
+        sgml.append("    <ucp>%s</ucp>\n" % (marc[8:10]))
+        sgml.append("    <indcount>%s</indcount>\n" % (marc[10]))
+        sgml.append("    <sfcount>%s</sfcount>\n" % (marc[11]))
+        sgml.append("    <baseaddr>%s</baseaddr>\n" % (marc[12:17]))
+        sgml.append("    <enclevel>%s</enclevel>\n" % (marc[17]))
+        sgml.append("    <dsccatfm>%s</dsccatfm>\n" % (marc[18]))
+        sgml.append("    <linkrec>%s</linkrec>\n" % (marc[19]))
+        sgml.append("    <entrymap>\n")
+        sgml.append("      <flength>%s</flength>\n" % (marc[20]))
+        sgml.append("      <scharpos>%s</scharpos>\n" % (marc[21]))
+        sgml.append("      <idlength>%s</idlength>\n" % (marc[22]))
+        sgml.append("      <emucp>%s</emucp>\n" % (marc[23]))
+        sgml.append("    </entrymap>\n")
+        sgml.append("  </leader>\n")
+        sgml.append("  <directry></directry>\n")
+
+        sgml.append("  <varflds>\n")
+        sgml.append("    <varcflds>\n")
         for k in cflds:
-            sgml += "      <fld00%d>%s</fld00%s>\n" % (k, self.fields[k][0], k)
-        sgml += "    </varcflds>\n"
-        sgml += "    <vardflds>\n"
-        sgml += "      <numbcode>\n"
+            sgml.append("      <fld00%d>%s</fld00%s>\n" % (k, self.fields[k][0], k))
+        sgml.append("    </varcflds>\n")
+        sgml.append("    <vardflds>\n")
+        sgml.append("      <numbcode>\n")
         for k in numbcode:
-            sgml += self.sgml_processCode(k)
-        sgml += "      </numbcode>\n"
+            sgml.append(self.sgml_processCode(k))
+        sgml.append("      </numbcode>\n")
 
         if mainenty:
-            sgml += "      <mainenty>\n"
+            sgml.append("      <mainenty>\n")
             for k in mainenty:
-                sgml += self.sgml_processCode(k)
-            sgml += "      </mainenty>\n"
+                sgml.append(self.sgml_processCode(k))
+            sgml.append("      </mainenty>\n")
         if titles:
-            sgml += "      <titles>\n"
+            sgml.append("      <titles>\n")
             for k in titles:
-                sgml += self.sgml_processCode(k)
-            sgml += "      </titles>\n"
+                sgml.append(self.sgml_processCode(k))
+            sgml.append("      </titles>\n")
         if edimprnt:
-            sgml += "      <edimprnt>\n"
+            sgml.append("      <edimprnt>\n")
             for k in edimprnt:
-                sgml += self.sgml_processCode(k)
-            sgml += "      </edimprnt>\n"
+                sgml.append(self.sgml_processCode(k))
+            sgml.append("      </edimprnt>\n")
         if physdesc:
-            sgml += "      <physdesc>\n"
+            sgml.append("      <physdesc>\n")
             for k in physdesc:
-                sgml += self.sgml_processCode(k)
-            sgml += "      </physdesc>\n"
+                sgml.append(self.sgml_processCode(k))
+            sgml.append("      </physdesc>\n")
         if series:
-            sgml += "      <series>\n"
+            sgml.append("      <series>\n")
             for k in series:
-                sgml += self.sgml_processCode(k)
-            sgml += "      </series>\n"
+                sgml.append(self.sgml_processCode(k))
+            sgml.append("      </series>\n")
         if notes:
-            sgml += "      <notes>\n"
+            sgml.append("      <notes>\n")
             for k in notes:
-                sgml += self.sgml_processCode(k)
-            sgml += "      </notes>\n"
+                sgml.append(self.sgml_processCode(k))
+            sgml.append("      </notes>\n")
         if subjaccs:
-            sgml += "      <subjaccs>\n"
+            sgml.append("      <subjaccs>\n")
             for k in subjaccs:
-                sgml += self.sgml_processCode(k)
-            sgml += "      </subjaccs>\n"
+                sgml.append(self.sgml_processCode(k))
+            sgml.append("      </subjaccs>\n")
         if addenty:
-            sgml += "      <addenty>\n"
+            sgml.append("      <addenty>\n")
             for k in addenty:
-                sgml += self.sgml_processCode(k)
-            sgml += "      </addenty>\n"
+                sgml.append(self.sgml_processCode(k))
+            sgml.append("      </addenty>\n")
         if linkenty:
-            sgml += "      <linkenty>\n"
+            sgml.append("      <linkenty>\n")
             for k in linkenty:
-                sgml += self.sgml_processCode(k)
-            sgml += "      </linkenty>\n"
+                sgml.append(self.sgml_processCode(k))
+            sgml.append("      </linkenty>\n")
         if saddenty:
-            sgml += "      <saddenty>\n"
+            sgml.append("      <saddenty>\n")
             for k in saddenty:
-                sgml += self.sgml_processCode(k)
-            sgml += "      </saddenty>\n"
+                sgml.append(self.sgml_processCode(k))
+            sgml.append("      </saddenty>\n")
         if holdaltg:
-            sgml += "      <holdaltg>\n"
+            sgml.append("      <holdaltg>\n")
             for k in holdaltg:
-                sgml += self.sgml_processCode(k)
-            sgml += "      </holdaltg>\n"
+                sgml.append(self.sgml_processCode(k))
+            sgml.append("      </holdaltg>\n")
         if fld9xx:
-            sgml += "      <fld9xx>\n"
+            sgml.append("      <fld9xx>\n")
             for k in fld9xx:
-                sgml += self.sgml_processCode(k)
-            sgml += "      </fld9xx>\n"
-        sgml += "    </vardflds>\n"
-        sgml += "  </varflds>\n"
-        sgml += "</usmarc>"
-        return sgml
+                sgml.append(self.sgml_processCode(k))
+            sgml.append("      </fld9xx>\n")
+        sgml.append("    </vardflds>\n")
+        sgml.append("  </varflds>\n")
+        sgml.append("</usmarc>")
+        return ''.join(sgml)
         
 
     def toSimpleDC(self):
         """ Convert Marc into DC according to LC Crosswalk """
-        xml = '<dc xmlns="http://purl.org/dc/elements/1.1">\n'
+        xml = ['<dc xmlns="http://www.loc.gov/zing/srw/dcschema/v1.0/">\n']
 
         # Title -> 245
         if self.fields.has_key(245):
@@ -517,7 +516,7 @@ class MARC:
                 a += "; " + b
             elif b and not a:
                 a = b
-            xml += "  <title>%s</title>\n" % (a)
+            xml.append("  <title>%s</title>\n" % (a))
 
         # Creator -> 100,110,111,700,710,711
         authorKeys = [100, 110, 111, 700, 710, 711]
@@ -538,7 +537,7 @@ class MARC:
                         a += ", " + h
                     if d:
                         a += " (" + d + ")"
-                    xml  += "  <creator>%s</creator>\n" % (a)
+                    xml.append("  <creator>%s</creator>\n" % (a))
         
         # Subject -> 600,610, 611, 630, 650, 653
         # Just dump in directly...
@@ -550,7 +549,7 @@ class MARC:
                     for sub in instance[2]:
                         subject += sub[1] + " -- "
                     subject = subject[:-4]
-                    xml += "  <subject>%s</subject>\n" % (subject)
+                    xml.append("  <subject>%s</subject>\n" % (subject))
         
 
         # Publisher -> 260$a$b
@@ -568,11 +567,11 @@ class MARC:
                         d = sub[1]
                         if d[-1] == '.':
                             d = d[:-1]
-                        xml += "  <date>%s</date>\n" % (d)
+                        xml.append("  <date>%s</date>\n" % (d))
                 if b:
                     a += " " + b
                 if a:
-                    xml += "  <publisher>%s</publisher>\n" % (a)
+                    xml.append("  <publisher>%s</publisher>\n" % (a))
 
         # Type -> 655
         if self.fields.has_key(655):
@@ -581,7 +580,7 @@ class MARC:
                 for sub in instance[2]:
                     gf  += sub[1] + " -- "
                 gf = gf[:-4]
-                xml += "  <type>%s</type>\n" % (gf)
+                xml.append("  <type>%s</type>\n" % (gf))
 
         # Non Standard:  Identifier -> ISSN/ISBN
         for k in [20,22]:
@@ -589,7 +588,7 @@ class MARC:
                 for instance in self.fields[k]:
                     for sub in instance[2]:
                         if sub[0] == 'a':
-                            xml += "  <identifier>%s</identifier>\n" % (sub[1])
+                            xml.append("  <identifier>%s</identifier>\n" % (sub[1]))
 
         # Non Standard: Description -> 300
         if self.fields.has_key(300):
@@ -598,14 +597,14 @@ class MARC:
                 for sub in instance[2]:
                     desc += sub[1] + " "
                 desc = desc[:-1]
-                xml += "  <description>%s</description>\n" % (desc)
+                xml.append("  <description>%s</description>\n" % (desc))
                 
-        xml += "</dc>"
-        return xml
+        xml.append("</dc>")
+        return ''.join(xml)
 
     def toMODS(self):
         """ Tranform MARC record into MODS according to CrossWalk """
-        xml = "<mods>\n"
+        xml = ["<mods>\n"]
 
         if self.fields.has_key(245):
             instance = self.fields[245][0][2]
@@ -622,7 +621,7 @@ class MARC:
                 a += "; " + b
             elif b and not a:
                 a = b
-            xml += "  <titleInfo>\n    <title>%s</title>\n  </titleInfo>\n" % (a)
+            xml.append("  <titleInfo>\n    <title>%s</title>\n  </titleInfo>\n" % (a))
 
         # Creator -> 100,110,111, 700,710,711
         authorKeyTypes = {100 : 'personal',  110 : 'corporate', 111 : 'conference', 700 : 'personal', 710 : 'corporate',  711 : 'conference'}
@@ -647,7 +646,7 @@ class MARC:
                     if d:
                         name += '    <namePart type="date">%s</namePart>\n' % (d)
                     name += "    <role>creator</role>\n  </name>\n"
-                    xml += name
+                    xml.append(name)
 
         # XXX typeOfResource is Leader/06 or 07 
         # genre is 008/various plus ...
@@ -658,7 +657,7 @@ class MARC:
                 for sub in instance[2]:
                     gf  += sub[1] + " -- "
                 gf = gf[:-4]
-                xml += "  <genre>%s</genre>\n" % (gf)
+                xml.append("  <genre>%s</genre>\n" % (gf))
 
         # PublicationInfo from 260
         if self.fields.has_key(260):
@@ -687,7 +686,7 @@ class MARC:
                         pub += '    <edition>%s</edition>\n' % (sub[0])
                 
             pub += "  </publicationInfo>\n"
-            xml += pub
+            xml.append(pub)
 
         if self.fields.has_key(41):
             a = two = ''
@@ -702,71 +701,68 @@ class MARC:
                     a = sub[1]
 
             if a and not two:
-                xml += '  <language authority="iso639-2b">%s</language>\n' % (a)
+                xml.append('  <language authority="iso639-2b">%s</language>\n' % (a))
             elif a:
-                xml += '  <language authority="%s">%s</language>\n' % (two, a)
+                xml.append('  <language authority="%s">%s</language>\n' % (two, a))
 
         # physdesc
         # Parsing of 007 and 008
         if self.fields.has_key(300):
-            xml += "  <physicalDescription>\n"
+            xml.append("  <physicalDescription>\n")
             for instance in self.fields[300]:
                 desc = ''
                 for sub in instance[2]:
                     desc += sub[1] + " "
                 desc = desc[:-1]
-                xml += "    <extent>%s</extent>\n" % (desc)            
-            xml += "  </physicalDescription>\n"
+                xml.append("    <extent>%s</extent>\n" % (desc))
+            xml.append("  </physicalDescription>\n")
 
         # Abstract
         if self.fields.has_key(520):
-            xml += '  <abstract>\n'
+            xml.append('  <abstract>\n')
             for sub in self.fields[520]:
                 if sub[0] == 'a' or sub[0] == 'b':
-                    xml += sub[1]
-            xml += "  </abstract>\n"
+                    xml.append(sub[1])
+            xml.append("  </abstract>\n")
 
         subjectList = [600, 610, 611, 630, 650, 653]
         for s in subjectList:
             if self.fields.has_key(s):
                 for instance in self.fields[s]:
-                    xml += "  <subject>\n"
+                    xml.append("  <subject>\n")
                     for sub in instance[2]:
                         if sub[0] in ['a', 'b', 'c', 'd']:
-                            xml += "    <topic>%s</topic>\n" % (sub[1])
+                            xml.append("    <topic>%s</topic>\n" % (sub[1]))
                         elif sub[0] == 'z':
-                            xml += '    <geographic>%s</geographic>\n' % (sub[1])
+                            xml.append('    <geographic>%s</geographic>\n' % (sub[1]))
                         elif sub[0] == 'y':
-                            xml += '    <temporal>%s</temporal>\n' % (sub[1])
-                    xml += "  </subject>\n"
+                            xml.append('    <temporal>%s</temporal>\n' % (sub[1]))
+                    xml.append("  </subject>\n")
         
         if self.fields.has_key(20):
             for instance in self.fields[20]:
                 for sub in instance[2]:
                     if sub[0] == 'a':
-                        xml += '  <identifier type="isbn">%s</identifier>\n' % (sub[1])
+                        xml.append('  <identifier type="isbn">%s</identifier>\n' % (sub[1]))
         if self.fields.has_key(22):
             for instance in self.fields[22]:
                 for sub in instance[2]:
                     if sub[0] == 'a':
-                        xml += '  <identifier type="issn">%s</identifier>\n' % (sub[1])
+                        xml.append('  <identifier type="issn">%s</identifier>\n' % (sub[1]))
         if self.fields.has_key(24):
             for instance in self.fields[24]:
                 for sub in instance[2]:
                     if sub[0] == 'a':
-                        xml += '  <identifier type="isrc">%s</identifier>\n' % (sub[1])
+                        xml.append('  <identifier type="isrc">%s</identifier>\n' % (sub[1]))
         if self.fields.has_key(28):
             for instance in self.fields[28]:
                 for sub in instance[2]:
                     if sub[0] == 'a':
-                        xml += '  <identifier type="matrix number">%s</identifier>\n' % (sub[1])
+                        xml.append('  <identifier type="matrix number">%s</identifier>\n' % (sub[1]))
 
 
-        xml += "</mods>"
-        return xml
-
-
-        
+        xml.append("</mods>")
+        return ''.join(xml)
 
         
 
