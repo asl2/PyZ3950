@@ -1,17 +1,26 @@
 
-# Base Classes
+# Base Class
 
 class SRWDiagnostic (Exception):
     """ Base Diagnostic Class"""
     code = 0
+    uri = "info:srw/diagnostic/1/"
     details = ""
     message = ""
+
     surrogate = 0
     fatal = 1
 
     def __str__(self):
-        return "%d [%s]: %s" % (self.code, self.message, self.details)
+        return "%i [%s]: %s" % (self.uri, self.message, self.details)
 
+    # NB 'Need' name for serialization in SRW 
+    def __init__(self, name=None):
+        if (self.code):
+            self.uri = "%s%d" % (self.uri, self.code)
+        Exception.__init__(self)
+
+# Diagnostic Types
 
 class GeneralDiagnostic (SRWDiagnostic):
     pass
@@ -35,12 +44,17 @@ class ScanDiagnostic (SRWDiagnostic):
     pass
 
 class DeprecatedDiagnostic(SRWDiagnostic):
-    def __init__(self):
+    def __init__(self,  name=None):
         print "WARNING:  Use of deprecated diagnostic %s" % (self)
+        SRWDiagnostic.__init__(self)
 
 class ExplainDiagnostic (DeprecatedDiagnostic):
     pass
 
+
+# Rob's (empty) diagnostic set
+class RobDiagnostic (SRWDiagnostic):
+    uri = "info:srw/diagnostic/2/"
 
 
 # Individual Diagnostics
@@ -75,7 +89,7 @@ class Diagnostic7 (GeneralDiagnostic):
 
 class Diagnostic8 (GeneralDiagnostic):
     code = 8
-    message = "Unknown database"
+    message = "Unknown parameter"
 
 
 

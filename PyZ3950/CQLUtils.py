@@ -76,7 +76,34 @@ class ZCQLConfig:
             "anywhere" : 1035,
             "sici" : 1037
             }
-    
+
+    exp1 = {"explainCategory" :1,
+            "humanStringLanguage" : 2,
+            "databaseName" : 3,
+            "serverName" : 4,
+            "attributeSetOID" : 5,
+            "recordSyntaxOID" : 6,
+            "tagSetOID" : 7,
+            "extendedServiceOID" : 8,
+            "dateAdded" : 9,
+            "dateChanged" : 10,
+            "dateExpires" : 11,
+            "elementSetName" : 12,
+            "processingContext" : 13,
+            "processingName" : 14,
+            "termListName" : 15,
+            "schemaOID" : 16,
+            "producer" : 17,
+            "supplier" : 18,
+            "availability" : 19,
+            "proprietary" : 20,
+            "userFee" : 21,
+            "variantSetOID" : 22,
+            "unitSystem" : 23,
+            "keyword" : 24,
+            "explainDatabase" : 25,
+            "processingOID" : 26
+            }
   
     xd1 = {"title" : 1,
           "subject" : 2,
