@@ -5,8 +5,6 @@ import visitor
 import compiler
 import time
 
-
-    
 class Visitor:
     def __init__ (self, defined_dict, source_name, indent = 0):
         self.source_name = source_name
@@ -120,29 +118,40 @@ class Visitor:
         self.register_assignment (node.name.name, s,  depend_list)
 
     def visitValue_Assign (self, node):
-        self.output ("Value_assign")
+        self.output ("#Value_assign")
     def visitPyQuote (self, node):
         self.register_pyquote (node.val)
     def handleNamedNumList (self, node):
         def mk_named_num (nn):
             return "('%s',%s)" % (nn.ident, nn.val)
         names = ",".join (map (mk_named_num, node.named_list))
-        self.output ("asn1.%s_class ([%s])" % (node.asn1_typ, names))
+        lo = None
+        hi = None
+        if hasattr (node, 'subtype'):
+            assert (len (node.subtype) == 1) # XXX take intersection
+            st = node.subtype [0]
+            if isinstance (st, compiler.ValueRange):
+                lo = st.lo
+                hi = st.hi
+            # XXX might also be size (for bitstrings)
+        self.output ("asn1.%s_class ([%s],%s,%s)" % (node.asn1_typ, names,
+                                                     lo, hi))
     visitInteger = handleNamedNumList
     visitBitString = handleNamedNumList
 
     def visitType_Ref (self, node):
         self.output (node.name)
-    def visitSequence_Of (self, node):
-        s = self.visit_saving (node.val)
-        self.output ('%sasn1.SEQUENCE_OF (%s)' % (self.spaces (), s)) # XXX handle node.size_constr
-        # XXX prefix w/ self.spaces for compatibility with old output, makes diffing
-        # against old-style compiler's output easier
+    def mk_seq_or_set_of (name):
+        def work (self, node):
+            s = self.visit_saving (node.val)
+            self.output ('%sasn1.%s (%s)' % (self.spaces (), name, s)) # XXX handle node.size_constr
+        return work
+    visitSequence_Of = mk_seq_or_set_of ('SEQUENCE_OF')
+    visitSet_Of = mk_seq_or_set_of ('SET_OF')
 
     def visitTag (self, node):
-        # XXX should do tag number conversion to int earlier, in compiler!
         s = self.visit_saving (node.typ)
-        val = int (node.tag.num)
+        val = node.tag.num
         typ = node.tag_typ.upper()
         if typ == 'DEFAULT':
             typ = self.tags_def # XXX should propagate in compiler
@@ -157,28 +166,31 @@ class Visitor:
         self.output ("asn1.%s" % node.val)
     def visitLiteral (self, node):
         self.output (node.val)
-    def visitSequence (self, node):
-        # name, tag (None for no tag, EXPLICIT() for explicit), typ)
-        # or '' + (1,) for optional
-        seq_name = getattr (node, 'sequence_name', None)
-        seq_name = repr (seq_name)
+    def mk_seq_or_choice_str (self, node):
         self.indent ()
         def visit_list (l):
             slist = map (self.visit_saving, l)
             return (",\n%s"% self.spaces ()).join (slist)
 
-        seqstr = visit_list (node.elt_list)
+        mainstr = visit_list (node.elt_list)
         if node.ext_list <> None:
             extstr = visit_list (node.ext_list)
         else:
             extstr = None
         self.outdent ()
-        if extstr <> None:
-            self.output ("%sasn1.SEQUENCE ([%s], ext=[%s], seq_name = %s)" % (
-                self.spaces (), seqstr, extstr, seq_name))
-        else:
-            self.output ("%sasn1.SEQUENCE ([%s], seq_name = %s)" % (self.spaces (), 
-                                                                    seqstr, seq_name))
+        return (mainstr, extstr)
+    def visitSequence (self, node):
+        seq_name = getattr (node, 'sequence_name', None)
+        seq_name = repr (seq_name)
+        (seqstr, extstr) = self.mk_seq_or_choice_str (node)
+        self.output ("%sasn1.SEQUENCE ([%s], seq_name = %s)" %
+                     (self.spaces (),seqstr, seq_name))
+# XXX should output extstr
+    def visitChoice (self, node):
+        (ch_str, ext_str) = self.mk_seq_or_choice_str (node)
+        self.output ("%sasn1.CHOICE ([%s])" % (self.spaces (), ch_str))
+# XXX should output extstr
+                     
     def visitElementType (self, node):
         # we have elt_type, val= named_type, maybe default=, optional=
         # named_type node: either ident = or typ =
@@ -209,31 +221,14 @@ class Visitor:
                 identstr = self.make_new_name ()
         self.output ("('%s',None,%s)" % (identstr, typstr))
 
-    def visitChoice (self, node):
-        self.indent ()
-        def visit_list (l):
-            slist = map (self.visit_saving, l)
-            ret_str =  (",\n%s"% self.spaces ()).join (slist)
-            return ret_str
-            
-        chstr = visit_list (node.elt_list)
-        if node.ext_list <> None:
-            extstr = visit_list (node.ext_list)
-        else:
-            extstr = None
-        self.outdent ()
-        if extstr <> None:
-            self.output ("%sasn1.CHOICE ([%s], ext=[%s])" % (
-                self.spaces (), chstr, extstr))
-        else:
-            self.output ("%sasn1.CHOICE ([%s])" % (
-                self.spaces (), chstr))
     def visitSubtype (self, node):
-        self.output ("#Ignoring subtype typ: %s" % str(self.spec)) # XXX
-        self.walker.dispatch (self.typ)
+        pass
+#        self.output ("#Ignoring subtype typ: %s" % repr(node)) # XXX
+#        self.walker.dispatch (node.typ)
     def visitConstraint (self, node):
-        self.output ("#Ignoring constraint: %s" % str(self.type))
-        self.walker.dispatch (self.subtype.typ)
+        pass
+#        self.output ("#Ignoring constraint: %s" % repr(node))
+#        self.walker.dispatch (node.subtype.typ)
 
 def parse_and_output (s, fn, defined_dict):
     ast = compiler.yacc.parse (s)
