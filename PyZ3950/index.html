@@ -2,14 +2,15 @@
  "http://www.w3.org/TR/html4/strict.dtd">
 <html><head><title>PyZ3950 - Python Z39.50 and ASN.1 BER implementations
 </title></head><body>
-<p>I wrote these modules to support
+<p>Originally I wrote PyZ3950 to support
 <a href="http://www.pobox.com/~asl2/software/Tyrannio">Tyrannioware</a>,
-my home book cataloging program.  The modules are distributed together
+my home book cataloging program.  The <a href="http://cheshire.berkeley.edu/">Cheshire Project</a> at the <a href="http://www.liv.ac.uk">University
+of Liverpool</a> adopted it, and I would like to acknowledge their financial
+support and Rob Sanderson's contributions as co-developer.  The ASN.1 and Z39.50 modules are distributed together
 partly for my convenience, and partly because the Z39.50 code may serve
 as an illustration of the ASN.1 API.  (I wrote my own ASN.1 code because
 I wanted its client to be able to use normal Python data types, and use
-a declarative syntax fairly close to the original ASN.1 specification
-to encode and decode: neither <a href="http://sourceforge.net/projects/pysnmp">
+ASN.1 specifications run through the included compiler: neither <a href="http://sourceforge.net/projects/pysnmp">
 PySNMP</a> nor <a href="http://www.cnri.reston.va.us/software/pisces/">Pisces
 </a> offer this.)  The only other Python Z39.50 implementation I know of
 is part of a larger commercial product, 
@@ -17,7 +18,7 @@ is part of a larger commercial product,
 <p>There's also a MARC module in zmarc.py (handles parsing only), and
 a graphical <a href="http://zthes.z3950.org">Zthes</a> browser as
 an example.</p>
-<p>The software requires Python 2.1 or later, and is licensed under
+<p>The software requires Python 2.2 or later, and is licensed under
 the X licence (details in the files themselves), but the zoom
 interface requires Dave Beazley's <a
 href="http://systems.cs.uchicago.edu/ply/">PLY package</a>, licensed
@@ -27,7 +28,7 @@ unzip and untar, run <code>python setup.py build</code>, and then
 <code>python setup.py install</code>.  Here's the <a
 href="CHANGELOG">CHANGELOG</a>.  Most development has been done under
 Linux, but I've tested briefly under Win98 (and, in theory, the code
-should run anywhere Python runs).<p>
+should run anywhere Python runs).  The <a href="http://cvs.sourceforge.net/viewcvs.py/tyrannioware">CVS</a> repository is at sourceforge.<p>
 
 
 <H1>ZOOM</H1><p><a href="zoom.html">Link to pydoc documentation for zoom
@@ -51,20 +52,18 @@ Official Specification</a></li>
 Encoding and
 decoding functions  (asn1.encode and asn1.decode) take an ASN.1 spec, and
 transform back and forth between a byte stream and what I consider a natural
-Python representation of the data.  (Decoding applications where the length of
-the BER is not provided externally and indefinite-length encodings are allowed
-will have to instantiate their own decoding context: see the comments near
-and source of decode.)
-<p>Separating the ASN.1 specification from the code allows me to,
-if it becomes desirable, compile the specification to inline Python or C
-code, or to a specification for a C-based engine.
-<p>I support the following ASN.1 types:
+Python representation of the data.
+<p>Separating the ASN.1 specification from the code would allow 
+compilation of the specification to inline Python or C code, or to a
+specification for a C-based engine.
+<p>This module supports the following ASN.1 types:
 <ul>
 <li>BOOLEAN - encoder takes any Python value, decoder produces 0 or 1</li>
 <li>INTEGER - as in Python</li>
 <li>BITSTRING - asn1.BitStringVal</li>
 <li>OCTSTRING - Python string</li>
 <li>NULL - ignore value on encoding, return None on decoding</li>
+<li>REAL - asn1.REAL (I hope to make this look more like python floats someday: read the source if you need this)</li>
 <li>OID - OidVal</li>
 <li>EXTERNAL - as SEQUENCE, see below (or read the source)</li>
 <li>all string types - Python string (no validity checking is done)</li>
@@ -83,22 +82,42 @@ of asn1.implicit_default; type is recursively an ASN.1 spec.</li>
 <p>For CHOICE, the Python representation is (name, val).  For SEQUENCE, on
 decoding,
 the Python representation is an instance of an asn1-synthesized class.
-On encoding, any class with the appropriate attributes is acceptable, but you
+On encoding, any class with the appropriate attributes is acceptable,
+calling the SEQUENCE specification but you
 can obtain a fresh instance of the synthesized class by calling the SEQUENCE
 specification: this class overrides setattr to provide attribute-name error
 checking.  (The rationale for the seemingly unPythonic errorchecking is that
 misspelled optional attributes would otherwise be hard to detect.  If you don't
 like it, it should be easy to turn off.)
 <p>
+The definition of enumerated values for INTEGER and BITSTRING types is
+supported via the compiler (or see their definitions). For
+BITSTRING types, __getitem__ (value_name) and __setitem__
+(value_name) are implemented as BitStringVal methods, allowing,
+e.g., <code>bitstringval['version_1'] = 1</code>, or <code>
+if bitstringval['version_1']</code>.  An appropriate BitStringVal for
+encoding can be constructed by calling the specification.
+For INTEGER types, call <code>get_num_from_name (name)</code> or
+<code>get_name_from_num(num) </code> methods of the type specification.
+(Note that code like <code>if val == defn.get_num_from_name ('failure'):</code>
+is less prone to typo-induced errors than <code> if
+failure' == defn.get_name_from_num (val):</code>
+<p>
+In order to obtain definitions nested inside other definitions
+(e.g. INTEGER and BITSTRING, above), __getitem__ methods are provided
+for SEQUENCE, CHOICE, and SEQUENCE_OF.  For SEQUENCE and CHOICE, the
+key is the name of the sequence element or arm (respectively).
+For SEQUENCE_OF, the key is 0 (arbitrarily chosen).
+<p>
+APPLICATION and PRIVATE class tags are supported via the compiler,
+or pass the <code>cls=</code> keyword to IMPLICIT or EXPLICIT.
+<p>
 For examples, see the test code at the end of this file, or the
-Z39.50 code that should be distributed with this file.
+Z39.50 code that should be distributed with this file as part of PyZ3950.
 <p>
 There is not yet support for:
 <ul>
-<li>Constructed encodings for BITSTRINGs</li>
-<li>REAL, UTCTime, ENUM, SET, SET OF, or some more obscure types</li>
-<li>APPLICATION or PRIVATE class tags</li>
-<li>Symbolic names for enumerated values</li>
+<li>UTCTime, SET, SET OF, or some more obscure types</li>
 </ul>
 <p>Useful ASN.1 references:
 <ul>

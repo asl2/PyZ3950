@@ -1,0 +1,100 @@
+
+<!doctype html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module PyZ3950/c2query</title>
+<style type="text/css"><!--
+TT { font-family: lucidatypewriter, lucida console, courier }
+--></style></head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>PyZ3950/c2query</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/asl2/src/PyZ2/PyZ3950/PyZ3950/c2query.py">/home/asl2/src/PyZ2/PyZ3950/PyZ3950/c2query.py</a></font></td></tr></table>
+    <p><tt>#!/usr/local/bin/python2.3</tt></p>
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#fffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="oids.html">PyZ3950.oids</a><br>
+</td><td width="25%" valign=top><a href="z3950.html">PyZ3950.z3950</a><br>
+</td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="PyZ3950/c2query.html#C2Parser">C2Parser</a>
+</font></dt></dl>
+ 
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="C2Parser">class <strong>C2Parser</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2>&nbsp;</td></tr>
+<tr><td>&nbsp;&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="C2Parser-__init__"><strong>__init__</strong></a>(self, l)</dt></dl>
+
+<dl><dt><a name="C2Parser-boolean"><strong>boolean</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="C2Parser-clause"><strong>clause</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="C2Parser-fetch_token"><strong>fetch_token</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="C2Parser-is_boolean"><strong>is_boolean</strong></a>(self, tok<font color="#909090">=None</font>)</dt></dl>
+
+<dl><dt><a name="C2Parser-query"><strong>query</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="C2Parser-subquery"><strong>subquery</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="C2Parser-top"><strong>top</strong></a>(self)</dt></dl>
+
+<hr>
+Data and non-method functions defined here:<br>
+<dl><dt><strong>__doc__</strong> = None</dl>
+
+<dl><dt><strong>__module__</strong> = 'PyZ3950/c2query'<dd><tt>str(object)&nbsp;-&gt;&nbsp;string<br>
+&nbsp;<br>
+Return&nbsp;a&nbsp;nice&nbsp;string&nbsp;representation&nbsp;of&nbsp;the&nbsp;object.<br>
+If&nbsp;the&nbsp;argument&nbsp;is&nbsp;a&nbsp;string,&nbsp;the&nbsp;return&nbsp;value&nbsp;is&nbsp;the&nbsp;same&nbsp;object.</tt></dl>
+
+<dl><dt><strong>currentToken</strong> = None</dl>
+
+<dl><dt><strong>lexer</strong> = None</dl>
+
+<dl><dt><strong>nextToken</strong> = None</dl>
+
+</td></tr></table></td></tr></table>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;&nbsp;</td>
+<td width="100%"><dl><dt><a name="-StringIO"><strong>StringIO</strong></a>(...)</dt><dd><tt><a href="#-StringIO">StringIO</a>([s])&nbsp;--&nbsp;Return&nbsp;a&nbsp;StringIO-like&nbsp;stream&nbsp;for&nbsp;reading&nbsp;or&nbsp;writing</tt></dd></dl>
+</td></tr></table>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;&nbsp;</td>
+<td width="100%"><strong>__file__</strong> = './PyZ3950/c2query.pyc'<br>
+<strong>__name__</strong> = 'PyZ3950/c2query'<br>
+<strong>booleans</strong> = {'!!': 'and-not', '&amp;&amp;': 'and', '.AND.': 'and', '.ANDNOT.': 'and-not', '.NOT.': 'and-not', '.OR.': 'or', 'AND': 'and', 'ANDNOT': 'and-not', 'NOT': 'and-not', 'OR': 'or', ...}<br>
+<strong>geoRelations</strong> = {'!.#.': 13, '+-+': 11, '.#.': 12, '.AFTER.': 18, '.BEFORE.': 14, '.BEFORE_OR_DURING.': 15, '.DURING.': 16, '.DURING_OR_AFTER.': 17, '.ENCLOSES.': 9, '.FULLY_ENCLOSED_WITHIN.': 8, ...}<br>
+<strong>privateBooleans</strong> = {'!FUZZY_AND': 1, '!FUZZY_NOT': 3, '!FUZZY_OR': 2, '!MERGE_MEAN': 7, '!MERGE_NORM': 8, '!MERGE_SUM': 6, '!RESTRICT_FROM': 4, '!RESTRICT_TO': 5}<br>
+<strong>proxBooleans</strong> = {'!ADJ': (2, 0, 2), '!FAR': (20, 0, 4), '!NEAR': (20, 0, 2), '!OADJ': (2, 1, 2), '!OFAR': (20, 1, 4), '!ONEAR': (20, 1, 2), '!OPROX': (2, 1, 2), '!PROX': (2, 0, 2)}<br>
+<strong>proxUnits</strong> = {'BYTE': 11, 'C': 1, 'CHAPTER': 6, 'CHAR': 1, 'DOCUMENT': 7, 'ELEMENT': 8, 'ELEMENTTYPE': 10, 'P': 4, 'PARA': 4, 'PARAGRAPH': 4, ...}<br>
+<strong>relations</strong> = {'!=': 6, '%': 101, '.GE.': 4, '.GT.': 5, '.LE.': 2, '.LT.': 1, '.NE.': 6, '.PHON.': 100, '.REL.': 102, '.STEM.': 101, ...}<br>
+<strong>xzconfig</strong> = &lt;PyZ3950.CQLUtils.ZCQLConfig instance&gt;<br>
+<strong>zconfig</strong> = &lt;PyZ3950.CQLUtils.ZCQLConfig instance&gt;</td></tr></table>
+</body></html>

@@ -10,7 +10,7 @@ TT { font-family: lucidatypewriter, lucida console, courier }
 <td valign=bottom>&nbsp;<br>
 <font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>PyZ3950/ccl</strong></big></big></font></td
 ><td align=right valign=bottom
-><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/asl2/src/PyZ3950/PyZ3950/ccl.py">/home/asl2/src/PyZ3950/PyZ3950/ccl.py</a></font></td></tr></table>
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/asl2/src/PyZ2/PyZ3950/PyZ3950/ccl.py">/home/asl2/src/PyZ2/PyZ3950/PyZ3950/ccl.py</a></font></td></tr></table>
     <p><tt>Implements&nbsp;part&nbsp;of&nbsp;CCL,&nbsp;the&nbsp;Common&nbsp;Command&nbsp;Language,&nbsp;ISO&nbsp;8777.&nbsp;&nbsp;I'm<br>
 working&nbsp;from&nbsp;the&nbsp;description&nbsp;in&nbsp;the&nbsp;YAZ&nbsp;toolkit<br>
 (<a href="http://www.indexdata.dk/yaz/doc/tools.php">http://www.indexdata.dk/yaz/doc/tools.php</a>),&nbsp;rather&nbsp;than&nbsp;the&nbsp;ISO<br>
@@ -24,6 +24,7 @@ BIB1&nbsp;(default)<br>
 XD1<br>
 UTIL<br>
 ZTHES1<br>
+EXP1<br>
 or&nbsp;an&nbsp;oid&nbsp;expressed&nbsp;as&nbsp;a&nbsp;dotted&nbsp;string.&nbsp;&nbsp;(A&nbsp;leading&nbsp;dot&nbsp;implies&nbsp;a<br>
 prefix&nbsp;of&nbsp;1.2.840.1003.3,&nbsp;so,&nbsp;e.g.,&nbsp;.1&nbsp;is&nbsp;the&nbsp;same&nbsp;as&nbsp;BIB1.)<br>
 &nbsp;<br>
@@ -36,11 +37,12 @@ a&nbsp;single&nbsp;query,&nbsp;but&nbsp;for&nbsp;now&nbsp;I&nbsp;don't.</tt></p>
 <font color="#fffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;&nbsp;</td>
-<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top>asn1<br>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="asn1.html">PyZ3950.asn1</a><br>
 <a href="lex.html">lex</a><br>
-</td><td width="25%" valign=top>string<br>
-<a href="yacc.html">yacc</a><br>
-</td><td width="25%" valign=top><a href="z3950.html">PyZ3950.z3950</a><br>
+</td><td width="25%" valign=top><a href="oids.html">PyZ3950.oids</a><br>
+<a href="string.html">string</a><br>
+</td><td width="25%" valign=top><a href="yacc.html">PyZ3950.yacc</a><br>
+<a href="z3950.html">PyZ3950.z3950</a><br>
 </td><td width="25%" valign=top></td></tr></table></td></tr></table>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
@@ -168,8 +170,6 @@ Methods inherited from <a href="exceptions.html#Exception">exceptions.Exception<
 
 <dl><dt><a name="QuallistVal-__init__"><strong>__init__</strong></a>(self, quallist, val)</dt></dl>
 
-<dl><dt><a name="QuallistVal-__len__"><strong>__len__</strong></a>(self)</dt></dl>
-
 <dl><dt><a name="QuallistVal-__str__"><strong>__str__</strong></a>(self)</dt></dl>
 
 <hr>
@@ -246,9 +246,10 @@ Methods inherited from <a href="exceptions.html#Exception">exceptions.Exception<
 <tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;&nbsp;</td>
 <td width="100%"><strong>__file__</strong> = './PyZ3950/ccl.pyc'<br>
 <strong>__name__</strong> = 'PyZ3950/ccl'<br>
-<strong>_attrdict</strong> = {'bib1': OID: 1 2 840 10003 3 1, 'utility': OID: 1 2 840 10003 3 11, 'xd1': OID: 1 2 840 10003 3 12, 'zthes1': OID: 1 2 840 10003 3 13}<br>
+<strong>_attrdict</strong> = {'bib1': OID: 1 2 840 10003 3 1, 'exp1': OID: 1 2 840 10003 3 2, 'utility': OID: 1 2 840 10003 3 11, 'xd1': OID: 1 2 840 10003 3 12, 'zthes1': OID: 1 2 840 10003 3 13}<br>
 <strong>default_quals</strong> = ['ANY']<br>
 <strong>default_relop</strong> = '='<br>
+<strong>in_setup</strong> = 0<br>
 <strong>lexer</strong> = &lt;lex.Lexer instance&gt;<br>
 <strong>nested_scopes</strong> = _Feature((2, 1, 0, 'beta', 1), (2, 2, 0, 'alpha', 0), 16)<br>
 <strong>precedence</strong> = (('left', 'LOGOP'),)<br>
