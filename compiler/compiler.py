@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import nested_scopes
+import visitor
 
 """Compiler from ASN.1 specification to the Python format acceptable
 to my asn1.py module.  Loosely based on esnacc grammar.  We ignore
@@ -208,7 +209,7 @@ def t_NEWLINE(t):
     t.lineno += t.value.count("\n")
 
 def t_error(t):
-    print "Error", t.value[:100], t.lineno
+    print "Error", repr(t.value[:100]), t.lineno
     raise LexError
 
     
@@ -216,80 +217,6 @@ import lex
 lexer = lex.lex()
 
 import yacc
-
-class Ctx:
-    def __init__ (self, defined_dict, indent = 0):
-        self.tags_def = 'EXPLICIT' # default = explicit
-        self.indent_lev = 0
-        self.assignments = {}
-        self.dependencies = {}
-        self.pyquotes = []
-        self.defined_dict = defined_dict
-        self.name_ctr = 0
-    def spaces (self):
-        return " " * (4 * self.indent_lev)
-    def indent (self):
-        self.indent_lev += 1
-    def outdent (self):
-        self.indent_lev -= 1
-        assert (self.indent_lev >= 0)
-    def register_assignment (self, ident, val, dependencies):
-        if self.assignments.has_key (ident):
-            raise "Duplicate assignment for " + ident
-        if self.defined_dict.has_key (ident):
-            raise "cross-module duplicates for " + ident
-        self.defined_dict [ident] = 1
-        self.assignments[ident] = val
-        self.dependencies [ident] = dependencies
-        return ""
-    #        return "#%s depends on %s" % (ident, str (dependencies))
-    def register_pyquote (self, val):
-        self.pyquotes.append (val)
-        return ""
-    def output_assignments (self):
-        already_output = {}
-        text_list = []
-        assign_keys = self.assignments.keys()
-        to_output_count = len (assign_keys)
-        while 1:
-            any_output = 0
-            for (ident, val) in self.assignments.iteritems ():
-                if already_output.has_key (ident):
-                    continue
-                ok = 1
-                for d in self.dependencies [ident]:
-                    if (not already_output.has_key (d) and
-                        d in assign_keys):
-                        ok = 0
-                if ok:
-                    text_list.append ("%s=%s" % (ident,
-                                                self.assignments [ident]))
-                    already_output [ident] = 1
-                    any_output = 1
-                    to_output_count -= 1
-                    assert (to_output_count >= 0)
-            if not any_output:
-                if to_output_count == 0:
-                    break
-                # OK, we detected a cycle
-                cycle_list = []
-                for ident in self.assignments.iterkeys ():
-                    if not already_output.has_key (ident):
-                        depend_list = [d for d in self.dependencies[ident] if d in assign_keys]
-                        cycle_list.append ("%s(%s)" % (ident, ",".join (depend_list)))
-                        
-                text_list.append ("# Cycle XXX " + ",".join (cycle_list))
-                for (ident, val) in self.assignments.iteritems ():
-                    if not already_output.has_key (ident):
-                        text_list.append ("%s=%s" % (ident, self.assignments [ident]))
-                break
-
-        return "\n".join (text_list)
-    def output_pyquotes (self):
-        return "\n".join (self.pyquotes)
-    def make_new_name (self):
-        self.name_ctr += 1
-        return "_compiler_generated_name_%d" % (self.name_ctr,)
 
 class Node:
     def __init__(self,*args, **kw):
@@ -299,6 +226,9 @@ class Node:
             assert (len(args) == 1)
             self.type = args[0]
         self.__dict__.update (kw)
+    def get_child_nodes (self): # XXX not really needed
+        children = [v for (k, v) in self.__dict__.iteritems () if isinstance (v, Node)]
+        return children
     def str_child (self, key, child, depth):
         if key == 'type': # already processed in str_depth
             return ""
@@ -318,46 +248,19 @@ class Node:
         return "\n".join (l)
     def __str__(self):
         return "\n" + self.str_depth (0)
-    def to_python (self, ctx):
-        return self.str_depth (ctx.indent_lev)
 
 class Module (Node):
-    def to_python (self, ctx):
-        ctx.tag_def = self.tag_def.dfl_tag
-        return """#%s
-%s""" % (self.ident, self.body.to_python (ctx))
+    pass
+
+class ModuleIdent (Node):
+    pass
 
 class Module_Body (Node):
-    def to_python (self, ctx):
-        # XXX handle exports, imports.
-        l = map (lambda x: x.to_python (ctx), self.assign_list)
-        l = [a for a in l if a <> '']
-        return "\n".join (l)
+    pass
 
 class Default_Tags (Node):
-    def to_python (self, ctx): # not to be used directly
-        assert (0)
+    pass
 
-# XXX should just calculate dependencies as we go along.
-def calc_dependencies (node, dict, trace = 0):
-    if not hasattr (node, '__dict__'):
-        if trace: print "#returning, node=", node
-        return
-    if isinstance (node, Type_Ref):
-        dict [node.name] = 1
-        if trace: print "#Setting", node.name
-        return
-    for (a, val) in node.__dict__.items ():
-        if trace: print "# Testing node ", node, "attr", a, " val", val
-        if a[0] == '_':
-            continue
-        elif isinstance (val, Node):
-            calc_dependencies (val, dict, trace)
-        elif isinstance (val, type ([])):
-            for v in val:
-                calc_dependencies (v, dict, trace)
-    
-                          
 class Type_Assign (Node):
     def __init__ (self, *args, **kw):
         Node.__init__ (self, *args, **kw)
@@ -367,171 +270,57 @@ class Type_Assign (Node):
             to_test = self.val
         if isinstance (to_test, Sequence):
             to_test.sequence_name = self.name.name
-            
-    def to_python (self, ctx):
-        dep_dict = {}
-        calc_dependencies (self.val, dep_dict, 0)
-        depend_list = dep_dict.keys ()
-        return ctx.register_assignment (self.name.name,
-                                        self.val.to_python (ctx),
-                                        depend_list)
 
 class PyQuote (Node):
-    def to_python (self, ctx):
-        return ctx.register_pyquote (self.val)
+    pass
 
 class Type_Ref (Node):
-    def to_python (self, ctx):
-        return self.name
+    pass
     
 class Sequence_Of (Node):
-    def to_python (self, ctx):
-        # name, tag (None for no tag, EXPLICIT() for explicit), typ)
-        # or '' + (1,) for optional
-        sizestr = ''
-        if self.size_constr <> None:
-            print "#Ignoring size constraint:", self.size_constr.subtype
-        return "%sasn1.SEQUENCE_OF (%s%s)" % (ctx.spaces (),
-                                              self.val.to_python (ctx),
-                                              sizestr)
-
-def mk_tag_str (ctx, cls, typ, num):
-
-    # XXX should do conversion to int earlier!
-    val = int (num)
-    typ = typ.upper()
-    if typ == 'DEFAULT':
-        typ = ctx.tags_def
-    return 'asn1.%s(%d,cls=asn1.%s_FLAG)' % (typ, val, cls) # XXX still ned
+    pass
 
 class Tag (Node):
-    def to_python (self, ctx):
-        return 'asn1.TYPE(%s,%s)' % (mk_tag_str (ctx, self.tag.cls,
-                                                self.tag_typ,
-                                                self.tag.num),
-                                    self.typ.to_python (ctx))
+    pass
+
+class ElementType(Node):
+    pass
 
 class Sequence (Node):
-    def to_python (self, ctx):
-        # name, tag (None for no tag, EXPLICIT() for explicit), typ)
-        # or '' + (1,) for optional
-        # XXX should also collect names for SEQUENCE inside SEQUENCE or
-        # CHOICE or SEQUENCE_OF (where should the SEQUENCE_OF name come
-        # from?  for others, element or arm name would be fine)
-        seq_name = getattr (self, 'sequence_name', None)
-        if seq_name == None:
-            seq_name = 'None'
-        else:
-            seq_name = "'" + seq_name + "'"
-        if self.__dict__.has_key('ext_list'):
-          return "%sasn1.SEQUENCE ([%s], ext=[%s], seq_name = %s)" % (ctx.spaces (), 
-                                   self.elts_to_py (self.elt_list, ctx),
-                                   self.elts_to_py (self.ext_list, ctx), seq_name)
-        else:
-          return "%sasn1.SEQUENCE ([%s], seq_name = %s)" % (ctx.spaces (), 
-                                   self.elts_to_py (self.elt_list, ctx), seq_name)
-    def elts_to_py (self, list, ctx):
-        # we have elt_type, val= named_type, maybe default=, optional=
-        # named_type node: either ident = or typ =
-        # need to dismember these in order to generate Python output syntax.
-        ctx.indent ()
-        def elt_to_py (e):
-            assert (e.type == 'elt_type')
-            nt = e.val
-            optflag = e.optional
-#            assert (not hasattr (e, 'default')) # XXX add support for DEFAULT!
-            assert (nt.type == 'named_type')
-            tagstr = 'None'
-            identstr = nt.ident
-            if hasattr (nt.typ, 'type') and nt.typ.type == 'tag': # ugh
-                tagstr = mk_tag_str (ctx,nt.typ.tag.cls,
-                                     nt.typ.tag.tag_typ,nt.typ.tag.num)
-        
-
-                nt = nt.typ
-            return "('%s',%s,%s,%d)" % (identstr, tagstr,
-                                      nt.typ.to_python (ctx), optflag)
-        indentstr = ",\n" + ctx.spaces ()
-        rv = indentstr.join ([elt_to_py (e) for e in list])
-        ctx.outdent ()
-        return rv
-
+    pass
+    # XXX should also collect names for SEQUENCE inside SEQUENCE or
+    # CHOICE or SEQUENCE_OF (where should the SEQUENCE_OF name come
+    # from?  for others, element or arm name would be fine)
+    
 class Choice (Node):
-    def to_python (self, ctx):
-        # name, tag (None for no tag, EXPLICIT() for explicit), typ)
-        # or '' + (1,) for optional
-        if self.__dict__.has_key('ext_list'):
-          return "%sasn1.CHOICE ([%s], ext=[%s])" % (ctx.spaces (), 
-                                 self.elts_to_py (self.elt_list, ctx),
-                                 self.elts_to_py (self.ext_list, ctx))
-        else:
-          return "%sasn1.CHOICE ([%s])" % (ctx.spaces (), self.elts_to_py (self.elt_list, ctx))
-    def elts_to_py (self, list, ctx):
-        ctx.indent ()
-        def elt_to_py (nt):
-            assert (nt.type == 'named_type')
-            tagstr = 'None'
-            if hasattr (nt, 'ident'):
-                identstr = nt.ident
-            else:
-                if hasattr (nt.typ, 'val'):
-                    identstr = nt.typ.val # XXX, making up name
-                elif hasattr (nt.typ, 'name'):
-                    identstr = nt.typ.name
-                else:
-                    identstr = ctx.make_new_name ()
-
-            if hasattr (nt.typ, 'type') and nt.typ.type == 'tag': # ugh
-                tagstr = mk_tag_str (ctx,nt.typ.tag.cls,
-                                     nt.typ.tag.tag_typ,nt.typ.tag.num)
-        
-
-                nt = nt.typ
-            return "('%s',%s,%s)" % (identstr, tagstr,
-                                      nt.typ.to_python (ctx))
-        indentstr = ",\n" + ctx.spaces ()
-        rv =  indentstr.join ([elt_to_py (e) for e in list])
-        ctx.outdent ()
-        return rv
-
+    pass
 
 class Subtype (Node):
-    def to_python (self, ctx):
-        print "#Ignoring subtype typ:", self.spec # XXX
-        return self.typ.to_python (ctx)
-
+    pass
     
 class Constraint (Node):
-    def to_python (self, ctx):
-        print "Ignoring constraint:", self.type
-        return self.subtype.typ.to_python (ctx)
-    def __str__ (self):
-        return "Constraint: type=%s, subtype=%s" % (self.type, self.subtype)
+    pass
 
 class Enum (Node):
-    def to_python (self, ctx):
-        def strify_one (named_num):
-            return "%s=%s" % (named_num.ident, named_num.val)
-        return "asn1.ENUM(%s)" % ",".join (map (strify_one, self.val))
+    pass
 
 class Literal (Node):
-    def to_python (self, ctx):
-        return self.val
+    pass
 
 class NamedNumber (Node):
-    def to_python (self, ctx):
-        return "('%s',%s)" % (self.ident, self.val)
+    pass
 
 class NamedNumListBase(Node):
-    def to_python (self, ctx):
-        return "asn1.%s_class ([%s])" % (self.asn1_typ,",".join (
-            map (lambda x: x.to_python (ctx), self.named_list)))
+    pass
 
 class Integer (NamedNumListBase):
     asn1_typ = 'INTEGER'
 
 class BitString (NamedNumListBase):
     asn1_typ = 'BITSTRING'
+
+class NamedType (Node):
+    pass
     
 def p_module_list_1 (t):
     'module_list : module_list module_def'
@@ -543,7 +332,9 @@ def p_module_list_2 (t):
 
 def p_module_def (t):
     'module_def : module_ident DEFINITIONS tag_default GETS BEGIN module_body END'
-    t[0] = Module (ident = t[1], tag_def = t[3], body = t[6])
+    body = t[6]
+    t[0] = Module (ident = t[1], tag_def = t[3],
+                   exports = body.exports, imports = body.imports, assign_list = body.assign_list)
 
 def p_tag_default_1 (t):
     '''tag_default : EXPLICIT TAGS
@@ -558,8 +349,10 @@ def p_tag_default_2 (t):
 def p_module_ident (t):
     'module_ident : type_ref assigned_ident' # name, oid
     # XXX coerce type_ref to module_ref
-    t [0] = Literal ("#module %s %s" % (t[1].name, str(t[2])))
-
+    if t[2] == None:
+        t[0] = ModuleIdent (name=t[1].name, assigned_ident = None)
+    else:
+        t[0] = ModuleIdent (name=t[1].name, assigned_ident = t[2])
 
 # XXX originally we had both type_ref and module_ref, but that caused
 # a reduce/reduce conflict (because both were UCASE_IDENT).  Presumably
@@ -576,7 +369,7 @@ def p_assigned_ident_1 (t):
 
 def p_assigned_ident_2 (t):
     'assigned_ident : '
-    pass
+    t[0] = None
 
 def p_module_body_1 (t):
     'module_body : exports imports assign_list'
@@ -584,8 +377,7 @@ def p_module_body_1 (t):
 
 def p_module_body_2 (t):
     'module_body : '
-    t[0] = Node ('module_body', exports = [], imports = [],
-                 assign_list = [])
+    t[0] = Module_Body (exports = [], imports = [], assign_list = [])
 
 def p_exports_1 (t):
     'exports : EXPORTS syms_exported SEMICOLON'
@@ -723,11 +515,11 @@ def p_builtin_type_2 (t):
 
 def p_named_type_1 (t):
     'named_type : identifier type'
-    t[0] = Node ('named_type', ident = t[1], typ = t[2])
+    t[0] = NamedType (ident = t[1], typ = t[2])
 
 def p_named_type_2 (t):
     'named_type : type' # XXX handles selectionType as well old comment??
-    t[0] = Node ('named_type', typ = t[1])
+    t[0] = NamedType (ident = None, typ = t[1])
 
 def p_boolean_type (t):
     'boolean_type : BOOLEAN'
@@ -797,7 +589,7 @@ def p_sequence_type (t):
     if t[3].has_key('ext_list'):
         t[0] = Sequence (elt_list = t[3]['elt_list'], ext_list = t[3]['ext_list'])
     else:
-        t[0] = Sequence (elt_list = t[3]['elt_list'])
+        t[0] = Sequence (elt_list = t[3]['elt_list'], ext_list = None)
 
 def p_extension_and_exception_1 (t):
     'extension_and_exception : ELLIPSIS'
@@ -853,15 +645,15 @@ def p_element_type_list_2 (t):
 
 def p_element_type_1 (t):
     'element_type : named_type'
-    t[0] = Node ('elt_type', val = t[1], optional = 0)
+    t[0] = ElementType (val = t[1], optional = 0, default = None)
 
 def p_element_type_2 (t):
     'element_type : named_type OPTIONAL'
-    t[0] = Node ('elt_type', val = t[1], optional = 1)
+    t[0] = ElementType (val = t[1], optional = 1, default = None)
 
 def p_element_type_3 (t):
     'element_type : named_type DEFAULT named_value'
-    t[0] = Node ('elt_type', val = t[1], optional = 1, default = t[3])
+    t[0] = ElementType (val = t[1], optional = 1, default = t[3])
 #          /*
 #           * this rules uses NamedValue instead of Value
 #           * for the stupid choice value syntax (fieldname value)
@@ -888,7 +680,7 @@ def p_choice_type (t):
     if t[3].has_key('ext_list'):
         t[0] = Choice (elt_list = t[3]['elt_list'], ext_list = t[3]['ext_list'])
     else:
-        t[0] = Choice (elt_list = t[3]['elt_list'])
+        t[0] = Choice (elt_list = t[3]['elt_list'], ext_list = None)
 
 def p_alternative_type_lists_1 (t):
     'alternative_type_lists : alternative_type_list'
@@ -933,6 +725,7 @@ def p_selection_type (t): # XXX what is this?
 def p_tagged_type_1 (t):
     'tagged_type : tag type'
     t[0] = Tag (tag_typ = 'default', tag = t[1], typ = t[2])
+    
 def p_tagged_type_2 (t):
     'tagged_type : tag IMPLICIT type'
     t[0] = Tag (tag_typ = 'implicit', tag = t[1], typ = t[3])
@@ -954,9 +747,6 @@ def p_class_number_1 (t):
 def p_class_number_2 (t):
     'class_number : defined_value'
     t[0] = t[1]
-#          $$->code = NO_TAG_CODE; # XXX huh?
-#          $$->valueRef = $1;
-
 
 def p_class_1 (t):
     '''class : UNIVERSAL
@@ -994,22 +784,11 @@ def p_char_str_type (t):
 def p_sub_type_1 (t):
     'sub_type : type subtype_spec'
     t[0] = Subtype (constr_type = 'subtype', typ = t[1], spec = t[2])
-#          /*
-#           * append new subtype list to existing one (s) if any
-#           * with AND relation
-#           */
-#          AppendSubtype (&$1->subtypes, $2, SUBTYPE_AND);
-#          $$ = $1;
 
 
 def p_sub_type_2 (t):
     'sub_type : SET size_constraint OF type'
     t[0] = Subtype (constr_type = 'set', size_constr = t[2], typ = t[4])
-#          /* add size constraint */
-#          s = MT (Subtype);
-#          s->choiceId = SUBTYPE_SINGLE;
-#          s->a.single = $2;
-#          AppendSubtype (&$$->subtypes, s, SUBTYPE_AND);
 
 def p_sub_type_3 (t):
     'sub_type : SEQUENCE size_constraint OF type'
@@ -1284,7 +1063,7 @@ def p_error(t):
 
 yacc.yacc ()
 
-def testlex (s):
+def testlex (s, fn, dict):
     lexer.input (s)
     while 1:
         token = lexer.token ()
@@ -1292,38 +1071,31 @@ def testlex (s):
             break
         print token
 
-def do_module (ast, defined_dict):
-    assert (ast.type == 'Module')
-    ctx = Ctx (defined_dict)
-    print ast.to_python (ctx)
-    print ctx.output_assignments ()
-    print ctx.output_pyquotes ()
- 
-
 import time
-def testyacc (s, fn, defined_dict):
+
+def parse_and_output (s, fn, defined_dict, visitor_class):
     ast = yacc.parse (s)
     time_str = time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime())
     print """#!/usr/bin/env python
 # Auto-generated from %s at %s
 from PyZ3950 import asn1""" % (fn, time_str)
     for module in ast:
-        do_module (module, defined_dict)
+        assert (module.type == 'Module')
+        visit_instance = visitor_class (defined_dict, fn)
+        walker = visitor.ASTWalk ()
+        visit_instance.set_walker (walker)
+        walker.preorder (module, visit_instance)
+        visit_instance.finish ()
 
 import sys
+
 if __name__ == '__main__':
-    testfn = testyacc
-    if len (sys.argv) == 1:
-        while 1:
-            s = raw_input ('Query: ')
-            if len (s) == 0:
-                break
-            testfn (s, 'console', {})
-    else:
-        defined_dict = {}
-        for fn in sys.argv [1:]:
-            f = open (fn, "r")
-            testfn (f.read (), fn, defined_dict)
-            f.close ()
-            lexer.lineno = 1
+    defined_dict = {}
+    visitor_mod = __import__ ('py_output')
+    visitor_class = visitor_mod.Visitor
+    for fn in sys.argv [1:]:
+        f = open (fn, "r")
+        parse_and_output (f.read (), fn, defined_dict, visitor_class)
+        f.close ()
+        lexer.lineno = 1
 
