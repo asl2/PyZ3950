@@ -1,0 +1,360 @@
+-- From http://archive.dstc.edu.au/DDU/projects/Z3950/Z+SQL/Z+SQL_profile.html
+
+Z39-50-EXTERNALS-SQL-RS DEFINITIONS ::= BEGIN
+
+ --SQL Query Definition
+        SQLQuery                ::= SEQUENCE {
+          abstractDatabaseFlag          [0] BOOLEAN OPTIONAL,
+          queryExpression               [1] IMPLICIT InternationalString }
+
+          -- as defined in the SQL Standard [ISO/IEC9075] 
+          -- with/without Z39.50 schema abstraction extension as specified by the 
+          -- flag
+
+          -- version of SQL supported specified in Explain
+
+SQL-Result                      ::= SEQUENCE {
+        tableDescriptor                 [0] IMPLICIT SQLTableDescriptor OPTIONAL,
+        listOfResultValues              [1] IMPLICIT SEQUENCE OF SQLRowValue OPTIONAL}
+ 
+SQLTableDescriptor              ::= SEQUENCE {
+        tableName                       [0] IMPLICIT InternationalString OPTIONAL,
+        listOfColumnDescriptors         [1] IMPLICIT SEQUENCE OF SQLColumnDescriptor,
+        tableConstraint                 [2] IMPLICIT SEQUENCE OF SEQUENCE {
+                listOfColumnNames               [0] IMPLICIT SEQUENCE OF InternationalString,
+                uniqueContraint                 [1] IMPLICIT SQLUniqueConstraint OPTIONAL,
+                check                           [2] IMPLICIT InternationalString OPTIONAL } }
+        
+SQLColumnDescriptor             ::= SEQUENCE {
+        columnName                      [0] IMPLICIT InternationalString,
+        dataType                        [1] NULL, -- XXX should SQLDataDescriptor,
+        columnConstraint                [2] IMPLICIT SEQUENCE OF SEQUENCE {
+                nullable                        [0] IMPLICIT BOOLEAN,
+                uniqueConstraint                [1] IMPLICIT SQLUniqueConstraint OPTIONAL,
+                check                           [2] IMPLICIT InternationalString OPTIONAL }, -- XXX comma added
+        sqlDefault                      [3] SQLDefaultOption OPTIONAL } -- XXX '}' was ')'
+
+--PYQUOTE SQLColumnDescriptor['dataType'] = ('dataType', asn1.EXPLICIT(1), SQLDataDescriptor)
+        
+-- XXX fixed name from UniqueContraint
+SQLUniqueConstraint              ::=  INTEGER {
+-- XXX used to say 'IMPLICIT INTEGER', but 'IMPLICIT' is prefixed everywhere,
+-- and 'IMPLICIT INTEGER' doesn't fit grammar?
+        unique                          (1),
+        primaryKey                      (2) } 
+
+--- SQL Data Type Descriptors (note: sequence number aligned to SQL/CLI data type descriptor codes)
+SQLDataDescriptor               ::= CHOICE {
+        
+        -- SQL Type: character
+        characterType                   [1] IMPLICIT SEQUENCE {
+                length                          [0] IMPLICIT INTEGER,
+                sqlCharacterSet                 [1] IMPLICIT SQLCharacterSetClause OPTIONAL,
+                zCharacterSetLanguage           [2] IMPLICIT Z3950CharacterSetLanguageClause OPTIONAL,
+                collation                       [3] IMPLICIT SQLCollationClause OPTIONAL } , -- XXX extra '}' deleted
+ 
+        -- SQL Type: numeric
+        numericType                     [6] SEQUENCE {
+                precision                       [0] IMPLICIT INTEGER,
+                scale                           [1] IMPLICIT INTEGER },
+ 
+        -- SQL Type: decimal
+        decimalType                     [7] SEQUENCE {
+                precision                       [0] IMPLICIT INTEGER,
+                scale                           [1] IMPLICIT INTEGER },
+ 
+        -- SQL Type: integer
+        integerType                     [8] SEQUENCE {
+                precision                       [0] IMPLICIT INTEGER OPTIONAL,
+                precisionBase                   [1] IMPLICIT INTEGER {
+                        binary                          (0),
+                        decimal                         (1) } },
+ 
+        -- SQL Type: smallInt
+        smallIntType                    [9] SEQUENCE {
+                precision                       [0] IMPLICIT INTEGER OPTIONAL,
+                precisionBase                   [1] IMPLICIT INTEGER {
+                        binary                          (0),
+                        decimal                         (1) } },
+ 
+        -- SQL Type: float
+        floatType                       [10] SEQUENCE {
+                mantissaPrecision               [0] IMPLICIT INTEGER,
+                maxExponent                     [1] IMPLICIT INTEGER },
+ 
+        -- SQL Type: real
+        realType                        [11] SEQUENCE {
+                mantissaPrecision               [0] IMPLICIT INTEGER,
+                maxExponent                     [1] IMPLICIT INTEGER },
+ 
+        -- SQLType: doublePrecision
+        doublePrecisionType             [12] SEQUENCE {
+                mantissaPrecision               [0] IMPLICIT INTEGER,
+                maxExponent                     [1] IMPLICIT INTEGER },
+
+        -- SQLType: dateTime
+        dateTimeType                    [9] IMPLICIT SEQUENCE {
+                dateTimeQualifier               [0] IMPLICIT INTEGER {
+                        date                            (1),
+                        time                            (2),
+                        timeStamp                       (3),
+                        timeWithTimeZone                (4),
+                        timeStampWithTimeZone           (5) },
+                fractionalSecondsPrecision      [1] IMPLICIT INTEGER OPTIONAL},
+ 
+        -- SQLType: interval
+        intervalType                    [10] IMPLICIT SEQUENCE {
+                intervalQualifier               [0] IMPLICIT INTEGER {
+                        year                            (1),
+                        month                           (2),
+                        day                             (3),
+                        hour                            (4),
+                        minute                          (5),
+                        second                          (6),
+                        yearToMonth                     (7),
+                        dayToHour                       (8),
+                        dayToMinute                     (9),
+                        dayToSecond                     (10),
+                        hourToMinute                    (11),
+                        hourToSecond                    (12),
+                        minuteToSecond                  (13) },
+                leadingFieldPrecision           [1] IMPLICIT INTEGER OPTIONAL,
+                fractionalSecondsPrecision      [2] IMPLICIT INTEGER OPTIONAL },
+ 
+        -- SQLType: varchar
+        varcharType                     [12] IMPLICIT SEQUENCE {
+                length                          [0] IMPLICIT INTEGER,
+                characterSet                    [1] IMPLICIT SQLCharacterSetClause OPTIONAL,
+                zCharacterSetLanguage           [2] IMPLICIT Z3950CharacterSetLanguageClause OPTIONAL,
+                collation                       [3] IMPLICIT SQLCollationClause OPTIONAL } ,  -- XXX fixed spelling of 'IMPLICIT', deleted extra '}'
+ 
+        -- SQLType: boolean
+        booleanType                     [13] IMPLICIT NULL, 
+
+        -- SQLType: bit stream
+        bitType                         [14] IMPLICIT SEQUENCE {
+                length                          [0] IMPLICIT INTEGER },
+        
+        -- SQLType: varying bit stream
+        bitVarType                      [15] IMPLICIT SEQUENCE {
+                length                          [0] IMPLICIT INTEGER },
+
+        -- SQLType: user defined type 
+        -- XXX 's' was capitalized here and below
+        sQLUserDefinedType              [17] IMPLICIT SEQUENCE {
+                udtName                         [0] IMPLICIT InternationalString,
+                ordering                        [1] IMPLICIT SQLOrderingDescriptor OPTIONAL, 
+                superTypeName                   [2] IMPLICIT InternationalString OPTIONAL,
+                representation                  [3] IMPLICIT CHOICE {
+                        distinct                        [0] IMPLICIT NULL, -- XXX should be SQLDataDescriptor
+                        -- must be a 'predefined' SQLDataDescriptor
+
+                        structured                      [1] IMPLICIT SEQUENCE OF SQLAttributeDescriptor,
+                        system-generated                [2] IMPLICIT NULL },
+                instantiable                    [4] IMPLICIT BOOLEAN,
+                final                           [5] IMPLICIT BOOLEAN,
+                transformDesc                   [7] IMPLICIT SEQUENCE OF SQLTransformDescriptor OPTIONAL
+--                methodSpecList                  [8] IMPLICIT SEQUENCE OF SQLMethodSpecDesciptor OPTIONAL 
+-- XXX huh?
+		},
+                        
+        -- SQLType: user defined type locator
+        sQLUserDefinedTypeLocatorType   [18] IMPLICIT SEQUENCE {
+                length                          [0] IMPLICIT INTEGER },
+
+        --SQLType: row
+        sQLRowType                      [19] IMPLICIT SEQUENCE OF SEQUENCE {
+                fieldName                       [0] IMPLICIT InternationalString,
+                dataType                        [1] NULL },
+
+
+        -- SQLType: reference
+        sQLReferenceType                [20] SEQUENCE {
+-- XXX where is UserDefinedType defined?
+--                referencedType                  [0] IMPLICIT SQLUserDefinedType,
+                scopeTableName                  [1] IMPLICIT InternationalString OPTIONAL },
+
+        -- SQLType: collection
+        sQLCollectionType               [21] SEQUENCE {
+                dataType                        [0] NULL,
+-- PYQUOTE SQLDataDescriptor['sQLCollectionType']['dataType'] = ('dataType', asn1.EXPLICIT(0), SQLDataDescriptor)
+                collectionTypeConstructor       [1] IMPLICIT SEQUENCE {
+                        size                            [0] IMPLICIT INTEGER,
+                        type                            [1] IMPLICIT INTEGER {
+                          array                                 (1),
+                          set                                   (2)  } },
+
+        -- SQLType: collection locator 
+        sQLCollectionLocatorType        [22] IMPLICIT SEQUENCE {
+                length                          [0] IMPLICIT INTEGER },
+        
+        -- SQLType: BLOB (Binary Large Object)
+        bLOBType                        [30] IMPLICIT SEQUENCE {
+                length                          [0] IMPLICIT INTEGER }, 
+
+        -- bLOBLocatorType (Binary Large Object Locator)
+        bLOBLocatorType                 [31] IMPLICIT SEQUENCE {
+                length                          [0] IMPLICIT INTEGER },
+
+        -- SQLType: CLOB (Character Large Object)
+        cLOBType                        [40] SEQUENCE {
+                length                          [0] IMPLICIT INTEGER,
+                sqlCharacterSet                 [1] IMPLICIT SQLCharacterSetClause OPTIONAL,
+                zCharacterSetLanguage           [2] IMPLICIT Z3950CharacterSetLanguageClause OPTIONAL,
+                collation                       [3] IMPLICIT SQLCollationClause OPTIONAL } }, -- XXX was 'IMPLIICIT'
+
+        -- cLOBLocatorType (Character Large Object Locator)
+        cLOBLocatorType                 [41] IMPLICIT SEQUENCE {
+                length                          [0] IMPLICIT INTEGER },
+        
+        -- SQLType: result set
+        sQLResultSetType        [50] IMPLICIT SEQUENCE OF SEQUENCE {
+                resultSetName                   [0] IMPLICIT InternationalString,
+                size                            [2] IMPLICIT INTEGER,
+                listOfSQLDataDescriptors        [3] IMPLICIT NULL}, -- XXX SEQUENCE OF SQLDataDescriptor
+
+        -- SQLType: result set locator
+        sQLResultSetLocatorType         [51] IMPLICIT SEQUENCE {
+                length                          [0] IMPLICIT INTEGER } }
+--PYQUOTE SQLDataDescriptor['sQLResultSetType'][0]['listOfSQLDataDescriptors'] = ('listOfSQLDataDescriptors', 3, asn1.SEQUENCE_OF (SQLDataDescriptor))
+
+--PYQUOTE SQLDataDescriptor ['sQLUserDefinedType']['representation']['distinct'] = ('distinct', 0, SQLDataDescriptor)
+
+--PYQUOTE SQLDataDescriptor['sQLRowType'][0]['dataType'] = ('dataType', asn1.EXPLICIT(1), SQLDataDescriptor)
+
+SQLCollationClause              ::= SEQUENCE {
+        collationCatalog                [0] IMPLICIT InternationalString OPTIONAL,
+        collationSchema                 [1] IMPLICIT InternationalString OPTIONAL,
+        collationName                   [2] IMPLICIT InternationalString OPTIONAL }
+
+SQLCharacterSetClause           ::= SEQUENCE {
+        characterSetCatalog             [0] IMPLICIT InternationalString OPTIONAL,
+        characterSetSchema              [1] IMPLICIT InternationalString OPTIONAL,
+        characterSetName                [2] IMPLICIT InternationalString OPTIONAL }
+
+-- Iso2022, Iso10646, PrivateCharacterSet and LanguageCode are defined in the ASN.1
+-- specification for "Z39.50 Character Set and Language Negotiation (2)" (1.2.840.10003.15.1)
+Z3950CharacterSetLanguageClause ::= SEQUENCE {
+        characterSet                    [0]CHOICE {
+                iso2022                         [1] Iso2022,
+                iso10646                        [2] IMPLICIT Iso10646,
+                private                         [3] PrivateCharacterSet,
+                none                            [4] IMPLICIT NULL } OPTIONAL,
+        language                        [1] IMPLICIT LanguageCode OPTIONAL }
+
+SQLOrderingDescriptor           ::= SEQUENCE {
+        orderingForm                    [1] IMPLICIT INTEGER {
+                equals                          (1),
+                full                            (2),
+                none                            (3) },
+        orderingCategory                [2] IMPLICIT CHOICE {
+                relativeRoutineName             [0] IMPLICIT InternationalString,
+                hashRoutineName                 [1] IMPLICIT InternationalString,
+                stateRoutineName                [2] IMPLICIT InternationalString } }
+
+
+SQLAttributeDescriptor          ::= SEQUENCE {
+        attributeName                   [0] IMPLICIT InternationalString,
+        dataDescriptor                  [1] IMPLICIT NULL OPTIONAL,
+        collation                       [2] IMPLICIT SQLCollationClause OPTIONAL }  -- XXX extra '}' deleted
+--PYQUOTE SQLAttributeDescriptor['dataDescriptor'] = ('dataDescriptor', 1, SQLDataDescriptor)
+
+SQLTransformDescriptor          ::= SEQUENCE {
+        groupName                       [0] IMPLICIT InternationalString,
+        fromSQLFunctionName             [1] IMPLICIT InternationalString OPTIONAL,
+        toSQLFunctionName               [2] IMPLICIT InternationalString OPTIONAL}
+
+SQLMethodSpecDescriptor         ::= SEQUENCE {
+        routineName                     [0] IMPLICIT InternationalString,
+        parameterList                   [1] IMPLICIT SEQUENCE OF SEQUENCE {
+                parameterName                   [0] IMPLICIT InternationalString OPTIONAL,
+                mode                            [1] IMPLICIT INTEGER {
+                  in                                    (1),
+                  out                                   (2),
+                  inout                                 (3) } OPTIONAL,
+                type                            [2] IMPLICIT NULL }, -- XXX comma added, switched to SQLDataDescriptor
+        languageName                    [2] IMPLICIT InternationalString OPTIONAL,
+        parameterStyle                  [3] IMPLICIT INTEGER {
+                sql                             (1),
+                general                         (2) } OPTIONAL,
+        returnsDataDescriptor   [4] IMPLICIT NULL OPTIONAL,
+        methodSpecType                  [5] IMPLICIT INTEGER {
+                originalSelfAsResult            (1),
+                originalSelfAsLocator           (2),
+                overriding                      (3) } OPTIONAL,
+        methodType                      [6] IMPLICIT INTEGER {
+                instance                        (1),
+                static                          (2) } OPTIONAL,
+        deterministic                   [7] IMPLICIT BOOLEAN OPTIONAL,
+        possibleMethodFunction          [8] IMPLICIT INTEGER {  
+                noSQL                           (1),
+                containsSQL                     (2),
+                readsSQLData                    (3),
+                writesSQLData                   (4) } OPTIONAL,
+        invokableWhenNull               [9] IMPLICIT BOOLEAN OPTIONAL }
+
+-- PYQUOTE SQLMethodSpecDescriptor['parameterList'][0]['type'] = ('type', 2, SQLDataDescriptor)
+-- PYQUOTE SQLMethodSpecDescriptor['returnsDataDescriptor'] = ('returnsDataDescriptor, 4, SQLDataDescriptor)
+
+SQLDefaultOption                ::= CHOICE {
+        sqlValue                        [0] IMPLICIT SQLValue,
+        other                           [1] IMPLICIT INTEGER {
+                user                            (1),
+                currentuser                     (2),
+                sessionuser                     (3),
+                systemuser                      (4),
+                currentpath                     (5),
+                sqlnull                         (6),
+                sqlempty                        (7) } }
+
+SQLRowValue                     ::= SEQUENCE OF SQLFieldValue
+ 
+SQLFieldValue                   ::= SEQUENCE {
+        sqlException                    [0] IMPLICIT SQLException OPTIONAL,
+        resultValue                     [1] IMPLICIT SQLValue OPTIONAL }
+ 
+SQLException                    ::= SEQUENCE {
+        sqlState                        [0] IMPLICIT InternationalString OPTIONAL,
+        sqlCode                         [1] IMPLICIT INTEGER OPTIONAL,
+
+        sqlErrorText                    [2] IMPLICIT InternationalString OPTIONAL }
+ 
+SQLValue                        ::= SEQUENCE {
+        dataItem                        CHOICE {
+                characterItem                   [1] OCTET STRING,
+                numericItem                     [2] INTEGER,
+                decimalItem                     [3] INTEGER,
+                integerItem                     [4] INTEGER,
+                smallIntItem                    [5] INTEGER,
+                floatItem                       [6] REAL,
+                realItem                        [7] REAL,
+                doublePrecisionItem             [8] REAL,
+                dateTimeItem                    [9] InternationalString,
+                intervalItem                    [10] InternationalString,
+                varcharItem                     [12] OCTET STRING,
+                booleanItem                     [13] BOOLEAN,
+                bitItem                         [14] BIT STRING,
+                bitVarItem                      [15] BIT STRING,
+                udtItem                         [17] SEQUENCE OF NULL, -- XXX
+                udtLocator                      [18] OCTET STRING,
+                rowItem                         [19] SEQUENCE OF NULL, -- XXX
+                refItem                         [20] OCTET STRING,
+                collectionItem                  [21] SEQUENCE OF NULL, -- XXX
+                collectionLocator               [22] OCTET STRING,
+                bLOBItem                        [30] OCTET STRING,
+                bLOBLocator                     [31] OCTET STRING,
+                cLOBItem                        [40] OCTET STRING,
+                cLOBLocator                     [41] OCTET STRING,
+                resultSetItem                   [50] SEQUENCE OF NULL, -- XXX
+                resultSetLocator                [51] OCTET STRING } OPTIONAL,
+        indicator                       [50] IMPLICIT INTEGER {
+                sqlnull                         (1),
+                sqlempty                        (2),
+                sqldefault                      (3) } OPTIONAL }
+
+--PYQUOTE SQLValue['dataItem']['udtItem'] = ('udtItem', 17, asn1.SEQUENCE_OF(SQLValue))
+--PYQUOTE SQLValue['dataItem']['rowItem'] = ('rowItem', 19, asn1.SEQUENCE_OF(SQLValue))
+--PYQUOTE SQLValue['dataItem']['collectionItem'] = ('udtItem', 21, asn1.SEQUENCE_OF(SQLValue))
+--PYQUOTE SQLValue['dataItem']['resultSetItem'] = ('udtItem', 50, asn1.SEQUENCE_OF(SQLValue))
+
+END
