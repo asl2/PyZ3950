@@ -1,18 +1,115 @@
 
-"""Cheshire specific utility functions and subclasses"""
-
-# Lots of faff here that should be cleaned up
+"""CQL utility functions and subclasses"""
 
 from CQLParser import *
 from types import ListType, IntType
 from SRWDiagnostics import *
-# Can we remove this import by checking python version?
-from string import  replace, count, join
 
 from PyZ3950 import z3950, asn1, oids
-from PyZ3950.zcql import ZCQLConfig
 from PyZ3950.zdefs import make_attr
+
+asn1.register_oid (oids.Z3950_QUERY_CQL, asn1.GeneralString)
+
+class ZCQLConfig:
+
+    DC = {'title' : 4,
+          'subject' : 21,
+          'creator' : 1003,
+          'author' : 1003,
+          'editor' : 1020,
+          'publisher' : 1018,
+          'description' : 62,
+          'date' : 30,
+          'resourceType' : 1031,
+          'format' : 1034,
+          'resourceIdentifier' : 12,
+          'source' : 1019,
+          'language' : 54
+          }
+
+    CQL = {'anywhere' : 1016,
+           'serverChoice' : 1016}
+
+    # The common bib1 points
+    BIB1 = {"personal_name" : 1,
+            "corporate_name" : 2,
+            "conference_name" : 3,
+            "title" : 4,
+            "title_series" : 5,
+            "title_uniform" : 6,
+            "isbn" : 7,
+            "issn" : 8,
+            "lccn" : 9,
+            "local_number" : 12,
+            "dewey_number" : 13,
+            "lccn" : 16,
+            "local_classification" : 20,
+            "subject" : 21,
+            "subject_lc" : 27,
+            "subject_local" : 29,
+            "date" : 30,
+            "date_publication" : 31,
+            "date_acquisition" : 32,
+            "local_call_number" : 53,
+            "abstract" : 62,
+            "note" : 63,
+            "record_type" : 1001,
+            "name" : 1002,
+            "author" : 1003,
+            "author_personal" : 1004,
+            "identifier" : 1007,
+            "text_body" : 1010,
+            "date_modified" : 1012,
+            "date_added" : 1011,
+            "concept_text" : 1014,
+            "any" : 1016,
+            "default" : 1017,
+            "publisher" : 1018,
+            "record_source" : 1019,
+            "editor" : 1020,
+            "docid" : 1032,
+            "anywhere" : 1035,
+            "sici" : 1037
+            }
+    
+  
+    XD1 = {"title" : 1,
+          "subject" : 2,
+          "name" : 3,
+          "description" : 4,
+          "date" : 5,
+          "type" : 6,
+          "format" : 7,
+          "identifier" : 8,
+          "source" : 9,
+          "langauge" : 10,
+          "relation" : 11,
+          "coverage" : 12,
+          "rights" : 13}
+
+    UTIL = {"record_date" : 1,
+            "record_agent" : 2,
+            "record_language" : 3,
+            "control_number" : 4,
+            "cost" : 5,
+            "record_syntax" : 6,
+            "database_schema" : 7,
+            "score" : 8,
+            "rank" : 9,
+            "result_set_position" : 10,
+            "all" : 11,
+            "anywhere" : 12,
+            "server_choice" : 13,
+            "wildcard" : 14,
+            "wildpath" : 15}
+
+    def __init__(self):
+        self.UTIL1 = self.UTIL
+        self.XD = self.XD1
+
+
 zConfig = ZCQLConfig()
+
 
 class CSearchClause(SearchClause):
 
@@ -39,88 +136,10 @@ class CSearchClause(SearchClause):
         t = replace(t, "\\*", "*")
         return t
 
-    def toCheshire(self, top=None):
-        """ Convert clause into Cheshire search clause """
-        # Ugly. Very ugly.
-
-        if top == None:
+    def toRPN(self, top=None):
+        if not top:
             top = self
 
-        config = top.config
-        if self.relation.value == serverChoiceRelation:
-            relation = config.defaultRelation
-        else:
-            relation = self.relation.value
-
-        idx = convertIndex(self, top)
-        if idx  == ":":
-            # Pointer to a result set
-            return self.term + ":"
-        else:
-            if idx[0] != "[":
-                if relation == "exact":
-                    idx = "[bib1 1='%s' 5=100] " % (idx)
-                else:
-                    idx = "[bib1 1='%s']" % (idx)
-            
-        if relation == "all":
-            # Split term into words and AND together.
-
-            tlist = self.term.split()
-            newtlist = []
-            for t in tlist:
-                newtlist.append(self.convertMetachars(t))
-            
-            # Relevance?
-            clause = "("
-            if "relevant" in self.relation.modifiers:
-                clause = clause + idx + " @ {" + ''.join(newtlist) + "} AND "
-                
-            for t in newtlist:
-                clause = clause + idx + " {" + t + "} AND "
-            clause = clause[:-5]
-            clause = clause + ")"
-
-        elif relation == "any":
-            # Split term into words and OR together.
-
-            tlist = self.term.split()
-            newtlist = []
-            for t in tlist:
-                newtlist.append(self.convertMetachars(t))
-            
-            # Relevance?
-            if "relevant" in self.relation.modifiers:
-                clause = idx + " @ {" + ''.join(newtlist) + "}"
-            else:
-                clause = "("
-                for t in newtlist:
-                    clause = clause + idx + " {" + t + "} OR "
-                clause = clause[:-4]
-                clause = clause + ")"
-
-        elif relation == "=":
-            if self.term.isdigit() or not config.useWordIndexes:
-                # Numeric
-                clause = idx + " = " + self.term
-            else:
-                # Adjacent:  fooWord = {$term$}
-                clause = idx + " = {$" + self.term + "$}"
-
-
-                if "relevant" in self.relation.modifiers:
-                    clause = "(" + clause + " AND " + idx + " @ {" + self.term + "})"
-        elif relation == "exact":
-            clause = idx + " " + self.term
-        elif relation in ['>', '<', '>=', '<=', '<>']:
-            clause = idx + " " + relation + " {" + self.term + "}"
-        else:
-            # Uhoh!
-            raise(ValueError)
-
-        return clause
-
-    def toRPN(self):
         if (self.relation.value in ['any', 'all']):
             # Need to split this into and/or tree
             if (self.relation.value == 'any'):
@@ -139,7 +158,7 @@ class CSearchClause(SearchClause):
                 text.append('%s "%s"' % (idxrel, w))
             cql = bool.join(text)
             tree = parse(cql)
-            return tree.toRPN()
+            return tree.toRPN(top)
         else:
             # attributes, term
             # AttributeElement: attributeType, attributeValue
@@ -148,47 +167,24 @@ class CSearchClause(SearchClause):
                 return ('op', ('resultSet', self.term.value))
 
             clause = z3950.AttributesPlusTerm()
-            attrs = [self.index.toRPN()]
+            attrs = self.index.toRPN(top)
             if (self.term.value.isdigit()):
                 self.relation.modifiers.append(CModifierClause('cql.number'))
-            attrs.extend(self.relation.toRPN())
+            relattrs = self.relation.toRPN(top)
+            attrs.update(relattrs)
+            butes =[]
+            for e in attrs.iteritems():
+                butes.append((e[0][0], e[0][1], e[1]))
 
-            clause.attributes = [make_attr(*e) for e in attrs]
-            clause.term = self.term.toRPN()
+            clause.attributes = [make_attr(*e) for e in butes]
+            clause.term = self.term.toRPN(top)
 
             return ('op', ('attrTerm', clause))
 
 
 class CBoolean(Boolean):
-    def toCheshire(self):
-        """ Convert boolean into Cheshire  """
-        if self.modifiers:
-            # Proximity
-            # ! [O]NEAR (<) [O]FAR (>)  / Unit / Distance
-            if self.modifiers[0] in ['>', '>=']:
-                prox = "FAR"
-            else:
-                prox = "NEAR"
-            if self.modifiers[3] == 'ordered':
-                prox = "O" + prox
-            prox = "!" + prox
-            if self.modifiers[2] == '':
-                prox = prox + "/WORD"
-            else:
-                prox = prox + "/" + self.modifiers[2]
-            if self.modifiers[1] != '':
-                prox = prox + "/" + str(self.modifiers[1])
-            elif self.modifiers[2] in ['', 'word']:
-                # Default distance is 1
-                prox = prox + "/1"
-            else:
-                prox = prox + "/0"
 
-            return " " + prox + " "
-        else:
-            return " " + self.value + " "
-
-    def toRPN(self):
+    def toRPN(self, top):
         op = self.value
         if (self.value == 'not'):
             op = 'and-not'
@@ -228,24 +224,21 @@ class CBoolean(Boolean):
     
 class CTriple(Triple):
 
-    def toCheshire(self, top=None):
-        """ Convert triple into Cheshire search clause """
-        if top == None:
-            top = self
-        string = "(" + self.leftOperand.toCheshire(top) + self.boolean.toCheshire() + self.rightOperand.toCheshire(top) + ")"
-        return string
-
-    def toRPN(self):
+    def toRPN(self, top=None):
         """rpnRpnOp"""
+        if not top:
+            top = self
+
         op = z3950.RpnRpnOp()
-        op.rpn1 = self.leftOperand.toRPN()
-        op.rpn2 = self.rightOperand.toRPN()
-        op.op = self.boolean.toRPN()
+        op.rpn1 = self.leftOperand.toRPN(top)
+        op.rpn2 = self.rightOperand.toRPN(top)
+        op.op = self.boolean.toRPN(top)
         return ('rpnRpnOp', op)
 
 
 class CIndex(Index):
-    def toRPN(self):
+    def toRPN(self, top):
+        self.resolvePrefix()
         pf = self.prefix
         if (not pf or pf in ['cql', 'dc']):
             pf = "bib1"
@@ -253,8 +246,35 @@ class CIndex(Index):
         try:
             set = oids.oids['Z3950']['ATTRS'][pf]['oid']
         except:
-            # Can't generate the set ...
-            raise(ValueError)
+            # Can't generate the set directly
+            if (hasattr(top, 'config') and top.config):
+                config = top.config
+                # Check SRW Configuration
+                cql = config.contextSetNamespaces['cql']
+                index = self.value
+                if self.prefixURI == cql and self.value == "serverchoice":
+                    index = config.defaultIndex
+                    pf = config.defaultContextSet
+
+                pf = pf.lower()  # URGH! Standardise!
+                if config.indexHash.has_key(pf) and config.indexHash[pf].has_key(index):
+                    idx = config.indexHash[pf][index]
+                    # Need to map from this list to RPN list
+                    attrs = {}
+                    for i in idx:
+                        
+                        set = oids.oids['Z3950']['ATTRS'][i[0].upper()]['oid']
+                        type = int(i[1])
+                        if (i[2].isdigit()):
+                            val = int(i[2])
+                        else:
+                            val = i[2]
+                        attrs[(set, type)] = val
+                    return attrs
+
+            else:
+                print "Can't resolve %s" % pf
+                raise(ValueError)
         
         if (self.value.isdigit()):
             # bib1.1018
@@ -269,14 +289,18 @@ class CIndex(Index):
             # complex attribute for bib1
             val = self.value
             
-        return (set, 1, val)
+        return {(set, 1) :  val}
             
 
 class CRelation(Relation):
-    def toRPN(self):
+    def toRPN(self, top):
         rels = ['', '<', '<=', '=', '>=', '>', '<>']
+        set = z3950.Z3950_ATTRS_BIB1_ov
+
 
         vals = [None, None, None, None, None, None, None]
+
+
 
         if self.value in rels:
             vals[2] = rels.index(self.value)
@@ -308,16 +332,16 @@ class CRelation(Relation):
             vals[3] = 3
             vals[6] = 1
 
-        attrs = []
+        attrs = {}
         for x in range(1,7):
             if vals[x]:
-                attrs.append((z3950.Z3950_ATTRS_BIB1_ov, x, vals[x]))
+                attrs[(z3950.Z3950_ATTRS_BIB1_ov, x)] = vals[x]
 
         return attrs
         
 
 class CTerm(Term):
-    def toRPN(self):
+    def toRPN(self, top):
         return ('general', self.value)
 
 class CModifierClause(ModifierClause):
@@ -327,53 +351,6 @@ class CModifierType(ModifierType):
     pass
 
 
-def convertIndex(sc, top):
-    "Convert srw indexset.index into Cheshire index name"
-    idx = sc.index
-    config = top.config
-    cql = config.contextSetNamespaces['cql']
 
-    idx.resolvePrefix()
-    
-    if idx.prefixURI == cql and idx.value == "serverchoice":
-        index = config.defaultIndex
-        set = config.defaultContextSet
-
-    if idx.prefixURI == cql and idx.value == "resultsetname":
-        return ":"
-
-    if config.indexHash.has_key(set) and config.indexHash[set].has_key(idx):
-        idx = config.indexHash[set][idx]
-
-    if type(idx) == ListType:
-
-        # Need to mung for Word type and Exact
-        if (sc.relation.value == "exact" and not ['bib1', 5, 100] in idx):
-            idx.append(['bib1', 5, 100])
-
-        if (sc.relation.value in ['all', 'any', 'scr'] or (sc.relation.value == '=' and (not sc.term.isdigit() or sc.relation.modifiers))):
-            # Word style.
-            for a in range(len(idx)):
-                if idx[a][1] == "3":
-                    idx[a][2] = "3"
-                elif idx[a][1] == "4":
-                    idx[a][2] = "6"
-        # Now convert to string
-        idxList = ["["]
-        for i in idx:
-            idxList.append("%s %s=%s, " % (i[0], i[1], i[2]))
-        idx = ''.join(idxList)[:-2] + "]"
-        return idx
-                                                          
-    else:
-        if config.useWordIndexes and idx[-4:] != "Word":
-            if sc.relation.value in ['all', 'any', 'scr']:
-                idx = idx + "Word"
-            if sc.relation.value == "=" and (not sc.term.isdigit() or sc.relation.modifiers):
-                idx = idx + "Word"
-            if "stem" in sc.relation.modifiers:
-                idx = idx + "Stem"
-
-    return idx
 
 

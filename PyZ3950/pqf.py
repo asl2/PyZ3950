@@ -4,16 +4,18 @@ try:
     from cStringIO import StringIO
 except:
     from StringIO import StringIO
-from PyZ3950 import z3950, oids
+from PyZ3950 import z3950, oids,asn1
 from PyZ3950.zdefs import make_attr
 from types import IntType, StringType, ListType
-# We need "\"\""  to be one token
 from CQLParser import CQLshlex
 
 
 """
 Parser for PQF directly into RPN structure.
 PQF docs: http://www.indexdata.dk/yaz/doc/tools.html
+
+NB:  This does not implement /everything/ in PQF, in particular:  @attr 2=3 @and @attr 1=4 title @attr 1=1003 author  (eg that 2 should be 3 for all subsequent clauses)
+
 """
 
 
@@ -34,9 +36,9 @@ class PQFParser:
 
     def is_boolean(self):
         if (self.currentToken.lower() in ['@and', '@or', '@not', '@prox']):
-            return True
+            return 1
         else:
-            return False
+            return 0
 
     def defaultClause(self, t):
         # Assign a default clause: anywhere =
@@ -73,7 +75,8 @@ class PQFParser:
             self.fetch_token()
             self.fetch_token()
             n = self.currentToken.upper()
-            # Will raise KeyError if not exist
+            if (n[:14] == "1.2.840.10003."):
+                return asn1.OidVal(n.split('.'))
             return oids.oids['Z3950']['ATTRS'][n]['oid']
         else:
             return None
@@ -135,10 +138,13 @@ class PQFParser:
     def attr_spec(self):
         # @attr is CT
         self.fetch_token()
-        if (not self.currentToken[0].isdigit()):
+        if (self.currentToken.find('=') == -1):
             # attrset
             set = self.currentToken
-            set = oids.oids['Z3950']['ATTRS'][set.upper()]['oid']
+            if (set[:14] == "1.2.840.10003."):
+                set = asn1.OidVal(map(int, set.split('.')))
+            else:
+                set = oids.oids['Z3950']['ATTRS'][set.upper()]['oid']
             self.fetch_token()
         else:
             set = None
@@ -193,7 +199,7 @@ class PQFParser:
             return ('and-not', None)
         else:
             return (b, None)
-            
+
 
 def parse(q):
 
@@ -204,6 +210,49 @@ def parse(q):
     
     parser = PQFParser(lexer)
     return parser.query()
+
+
+
+
+def rpn2pqf(rpn):
+    # Turn RPN structure into PQF equivalent
+    q = rpn[1]
+    if (rpn[0] == 'type_1'):
+        # Top level
+        if (q.attributeSet):
+            query = '@attrset %s '  % ( '.'.join(map(str, q.attributeSet.lst)))
+        else:
+            query = ""
+        rest = rpn2pqf(q.rpn)
+        return "%s%s" % (query, rest)
+    elif (rpn[0] == 'rpnRpnOp'):
+        # boolean
+        if (q.op[0] in ['and', 'or']):
+            query = ['@', q.op[0], ' ']
+        elif (q.op[0] == 'and-not'):
+            query = ['@not ']
+        else:
+            query = ['@prox']
+            # XXX
+        query.append(' ')
+        query.append(rpn2pqf(q.rpn1))
+        query.append(' ')
+        query.append(rpn2pqf(q.rpn2))
+        return ''.join(query)
+    elif (rpn[0] == 'op'):
+        if (q[0] == 'attrTerm'):
+            query = []
+            for a in q[1].attributes:
+                query.append("@attr %i=%s " % (a.attributeType, str(a.attributeValue[1])))
+            query.append(' "%s" ' % (q[1].term[1]))
+            return ''.join(query)
+        elif (q[0] == 'resultSet'):
+            return "@set %s" % (q[1])
+
+            
+        
+
+    
 
 
 

@@ -76,6 +76,9 @@ from PyZ3950 import oids
 # Azaroth 2003-12-04:
 from PyZ3950 import zcql, CQLParser, SRWDiagnostics, pqf
 from PyZ3950 import c2query as c2
+asn1.register_oid (oids.Z3950_QUERY_SQL, z3950.SQLQuery)
+
+
 
 def my_enumerate (l): # replace w/ enumerate when we go to Python 2.3
     return zip (range (len (l)), l)
@@ -193,7 +196,7 @@ class Connection(_AttrCheck, _ErrHdlr):
         ]
     # xmultipleResultSets is my addition to spec.
 
-    _queryTypes = ['CQL', 'S-CQL', 'CCL', 'S-CCL', 'RPN', 'PQF', 'C2']
+    _queryTypes = ['S-CQL', 'S-CCL', 'RPN', 'ZSQL']
 
     # and now, some defaults
     elementSetName = 'F' 
@@ -231,7 +234,7 @@ class Connection(_AttrCheck, _ErrHdlr):
         self.databaseName = 'Default'
     def search (self, query):
         """Search, taking Query object, returning ResultSet"""
-        assert (query.typ == 'RPN' or query.typ == 'S-CCL')
+        assert (query.typ in self._queryTypes)
         dbnames = self.databaseName.split ('+')
         self._cli.set_dbnames (dbnames)
         cur_rsn = self._make_rsn ()
@@ -285,15 +288,15 @@ class Query:
             self.query = ('type_104', xq)
         elif typ == 'CQL': # CQL to RPN transformation
             self.typ = 'RPN'
-            try:
-                q = CQLParser.parse(query)
-                rpnq = z3950.RPNQuery()
-                # XXX Allow Attribute Architecture
-                rpnq.attributeSet = oids.Z3950_ATTRS_BIB1_ov
-                rpnq.rpn = q.toRPN()
-                self.query = ('type_1', rpnq)
-            except SRWDiagnostics.SRWDiagnostic, err:
-                raise QuerySyntaxError
+            #try:
+            q = CQLParser.parse(query)
+            rpnq = z3950.RPNQuery()
+            # XXX Allow Attribute Architecture
+            rpnq.attributeSet = oids.Z3950_ATTRS_BIB1_ov
+            rpnq.rpn = q.toRPN()
+            self.query = ('type_1', rpnq)
+            #except SRWDiagnostics.SRWDiagnostic, err:
+            #    raise QuerySyntaxError
         elif typ == 'PQF':  # PQF to RPN transformation
             self.typ = 'RPN'
             try:
@@ -308,8 +311,26 @@ class Query:
                 self.query = q[0]
             except:
                 raise QuerySyntaxError
+        elif typ == 'ZSQL': # External SQL
+            self.typ = typ
+            xq = asn1.EXTERNAL()
+            xq.direct_reference = oids.Z3950_QUERY_SQL_ov
+            q = z3950.SQLQuery()
+            q.queryExpression = query
+            xq.encoding = ('single-ASN1-type', q)
+            self.query = ('type_104', xq)
+        elif typ == 'CQL-TREE': # Tree to RPN
+            self.typ = 'RPN'
+            #try:
+            rpnq = z3950.RPNQuery()
+            # XXX Allow Attribute Architecture
+            rpnq.attributeSet = oids.Z3950_ATTRS_BIB1_ov
+            rpnq.rpn = query.toRPN()
+            self.query = ('type_1', rpnq)
+            #except SRWDiagnostics.SRWDiagnostic, err:
+            #    raise QuerySyntaxError
         else:
-            raise ClientNotImplError ('%s queries not supported')
+            raise ClientNotImplError ('%s queries not supported' % typ)
 
 
 class ResultSet(_AttrCheck, _ErrHdlr):

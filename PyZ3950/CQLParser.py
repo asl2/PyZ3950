@@ -78,9 +78,13 @@ class PrefixableObject:
             return self.config.resolvePrefix(name)
         else:
             # Top of tree, no config, no resolution->Unknown indexset
-            diag = Diagnostic15()
-            diag.details = name
-            raise diag
+            # For client we need to allow no prefix?
+
+            #diag = Diagnostic15()
+            #diag.details = name
+            #raise diag
+            return None
+
 
 class PrefixedObject:
     "Root object for relation, relationModifier and index"
@@ -179,7 +183,7 @@ class Triple (PrefixableObject):
             return "(%s %s %s)" % (self.leftOperand.toCQL(), self.boolean.toCQL(), self.rightOperand.toCQL())
 
 
-    def getResultSetName(self, top=None):
+    def getResultSetId(self, top=None):
 
         if fullResultSetNameCheck == 0 or self.boolean.value in ['not', 'prox']:
             return ""
@@ -193,13 +197,13 @@ class Triple (PrefixableObject):
         # Iterate over operands and build a list
         rsList = []
         if isinstance(self.leftOperand, Triple):
-            rsList.extend(self.leftOperand.getResultSetName(top))
+            rsList.extend(self.leftOperand.getResultSetId(top))
         else:
-            rsList.append(self.leftOperand.getResultSetName(top))
+            rsList.append(self.leftOperand.getResultSetId(top))
         if isinstance(self.rightOperand, Triple):
-            rsList.extend(self.rightOperand.getResultSetName(top))
+            rsList.extend(self.rightOperand.getResultSetId(top))
         else:
-            rsList.append(self.rightOperand.getResultSetName(top))            
+            rsList.append(self.rightOperand.getResultSetId(top))            
 
         if topLevel == 1:
             # Check all elements are the same, if so we're a fubar form of present
@@ -248,24 +252,11 @@ class SearchClause (PrefixableObject):
         text.append('%s %s "%s"' % (self.index, self.relation.toCQL(), self.term))
         return ' '.join(text)
 
-    def getResultSetName(self):
+    def getResultSetId(self):
         idx = self.index
-        # Strip indexSet
-        f = idx.find(".")
-        if f >= 0:
-            set = idx[:f].lower()
-            idx = idx[f+1:].lower()
-        else:
-            set = ""
-
-        # Look for set in prefixes
-        if reservedPrefixes.has_key(set):
-            setURI = reservedPrefixes[set]
-        else:
-            setURI = self.resolvePrefix(set)
-
-        if setURI == reservedPrefixes['srw'] and idx.lower() == "resultsetname" and self.relation.value == "=":
-            return self.term
+        idx.resolvePrefix()
+        if (idx.prefixURI == reservedPrefixes['cql'] and idx.value.lower() == 'resultsetid'):
+            return self.term.value
         else:
             return ""
 
@@ -419,7 +410,7 @@ class ModifierClause:
 
 
 # Requires changes for:  <= >= <>, and escaped \" in "
-# From shlex.py (std library for 2.2)
+# From shlex.py (std library for 2.2+)
 class CQLshlex(shlex):
     "shlex with additions for CQL parsing"
     quotes = '"'
@@ -894,13 +885,21 @@ def xcqlparse(query):
 def parse(query):
     """ API. Return a searchClause/triple object from CQL string"""
 
+    # XXX Find/Write full unicode capable shlex!
+    try:
+        query = query.encode("ascii")
+    except:
+        diag = Diagnostic10()
+        diag.details = "Cannot parse non utf-8 characters"
+        raise diag
+
     q = StringIO(query)
     lexer = CQLshlex(q)
     parser = CQLParser(lexer)
     object = parser.query()
     if parser.currentToken != '':
         diag = Diagnostic10()
-        diag.details = "Unprocessed tokens remain: " + parser.currentToken
+        diag.details = "Unprocessed tokens remain: " + repr(parser.currentToken)
         raise diag
     else:
         del lexer

@@ -97,14 +97,14 @@ geoRelations = {'>=<' : 7,
                 ':>:' : 18,
                 '.AFTER.' : 18}
 
-proxBooleans = {'!PROX' : (2, False, 2),
-                '!ADJ' : (2, False, 2),
-                '!NEAR' : (20, False, 2),
-                '!FAR' : (20, False, 4),
-                '!OPROX' : (2, True, 2),
-                '!OADJ' : (2, True, 2),
-                '!ONEAR' : (20, True, 2),
-                '!OFAR' : (20, True, 4)}
+proxBooleans = {'!PROX' : (2, 0, 2),
+                '!ADJ' : (2, 0, 2),
+                '!NEAR' : (20, 0, 2),
+                '!FAR' : (20, 0, 4),
+                '!OPROX' : (2, 1, 2),
+                '!OADJ' : (2, 1, 2),
+                '!ONEAR' : (20, 1, 2),
+                '!OFAR' : (20, 1, 4)}
 
 proxUnits = {'C' : 1,
              'CHAR' : 1,
@@ -223,7 +223,7 @@ class C2Parser:
             prox = z3950.ProximityOperator()
             prox.proximityUnitCode = ('private', type)
             prox.distance = 0
-            prox.ordered = False
+            prox.ordered = 0
             prox.relationType = 3
             return ('op', ('prox', prox))
 
