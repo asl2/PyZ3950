@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Auto-generated from ../compiler/tests/z3950-2001.txt at Mon, 08 Dec 2003 21:29:30 +0000
+# Auto-generated from ../compiler/tests/z3950-2001.txt at Mon, 08 Dec 2003 22:16:56 +0000
 from PyZ3950 import asn1
 #module Module None
 KnownProximityUnit=asn1.INTEGER_class ([('character',1),('word',2),('sentence',3),('paragraph',4),('section',5),('chapter',6),('document',7),('element',8),('subelement',9),('elementType',10),('byte',11)])
@@ -1050,7 +1050,7 @@ Espec_q_RPNStructure['rpnRpnOp'] =  ('rpnRpnOp', 1, Espec_q_RpnRpnOp)
 
 
 #!/usr/bin/env python
-# Auto-generated from auth_file_info.asn at Mon, 08 Dec 2003 21:29:30 +0000
+# Auto-generated from auth_file_info.asn at Mon, 08 Dec 2003 22:16:56 +0000
 from PyZ3950 import asn1
 #module UserInfoFormat_authorityFileInfo None
 AuthorityFileInfo=asn1.SEQUENCE ([('name',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),HumanString),0),
@@ -1059,7 +1059,7 @@ AuthorityFileInfo=asn1.SEQUENCE ([('name',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn
 
 
 #!/usr/bin/env python
-# Auto-generated from charset_1.asn at Mon, 08 Dec 2003 21:29:31 +0000
+# Auto-generated from charset_1.asn at Mon, 08 Dec 2003 22:16:57 +0000
 from PyZ3950 import asn1
 #module UserInfoFormat_charSetandLanguageNegotiation_1 None
 Environment=asn1.CHOICE ([('sevenBit',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.NULL)),
@@ -1102,7 +1102,7 @@ CharSetandLanguageNegotiation=asn1.CHOICE ([('proposal',None,asn1.TYPE(asn1.IMPL
 
 
 #!/usr/bin/env python
-# Auto-generated from charset_2.asn at Mon, 08 Dec 2003 21:29:31 +0000
+# Auto-generated from charset_2.asn at Mon, 08 Dec 2003 22:16:57 +0000
 from PyZ3950 import asn1
 #module NegotiationRecordDefinition_charSetandLanguageNegotiation_2 None
 InitialSet_2=asn1.SEQUENCE ([('g0',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),1),
@@ -1145,7 +1145,7 @@ CharSetandLanguageNegotiation2=asn1.CHOICE ([('proposal',None,asn1.TYPE(asn1.IMP
 
 
 #!/usr/bin/env python
-# Auto-generated from charset_3.asn at Mon, 08 Dec 2003 21:29:31 +0000
+# Auto-generated from charset_3.asn at Mon, 08 Dec 2003 22:16:57 +0000
 from PyZ3950 import asn1
 #module NegotiationRecordDefinition_charSetandLanguageNegotiation_3 None
 Environment_3=asn1.CHOICE ([('sevenBit',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.NULL)),
@@ -1188,7 +1188,7 @@ CharSetandLanguageNegotiation_3=asn1.CHOICE ([('proposal',None,asn1.TYPE(asn1.IM
 
 
 #!/usr/bin/env python
-# Auto-generated from edit_replace_qual.asn at Mon, 08 Dec 2003 21:29:31 +0000
+# Auto-generated from edit_replace_qual.asn at Mon, 08 Dec 2003 22:16:57 +0000
 from PyZ3950 import asn1
 #module ERAQ None
 EditReplaceActionQualifier=asn1.SEQUENCE ([('persistentResultSetPackageName',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),0),
@@ -1208,7 +1208,7 @@ EditReplaceActionQualifier=asn1.SEQUENCE ([('persistentResultSetPackageName',Non
 
 
 #!/usr/bin/env python
-# Auto-generated from frag.asn at Mon, 08 Dec 2003 21:29:31 +0000
+# Auto-generated from frag.asn at Mon, 08 Dec 2003 22:16:57 +0000
 from PyZ3950 import asn1
 #module FragmentSyntax None
 Fragment=asn1.SEQUENCE ([('realSyntax',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.OBJECT_IDENTIFIER),1),
@@ -1217,7 +1217,7 @@ Fragment=asn1.SEQUENCE ([('realSyntax',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.C
 
 
 #!/usr/bin/env python
-# Auto-generated from ins_qualifier.asn at Mon, 08 Dec 2003 21:29:31 +0000
+# Auto-generated from ins_qualifier.asn at Mon, 08 Dec 2003 22:16:57 +0000
 from PyZ3950 import asn1
 #module RIAQ None
 RecordInsertActionQualifier=asn1.SEQUENCE ([('idsOrCode',None,asn1.TYPE(asn1.EXPLICIT(1,cls=asn1.CONTEXT_FLAG),    asn1.CHOICE ([('nonDupRecordIds',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),        asn1.SEQUENCE_OF (InternationalString))),
@@ -1226,14 +1226,14 @@ RecordInsertActionQualifier=asn1.SEQUENCE ([('idsOrCode',None,asn1.TYPE(asn1.EXP
 
 
 #!/usr/bin/env python
-# Auto-generated from multiple_search_term_1.asn at Mon, 08 Dec 2003 21:29:31 +0000
+# Auto-generated from multiple_search_term_1.asn at Mon, 08 Dec 2003 22:16:57 +0000
 from PyZ3950 import asn1
 #module UserInfoFormat_multipleSearchTerms_1 None
 MultipleSearchTerms_1=asn1.SEQUENCE_OF (Term)
 
 
 #!/usr/bin/env python
-# Auto-generated from multiple_search_term_2.asn at Mon, 08 Dec 2003 21:29:31 +0000
+# Auto-generated from multiple_search_term_2.asn at Mon, 08 Dec 2003 22:16:57 +0000
 from PyZ3950 import asn1
 #module UserInfoFormat_multipleSearchTerms_2 None
 MultipleSearchTerms_2=asn1.SEQUENCE_OF (asn1.SEQUENCE ([('term',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),Term),0),
@@ -1241,7 +1241,7 @@ MultipleSearchTerms_2=asn1.SEQUENCE_OF (asn1.SEQUENCE ([('term',None,asn1.TYPE(a
 
 
 #!/usr/bin/env python
-# Auto-generated from negot_es_size.asn at Mon, 08 Dec 2003 21:29:31 +0000
+# Auto-generated from negot_es_size.asn at Mon, 08 Dec 2003 22:16:57 +0000
 from PyZ3950 import asn1
 #module NegotiationRecordDefinition_NegotiateEsSizes None
 NegotiateEsSizes=asn1.SEQUENCE ([('maxMsgSize',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),1),
@@ -1250,7 +1250,7 @@ NegotiateEsSizes=asn1.SEQUENCE ([('maxMsgSize',None,asn1.TYPE(asn1.IMPLICIT(1,cl
 
 
 #!/usr/bin/env python
-# Auto-generated from opac.asn at Mon, 08 Dec 2003 21:29:31 +0000
+# Auto-generated from opac.asn at Mon, 08 Dec 2003 22:16:57 +0000
 from PyZ3950 import asn1
 #module RecordSyntax_opac None
 Volume=asn1.SEQUENCE ([('enumeration',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),1),
@@ -1292,7 +1292,7 @@ OPACRecord=asn1.SEQUENCE ([('bibliographicRecord',None,asn1.TYPE(asn1.IMPLICIT(1
 
 
 #!/usr/bin/env python
-# Auto-generated from update_es_rev1.asn at Mon, 08 Dec 2003 21:29:32 +0000
+# Auto-generated from update_es_rev1.asn at Mon, 08 Dec 2003 22:16:57 +0000
 from PyZ3950 import asn1
 #module ESFormat_Update None
 CorrelationInfo_updrev1=asn1.SEQUENCE ([('note',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),1),
@@ -1326,12 +1326,13 @@ Update_updrev1=asn1.CHOICE ([('esRequest',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn
 
 
 #!/usr/bin/env python
-# Auto-generated from zsql.asn at Mon, 08 Dec 2003 21:29:32 +0000
+# Auto-generated from zsql.asn at Mon, 08 Dec 2003 22:16:58 +0000
 from PyZ3950 import asn1
 #module Z39_50_EXTERNALS_SQL_RS None
 SQLCharacterSetClause=asn1.SEQUENCE ([('characterSetCatalog',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),InternationalString),1),
     ('characterSetSchema',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),1),
     ('characterSetName',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString),1)], seq_name = 'SQLCharacterSetClause')
+SQLUniqueConstraint=asn1.INTEGER_class ([('unique',1),('primaryKey',2)])
 SQLTransformDescriptor=asn1.SEQUENCE ([('groupName',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),InternationalString),0),
     ('fromSQLFunctionName',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),1),
     ('toSQLFunctionName',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString),1)], seq_name = 'SQLTransformDescriptor')
@@ -1344,16 +1345,56 @@ SQLOrderingDescriptor=asn1.SEQUENCE ([('orderingForm',None,asn1.TYPE(asn1.IMPLIC
     ('orderingCategory',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),    asn1.CHOICE ([('relativeRoutineName',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),InternationalString)),
         ('hashRoutineName',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString)),
         ('stateRoutineName',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString))])),0)], seq_name = 'SQLOrderingDescriptor')
+SQLQuery=asn1.SEQUENCE ([('abstractDatabaseFlag',None,asn1.TYPE(asn1.EXPLICIT(0,cls=asn1.CONTEXT_FLAG),asn1.BOOLEAN),1),
+    ('queryExpression',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),0)], seq_name = 'SQLQuery')
 SQLException=asn1.SEQUENCE ([('sqlState',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),InternationalString),1),
     ('sqlCode',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),1),
     ('sqlErrorText',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString),1)], seq_name = 'SQLException')
-SQLQuery=asn1.SEQUENCE ([('abstractDatabaseFlag',None,asn1.TYPE(asn1.EXPLICIT(0,cls=asn1.CONTEXT_FLAG),asn1.BOOLEAN),1),
-    ('queryExpression',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),0)], seq_name = 'SQLQuery')
-SQLUniqueContraint=asn1.INTEGER_class ([('unique',1),('primaryKey',2)])
 SQLCollationClause=asn1.SEQUENCE ([('collationCatalog',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),InternationalString),1),
     ('collationSchema',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),1),
     ('collationName',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString),1)], seq_name = 'SQLCollationClause')
-# Cycle XXX SQLDataDescriptor(SQLCharacterSetClause,SQLOrderingDescriptor,SQLCollationClause,SQLTransformDescriptor,SQLDataDescriptor,SQLAttributeDescriptor,Z3950CharacterSetLanguageClause),SQLColumnDescriptor(SQLDefaultOption,SQLDataDescriptor),SQLTableDescriptor(SQLColumnDescriptor),SQLFieldValue(SQLException,SQLValue),SQLRowValue(SQLFieldValue),SQL_Result(SQLRowValue,SQLTableDescriptor),SQLMethodSpecDescriptor(SQLDataDescriptor),SQLAttributeDescriptor(SQLCollationClause,SQLDataDescriptor),SQLDefaultOption(SQLValue),SQLValue(SQLValue)
+SQLMethodSpecDescriptor=asn1.SEQUENCE ([('routineName',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),InternationalString),0),
+    ('parameterList',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE_OF (    asn1.SEQUENCE ([('parameterName',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),InternationalString),1),
+        ('mode',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('in',1),('out',2),('inout',3)])),1),
+        ('type',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.NULL),0)], seq_name = None))),0),
+    ('languageName',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString),1),
+    ('parameterStyle',None,asn1.TYPE(asn1.IMPLICIT(3,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('sql',1),('general',2)])),1),
+    ('returnsDataDescriptor',None,asn1.TYPE(asn1.IMPLICIT(4,cls=asn1.CONTEXT_FLAG),asn1.NULL),1),
+    ('methodSpecType',None,asn1.TYPE(asn1.IMPLICIT(5,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('originalSelfAsResult',1),('originalSelfAsLocator',2),('overriding',3)])),1),
+    ('methodType',None,asn1.TYPE(asn1.IMPLICIT(6,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('instance',1),('static',2)])),1),
+    ('deterministic',None,asn1.TYPE(asn1.IMPLICIT(7,cls=asn1.CONTEXT_FLAG),asn1.BOOLEAN),1),
+    ('possibleMethodFunction',None,asn1.TYPE(asn1.IMPLICIT(8,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('noSQL',1),('containsSQL',2),('readsSQLData',3),('writesSQLData',4)])),1),
+    ('invokableWhenNull',None,asn1.TYPE(asn1.IMPLICIT(9,cls=asn1.CONTEXT_FLAG),asn1.BOOLEAN),1)], seq_name = 'SQLMethodSpecDescriptor')
+SQLAttributeDescriptor=asn1.SEQUENCE ([('attributeName',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),InternationalString),0),
+    ('dataDescriptor',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.NULL),1),
+    ('collation',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),SQLCollationClause),1)], seq_name = 'SQLAttributeDescriptor')
+SQLValue=asn1.SEQUENCE ([('dataItem',None,    asn1.CHOICE ([('characterItem',None,asn1.TYPE(asn1.EXPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING)),
+        ('numericItem',None,asn1.TYPE(asn1.EXPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([]))),
+        ('decimalItem',None,asn1.TYPE(asn1.EXPLICIT(3,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([]))),
+        ('integerItem',None,asn1.TYPE(asn1.EXPLICIT(4,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([]))),
+        ('smallIntItem',None,asn1.TYPE(asn1.EXPLICIT(5,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([]))),
+        ('floatItem',None,asn1.TYPE(asn1.EXPLICIT(6,cls=asn1.CONTEXT_FLAG),asn1.REAL)),
+        ('realItem',None,asn1.TYPE(asn1.EXPLICIT(7,cls=asn1.CONTEXT_FLAG),asn1.REAL)),
+        ('doublePrecisionItem',None,asn1.TYPE(asn1.EXPLICIT(8,cls=asn1.CONTEXT_FLAG),asn1.REAL)),
+        ('dateTimeItem',None,asn1.TYPE(asn1.EXPLICIT(9,cls=asn1.CONTEXT_FLAG),InternationalString)),
+        ('intervalItem',None,asn1.TYPE(asn1.EXPLICIT(10,cls=asn1.CONTEXT_FLAG),InternationalString)),
+        ('varcharItem',None,asn1.TYPE(asn1.EXPLICIT(12,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING)),
+        ('booleanItem',None,asn1.TYPE(asn1.EXPLICIT(13,cls=asn1.CONTEXT_FLAG),asn1.BOOLEAN)),
+        ('bitItem',None,asn1.TYPE(asn1.EXPLICIT(14,cls=asn1.CONTEXT_FLAG),asn1.BITSTRING_class ([]))),
+        ('bitVarItem',None,asn1.TYPE(asn1.EXPLICIT(15,cls=asn1.CONTEXT_FLAG),asn1.BITSTRING_class ([]))),
+        ('udtItem',None,asn1.TYPE(asn1.EXPLICIT(17,cls=asn1.CONTEXT_FLAG),        asn1.SEQUENCE_OF (asn1.NULL))),
+        ('udtLocator',None,asn1.TYPE(asn1.EXPLICIT(18,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING)),
+        ('rowItem',None,asn1.TYPE(asn1.EXPLICIT(19,cls=asn1.CONTEXT_FLAG),        asn1.SEQUENCE_OF (asn1.NULL))),
+        ('refItem',None,asn1.TYPE(asn1.EXPLICIT(20,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING)),
+        ('collectionItem',None,asn1.TYPE(asn1.EXPLICIT(21,cls=asn1.CONTEXT_FLAG),        asn1.SEQUENCE_OF (asn1.NULL))),
+        ('collectionLocator',None,asn1.TYPE(asn1.EXPLICIT(22,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING)),
+        ('bLOBItem',None,asn1.TYPE(asn1.EXPLICIT(30,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING)),
+        ('bLOBLocator',None,asn1.TYPE(asn1.EXPLICIT(31,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING)),
+        ('cLOBItem',None,asn1.TYPE(asn1.EXPLICIT(40,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING)),
+        ('cLOBLocator',None,asn1.TYPE(asn1.EXPLICIT(41,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING)),
+        ('resultSetItem',None,asn1.TYPE(asn1.EXPLICIT(50,cls=asn1.CONTEXT_FLAG),        asn1.SEQUENCE_OF (asn1.NULL))),
+        ('resultSetLocator',None,asn1.TYPE(asn1.EXPLICIT(51,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING))]),1),
+    ('indicator',None,asn1.TYPE(asn1.IMPLICIT(50,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('sqlnull',1),('sqlempty',2),('sqldefault',3)])),1)], seq_name = 'SQLValue')
 SQLDataDescriptor=asn1.CHOICE ([('characterType',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('length',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),0),
         ('sqlCharacterSet',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),SQLCharacterSetClause),1),
         ('zCharacterSetLanguage',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),Z3950CharacterSetLanguageClause),1),
@@ -1387,19 +1428,17 @@ SQLDataDescriptor=asn1.CHOICE ([('characterType',None,asn1.TYPE(asn1.IMPLICIT(1,
     ('sQLUserDefinedType',None,asn1.TYPE(asn1.IMPLICIT(17,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('udtName',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),InternationalString),0),
         ('ordering',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),SQLOrderingDescriptor),1),
         ('superTypeName',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString),1),
-        ('representation',None,asn1.TYPE(asn1.IMPLICIT(3,cls=asn1.CONTEXT_FLAG),        asn1.CHOICE ([('distinct',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),SQLDataDescriptor)),
+        ('representation',None,asn1.TYPE(asn1.IMPLICIT(3,cls=asn1.CONTEXT_FLAG),        asn1.CHOICE ([('distinct',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),asn1.NULL)),
             ('structured',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),            asn1.SEQUENCE_OF (SQLAttributeDescriptor))),
             ('system_generated',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.NULL))])),0),
         ('instantiable',None,asn1.TYPE(asn1.IMPLICIT(4,cls=asn1.CONTEXT_FLAG),asn1.BOOLEAN),0),
         ('final',None,asn1.TYPE(asn1.IMPLICIT(5,cls=asn1.CONTEXT_FLAG),asn1.BOOLEAN),0),
-        ('transformDesc',None,asn1.TYPE(asn1.IMPLICIT(7,cls=asn1.CONTEXT_FLAG),        asn1.SEQUENCE_OF (SQLTransformDescriptor)),1),
-        ('methodSpecList',None,asn1.TYPE(asn1.IMPLICIT(8,cls=asn1.CONTEXT_FLAG),        asn1.SEQUENCE_OF (SQLMethodSpecDesciptor)),1)], seq_name = None))),
+        ('transformDesc',None,asn1.TYPE(asn1.IMPLICIT(7,cls=asn1.CONTEXT_FLAG),        asn1.SEQUENCE_OF (SQLTransformDescriptor)),1)], seq_name = None))),
     ('sQLUserDefinedTypeLocatorType',None,asn1.TYPE(asn1.IMPLICIT(18,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('length',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),0)], seq_name = None))),
     ('sQLRowType',None,asn1.TYPE(asn1.IMPLICIT(19,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE_OF (    asn1.SEQUENCE ([('fieldName',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),InternationalString),0),
-        ('dataType',None,asn1.TYPE(asn1.EXPLICIT(1,cls=asn1.CONTEXT_FLAG),SQLDataDescriptor),0)], seq_name = None)))),
-    ('sQLReferenceType',None,asn1.TYPE(asn1.EXPLICIT(20,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('referencedType',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),SQLUserDefinedType),0),
-        ('scopeTableName',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),1)], seq_name = None))),
-    ('sQLCollectionType',None,asn1.TYPE(asn1.EXPLICIT(21,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('dataType',None,asn1.TYPE(asn1.EXPLICIT(0,cls=asn1.CONTEXT_FLAG),SQLDataDescriptor),0),
+        ('dataType',None,asn1.TYPE(asn1.EXPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.NULL),0)], seq_name = None)))),
+    ('sQLReferenceType',None,asn1.TYPE(asn1.EXPLICIT(20,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('scopeTableName',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),InternationalString),1)], seq_name = None))),
+    ('sQLCollectionType',None,asn1.TYPE(asn1.EXPLICIT(21,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('dataType',None,asn1.TYPE(asn1.EXPLICIT(0,cls=asn1.CONTEXT_FLAG),asn1.NULL),0),
         ('collectionTypeConstructor',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),        asn1.SEQUENCE ([('size',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),0),
             ('type',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('array',1),('set',2)])),0)], seq_name = None)),0),
         ('sQLCollectionLocatorType',None,asn1.TYPE(asn1.IMPLICIT(22,cls=asn1.CONTEXT_FLAG),        asn1.SEQUENCE ([('length',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),0)], seq_name = None)),0),
@@ -1412,10 +1451,15 @@ SQLDataDescriptor=asn1.CHOICE ([('characterType',None,asn1.TYPE(asn1.IMPLICIT(1,
     ('cLOBLocatorType',None,asn1.TYPE(asn1.IMPLICIT(41,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('length',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),0)], seq_name = None))),
     ('sQLResultSetType',None,asn1.TYPE(asn1.IMPLICIT(50,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE_OF (    asn1.SEQUENCE ([('resultSetName',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),InternationalString),0),
         ('size',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),0),
-        ('listOfSQLDataDescriptors',None,asn1.TYPE(asn1.IMPLICIT(3,cls=asn1.CONTEXT_FLAG),        asn1.SEQUENCE_OF (SQLDataDescriptor)),0)], seq_name = None)))),
+        ('listOfSQLDataDescriptors',None,asn1.TYPE(asn1.IMPLICIT(3,cls=asn1.CONTEXT_FLAG),asn1.NULL),0)], seq_name = None)))),
     ('sQLResultSetLocatorType',None,asn1.TYPE(asn1.IMPLICIT(51,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE ([('length',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([])),0)], seq_name = None)))])
+SQLFieldValue=asn1.SEQUENCE ([('sqlException',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),SQLException),1),
+    ('resultValue',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),SQLValue),1)], seq_name = 'SQLFieldValue')
+SQLRowValue=asn1.SEQUENCE_OF (SQLFieldValue)
+SQLDefaultOption=asn1.CHOICE ([('sqlValue',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),SQLValue)),
+    ('other',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('user',1),('currentuser',2),('sessionuser',3),('systemuser',4),('currentpath',5),('sqlnull',6),('sqlempty',7)])))])
 SQLColumnDescriptor=asn1.SEQUENCE ([('columnName',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),InternationalString),0),
-    ('dataType',None,asn1.TYPE(asn1.EXPLICIT(1,cls=asn1.CONTEXT_FLAG),SQLDataDescriptor),0),
+    ('dataType',None,asn1.TYPE(asn1.EXPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.NULL),0),
     ('columnConstraint',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE_OF (    asn1.SEQUENCE ([('nullable',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),asn1.BOOLEAN),0),
         ('uniqueConstraint',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),SQLUniqueConstraint),1),
         ('check',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString),1)], seq_name = None))),0),
@@ -1425,54 +1469,24 @@ SQLTableDescriptor=asn1.SEQUENCE ([('tableName',None,asn1.TYPE(asn1.IMPLICIT(0,c
     ('tableConstraint',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE_OF (    asn1.SEQUENCE ([('listOfColumnNames',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),        asn1.SEQUENCE_OF (InternationalString)),0),
         ('uniqueContraint',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),SQLUniqueConstraint),1),
         ('check',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString),1)], seq_name = None))),0)], seq_name = 'SQLTableDescriptor')
-SQLFieldValue=asn1.SEQUENCE ([('sqlException',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),SQLException),1),
-    ('resultValue',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),SQLValue),1)], seq_name = 'SQLFieldValue')
-SQLRowValue=asn1.SEQUENCE_OF (SQLFieldValue)
 SQL_Result=asn1.SEQUENCE ([('tableDescriptor',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),SQLTableDescriptor),1),
     ('listOfResultValues',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE_OF (SQLRowValue)),1)], seq_name = 'SQL_Result')
-SQLMethodSpecDescriptor=asn1.SEQUENCE ([('routineName',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),InternationalString),0),
-    ('parameterList',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),    asn1.SEQUENCE_OF (    asn1.SEQUENCE ([('parameterName',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),InternationalString),1),
-        ('mode',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('in',1),('out',2),('inout',3)])),1),
-        ('type',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),SQLDataDescriptor),0)], seq_name = None))),0),
-    ('languageName',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),InternationalString),1),
-    ('parameterStyle',None,asn1.TYPE(asn1.IMPLICIT(3,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('sql',1),('general',2)])),1),
-    ('returnsDataDescriptor',None,asn1.TYPE(asn1.IMPLICIT(4,cls=asn1.CONTEXT_FLAG),SQLDataDescriptor),1),
-    ('methodSpecType',None,asn1.TYPE(asn1.IMPLICIT(5,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('originalSelfAsResult',1),('originalSelfAsLocator',2),('overriding',3)])),1),
-    ('methodType',None,asn1.TYPE(asn1.IMPLICIT(6,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('instance',1),('static',2)])),1),
-    ('deterministic',None,asn1.TYPE(asn1.IMPLICIT(7,cls=asn1.CONTEXT_FLAG),asn1.BOOLEAN),1),
-    ('possibleMethodFunction',None,asn1.TYPE(asn1.IMPLICIT(8,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('noSQL',1),('containsSQL',2),('readsSQLData',3),('writesSQLData',4)])),1),
-    ('invokableWhenNull',None,asn1.TYPE(asn1.IMPLICIT(9,cls=asn1.CONTEXT_FLAG),asn1.BOOLEAN),1)], seq_name = 'SQLMethodSpecDescriptor')
-SQLAttributeDescriptor=asn1.SEQUENCE ([('attributeName',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),InternationalString),0),
-    ('dataDescriptor',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),SQLDataDescriptor),1),
-    ('collation',None,asn1.TYPE(asn1.IMPLICIT(2,cls=asn1.CONTEXT_FLAG),SQLCollationClause),1)], seq_name = 'SQLAttributeDescriptor')
-SQLDefaultOption=asn1.CHOICE ([('sqlValue',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),SQLValue)),
-    ('other',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('user',1),('currentuser',2),('sessionuser',3),('systemuser',4),('currentpath',5),('sqlnull',6),('sqlempty',7)])))])
-SQLValue=asn1.SEQUENCE ([('dataItem',None,    asn1.CHOICE ([('characterItem',None,asn1.TYPE(asn1.EXPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING)),
-        ('numericItem',None,asn1.TYPE(asn1.EXPLICIT(2,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([]))),
-        ('decimalItem',None,asn1.TYPE(asn1.EXPLICIT(3,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([]))),
-        ('integerItem',None,asn1.TYPE(asn1.EXPLICIT(4,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([]))),
-        ('smallIntItem',None,asn1.TYPE(asn1.EXPLICIT(5,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([]))),
-        ('floatItem',None,asn1.TYPE(asn1.EXPLICIT(6,cls=asn1.CONTEXT_FLAG),asn1.REAL)),
-        ('realItem',None,asn1.TYPE(asn1.EXPLICIT(7,cls=asn1.CONTEXT_FLAG),asn1.REAL)),
-        ('doublePrecisionItem',None,asn1.TYPE(asn1.EXPLICIT(8,cls=asn1.CONTEXT_FLAG),asn1.REAL)),
-        ('dateTimeItem',None,asn1.TYPE(asn1.EXPLICIT(9,cls=asn1.CONTEXT_FLAG),InternationalString)),
-        ('intervalItem',None,asn1.TYPE(asn1.EXPLICIT(10,cls=asn1.CONTEXT_FLAG),InternationalString)),
-        ('varcharItem',None,asn1.TYPE(asn1.EXPLICIT(12,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING)),
-        ('booleanItem',None,asn1.TYPE(asn1.EXPLICIT(13,cls=asn1.CONTEXT_FLAG),asn1.BOOLEAN)),
-        ('bitItem',None,asn1.TYPE(asn1.EXPLICIT(14,cls=asn1.CONTEXT_FLAG),asn1.BITSTRING_class ([]))),
-        ('bitVarItem',None,asn1.TYPE(asn1.EXPLICIT(15,cls=asn1.CONTEXT_FLAG),asn1.BITSTRING_class ([]))),
-        ('udtItem',None,asn1.TYPE(asn1.EXPLICIT(17,cls=asn1.CONTEXT_FLAG),        asn1.SEQUENCE_OF (SQLValue))),
-        ('udtLocator',None,asn1.TYPE(asn1.EXPLICIT(18,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING)),
-        ('rowItem',None,asn1.TYPE(asn1.EXPLICIT(19,cls=asn1.CONTEXT_FLAG),        asn1.SEQUENCE_OF (SQLValue))),
-        ('refItem',None,asn1.TYPE(asn1.EXPLICIT(20,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING)),
-        ('collectionItem',None,asn1.TYPE(asn1.EXPLICIT(21,cls=asn1.CONTEXT_FLAG),        asn1.SEQUENCE_OF (SQLValue))),
-        ('collectionLocator',None,asn1.TYPE(asn1.EXPLICIT(22,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING)),
-        ('bLOBItem',None,asn1.TYPE(asn1.EXPLICIT(30,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING)),
-        ('bLOBLocator',None,asn1.TYPE(asn1.EXPLICIT(31,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING)),
-        ('cLOBItem',None,asn1.TYPE(asn1.EXPLICIT(40,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING)),
-        ('cLOBLocator',None,asn1.TYPE(asn1.EXPLICIT(41,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING)),
-        ('resultSetItem',None,asn1.TYPE(asn1.EXPLICIT(50,cls=asn1.CONTEXT_FLAG),        asn1.SEQUENCE_OF (SQLValue))),
-        ('resultSetLocator',None,asn1.TYPE(asn1.EXPLICIT(51,cls=asn1.CONTEXT_FLAG),asn1.OCTSTRING))]),1),
-    ('indicator',None,asn1.TYPE(asn1.IMPLICIT(50,cls=asn1.CONTEXT_FLAG),asn1.INTEGER_class ([('sqlnull',1),('sqlempty',2),('sqldefault',3)])),1)], seq_name = 'SQLValue')
+SQLColumnDescriptor['dataType'] = ('dataType', asn1.EXPLICIT(1), SQLDataDescriptor)
+
+SQLDataDescriptor['sQLResultSetType'][0]['listOfSQLDataDescriptors'] = ('listOfSQLDataDescriptors', 3, asn1.SEQUENCE_OF (SQLDataDescriptor))
+
+SQLDataDescriptor ['sQLUserDefinedType']['representation']['distinct'] = ('distinct', 0, SQLDataDescriptor)
+
+SQLDataDescriptor['sQLRowType'][0]['dataType'] = ('dataType', asn1.EXPLICIT(1), SQLDataDescriptor)
+
+SQLAttributeDescriptor['dataDescriptor'] = ('dataDescriptor', 1, SQLDataDescriptor)
+
+SQLValue['dataItem']['udtItem'] = ('udtItem', 17, asn1.SEQUENCE_OF(SQLValue))
+
+SQLValue['dataItem']['rowItem'] = ('rowItem', 19, asn1.SEQUENCE_OF(SQLValue))
+
+SQLValue['dataItem']['collectionItem'] = ('udtItem', 21, asn1.SEQUENCE_OF(SQLValue))
+
+SQLValue['dataItem']['resultSetItem'] = ('udtItem', 50, asn1.SEQUENCE_OF(SQLValue))
 
 
