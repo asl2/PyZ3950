@@ -187,9 +187,16 @@ class MARC:
             end   = start + fieldlen
             line = self.marc[start:end]
             lastpos = startpos
+            if len (line) == 0:
+                # actually happens for LC control id 12547199,
+                # retrievable w/ au=Boulanger
+#                print "0-len line for", tag, repr (line)
+                continue
             if line [-1] == '\x1E':
                 line = line[:-1]
-            else: print "Weird, no hex 1E for", tag, repr(line)
+            else:
+                pass # happens for same record as above.
+#                print "Weird, no hex 1E for", tag, repr(line)
             field = string.atoi (tag)
             if is_fixed (field):
                 self.fields[field] = [line]
@@ -914,13 +921,33 @@ class MARC:
         # XXX TargetAudience (field 8 again)
 
         # --- Note ---
-        if (self.fields.has_key(500)):
-            for n in (self.fields[500]):
-                xml.append('  <note>');
-                for s in n:
-                    if (s[0] == 'a'):
-                        xml.append(escape(s[1]))
-                xml.append('</note>\n')
+        notes_to_typ = { # http://www.loc.gov/standards/mods/mods-notes.html
+            500 : None,
+            541 : 'acquisition',
+            583 : 'action',
+            530 : 'additional form',
+            504 : 'bibliography',
+            545 : 'biographical',
+            510 : 'citation',
+            518 : 'date',
+            585 : 'exhibitions',
+            536 : 'funding',
+            546 : 'language',
+            561 : 'ownership',
+            511 : 'performers',
+            518 : 'venue'} # and 
+            
+        for field, typ in notes_to_typ.items ():
+            if (self.fields.has_key(field)):
+                for n in self.fields[field]:
+                    if typ == None:
+                        xml.append('  <note>');
+                    else:
+                        xml.append('  <note type="%s">' % typ)
+                    for s in n[2]:
+                        if (s[0] == 'a'):
+                            xml.append(escape(s[1]))
+                    xml.append('</note>\n')
 
         # --- Subject ---
         subjectList = [600, 610, 611, 630, 650, 651, 653]
@@ -1020,7 +1047,7 @@ class MARC:
 
         if (self.fields.has_key(752)):
             xml.append('  <subject><hierarchicalGeographic>\n')
-            for sub in self.fields[43][0][2]:
+            for sub in self.fields[752][0][2]:
                 val = escape(sub[1])
                 if (sub[0] == 'a'):
                     xml.append('    <country>%s</country>\n' % (val))
@@ -1058,8 +1085,8 @@ class MARC:
         cfields = {50 : 'lcc', 82 : 'ddc', 80 : 'udc', 60 : 'nlm'}
         for k in cfields:
             if (self.fields.has_key(k)):
+                stuff = []
                 for sub in self.fields[k][0][2]:
-                    stuff = []
                     if (sub[0] == 'a'):
                         stuff.append(escape(sub[1]))
                     elif (sub[0] == 'b'):
