@@ -291,7 +291,6 @@ class Query:
                 rpnq.attributeSet = oids.Z3950_ATTRS_BIB1_ov
                 rpnq.rpn = q.toRPN()
                 self.query = ('type_1', rpnq)
-                print self.query
             except SRWDiagnostics.SRWDiagnostic, err:
                 raise QuerySyntaxError
 
