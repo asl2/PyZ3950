@@ -609,12 +609,12 @@ class MARC:
         # --- TitleInfo Fields ---
         if self.fields.has_key(245):
             instance = self.fields[245][0][2]
-            xml = ["  <titleInfo>\n    <title>"]
+            xml.append("  <titleInfo>\n    <title>")
             insubtitle = 0
             for sub in instance:
                 if (sub[0] in ['a', 'f', 'g', 'k']):
                     xml.append(sub[1])
-                    title.append(' ')
+                    xml.append(' ')
                 elif (sub[0] == 'b'):
                     xml.append("</title>\n    <subtitle>%s " % (sub[1]))
                     insubtitle = 1
@@ -658,7 +658,6 @@ class MARC:
             instance = full[2]
             subf = {}
             for sub in instance:
-<<<<<<< zmarc.py
                 subf[sub[0]] = sub[1]
             if (subfield2 == 1):
                 xml.append('  <titleInfo type="translated">\n    <title>%s</title>\n' % (subf[a]))
@@ -690,19 +689,6 @@ class MARC:
                 xml.append('    <partName>%s</partName>\n' % (subf['p']))
             xml.append('  </titleInfo>\n')
 
-=======
-                if sub[0] == 'a':
-                    a = sub[1]
-                elif sub[0] == 'b':
-                    b = sub[1]
-            if a and b and a[-1] in [',', '.', ';', ':']:
-                a += " " + b
-            elif a and b:
-                a += "; " + b
-            elif b and not a:
-                a = b
-            xml.append("  <titleInfo>\n    <title>%s</title>\n  </titleInfo>\n" % (a))
->>>>>>> 1.2
 
         # --- Name Fields ---
         # Creator -> 100,110,111, 700,710,711
@@ -711,9 +697,8 @@ class MARC:
         for k in authorKeyTypes.keys():
             if self.fields.has_key(k):
                 for instance in self.fields[k]:
-<<<<<<< zmarc.py
                     subf = {}
-                    for sub in instance:
+                    for sub in instance[2]:
                         subf[sub[0]] = sub[1]
                     xml.append('  <name type="%s">\n' % (authorKeyTypes[k]))
                     xml.append('    <role><roleTerm type="text">creator</roleTerm></role>\n')
@@ -729,7 +714,7 @@ class MARC:
                         xml.append('    <role><roleTerm type="text">%s</roleTerm></role>\n' % (subf['e']))
                     if (subf.has_key('4')):
                         xml.append('    <role><roleTerm type="code">%s</roleTerm></role>\n' % (subf['4']))
-                    xml.append('  </name>')
+                    xml.append('  </name>\n')
 
         ldr = self.fields[0][0]
         type = ldr[1]
@@ -749,30 +734,6 @@ class MARC:
             if (instance[33] == '0'):
                 xml.append('  <genre authority="marcgt">non fiction</genre>\n')
                 
-=======
-                    name = '  <name type="%s">\n' % (authorKeyTypes[k])
-                    a = ''
-                    h = ''
-                    d = ''
-                    for sub in instance[2]:
-                        if sub[0] == 'a':
-                            a = sub[1]
-                        elif sub[0] == 'h':
-                            h = sub[1]
-                        elif sub[0] == 'd':
-                            d = sub[1]
-                    if h:
-                        a += ", " + h
-                    name += '    <namePart>%s</namePart>\n' % (a)
-                    if d:
-                        name += '    <namePart type="date">%s</namePart>\n' % (d)
-                    name += "    <role>creator</role>\n  </name>\n"
-                    xml.append(name)
-
-        # XXX typeOfResource is Leader/06 or 07 
-        # genre is 008/various plus ...
-
->>>>>>> 1.2
         if self.fields.has_key(655):
             for instance in self.fields[655]:
                 gf = ''
@@ -876,11 +837,6 @@ class MARC:
                 xml.append('    <frequency>%s %s</frequency>\n' % (subf321['a'], subf321['b']))
             xml.append('  </originInfo>\n')
                 
-<<<<<<< zmarc.py
-=======
-            pub += "  </publicationInfo>\n"
-            xml.append(pub)
->>>>>>> 1.2
 
         # --- Language ---
         if (f8):
@@ -900,15 +856,10 @@ class MARC:
                     a = sub[1]
 
             if a and not two:
-<<<<<<< zmarc.py
                 xml.append('  <language><languageTerm authority="iso639-2b">%s</languageTerm></language>\n' % (a))
-=======
-                xml.append('  <language authority="iso639-2b">%s</language>\n' % (a))
->>>>>>> 1.2
             elif a:
                 xml.append('  <language authority="%s">%s</language>\n' % (two, a))
 
-<<<<<<< zmarc.py
         # --- Physical Description ---
         # XXX: Better field 008, 242,245,246$h, 256$a
         f300 = self.fields.get(300, [])
@@ -924,30 +875,12 @@ class MARC:
                 desc = ' '.join(desclist)
                 xml.append("    <extent>%s</extent>\n" % (desc))
             xml.append("  </physicalDescription>\n")
-=======
-        # physdesc
-        # Parsing of 007 and 008
-        if self.fields.has_key(300):
-            xml.append("  <physicalDescription>\n")
-            for instance in self.fields[300]:
-                desc = ''
-                for sub in instance[2]:
-                    desc += sub[1] + " "
-                desc = desc[:-1]
-                xml.append("    <extent>%s</extent>\n" % (desc))
-            xml.append("  </physicalDescription>\n")
->>>>>>> 1.2
 
         # Abstract
         if self.fields.has_key(520):
-<<<<<<< zmarc.py
             xml.append('  <abstract>')
-=======
-            xml.append('  <abstract>\n')
->>>>>>> 1.2
             for sub in self.fields[520]:
                 if sub[0] == 'a' or sub[0] == 'b':
-<<<<<<< zmarc.py
                     xml.append(sub[1])
             xml.append("</abstract>\n")
 
@@ -970,17 +903,12 @@ class MARC:
                     if (s[0] == 'a'):
                         xml.append(s[1])
                 xml.append('</note>\n')
-=======
-                    xml.append(sub[1])
-            xml.append("  </abstract>\n")
->>>>>>> 1.2
 
         # --- Subject ---
         subjectList = [600, 610, 611, 630, 650, 651, 653]
         for s in subjectList:
             if self.fields.has_key(s):
                 for instance in self.fields[s]:
-<<<<<<< zmarc.py
                     xml.append("  <subject")
                     auths = {'0' : 'lcsh',
                              '1' : 'lcshac',
@@ -1135,18 +1063,6 @@ class MARC:
         # XXX:  relatedItem, 7XX
 
         # --- Identifier ---
-=======
-                    xml.append("  <subject>\n")
-                    for sub in instance[2]:
-                        if sub[0] in ['a', 'b', 'c', 'd']:
-                            xml.append("    <topic>%s</topic>\n" % (sub[1]))
-                        elif sub[0] == 'z':
-                            xml.append('    <geographic>%s</geographic>\n' % (sub[1]))
-                        elif sub[0] == 'y':
-                            xml.append('    <temporal>%s</temporal>\n' % (sub[1]))
-                    xml.append("  </subject>\n")
-        
->>>>>>> 1.2
         if self.fields.has_key(20):
             for instance in self.fields[20]:
                 for sub in instance[2]:
@@ -1170,7 +1086,6 @@ class MARC:
 
         # XXX: location, accessCondition
 
-<<<<<<< zmarc.py
         # --- recordInformation ---
         xml.append('  <recordInformation>\n')
         if (self.fields.has_key(40)):
@@ -1194,10 +1109,6 @@ class MARC:
 
         xml.append("</mods>")
         return ''.join(xml)
-=======
-        xml.append("</mods>")
-        return ''.join(xml)
->>>>>>> 1.2
 
         
 
