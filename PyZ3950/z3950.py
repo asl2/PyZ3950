@@ -166,7 +166,9 @@ def disp_resp (resp):
 
 class Conn:
     rdsz = 65536
-    def __init__ (self, sock = None):
+    def __init__ (self, sock = None, ConnectionError = ConnectionError,
+                  ProtocolError = ProtocolError, UnexpectedCloseError =
+                  UnexpectedCloseError):
         self.set_exns (ConnectionError, ProtocolError, UnexpectedCloseError)
         if sock == None:
             self.sock = socket.socket (socket.AF_INET, socket.SOCK_STREAM)
@@ -435,9 +437,6 @@ def run_server (test = 0):
             traceback.print_exc(40)
         sock.close ()
         
-class ConnectErr (Exception):
-    pass
-
 def extract_apt (rpnQuery):
     """Takes RPNQuery to AttributePlusTerm"""
     RPNStruct = rpnQuery.rpn
@@ -449,12 +448,19 @@ def extract_apt (rpnQuery):
 
 class Client (Conn):
     test = 0
+
     def __init__ (self, addr, port = DEFAULT_PORT, optionslist = None,
                   charset = None, lang = None, user = None, password = None, 
                   preferredMessageSize = 0x100000, group = None,
                   maximumRecordSize = 0x100000, implementationId = "",
-                  implementationName = "", implementationVersion = ""):
-        Conn.__init__ (self)
+                  implementationName = "", implementationVersion = "",
+                  ConnectionError = ConnectionError,
+                  ProtocolError = ProtocolError,
+                  UnexpectedCloseError = UnexpectedCloseError):
+    
+        Conn.__init__ (self, ConnectionError = ConnectionError,
+                       ProtocolError = ProtocolError,
+                       UnexpectedCloseError = UnexpectedCloseError)
         try:
             self.sock.connect ((addr, port))
         except socket.error, val:
