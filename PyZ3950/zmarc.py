@@ -660,9 +660,9 @@ class MARC:
             for sub in instance:
                 subf[sub[0]] = sub[1]
             if (subfield2 == 1):
-                xml.append('  <titleInfo type="translated">\n    <title>%s</title>\n' % (subf[a]))
+                xml.append('  <titleInfo type="translated">\n    <title>%s</title>\n' % (subf['a']))
             else:
-                xml.append('  <titleInfo type="alternative">\n    <title>%s</title>\n' % (subf[a]))
+                xml.append('  <titleInfo type="alternative">\n    <title>%s</title>\n' % (subf['a']))
 
             if (subf.has_key('b')):
                 xml.append('    <subtitle>%s</subtitle>\n' % (subf['b']))
@@ -700,6 +700,7 @@ class MARC:
                     subf = {}
                     for sub in instance[2]:
                         subf[sub[0]] = sub[1]
+                    xml.append('  <!-- Marc: %s -->\n' % (k))
                     xml.append('  <name type="%s">\n' % (authorKeyTypes[k]))
                     xml.append('    <role><roleTerm type="text">creator</roleTerm></role>\n')
                     xml.append('    <namePart>%s</namePart>\n' % (subf['a']))
@@ -731,7 +732,7 @@ class MARC:
         if (self.fields.has_key(8)):
             instance = self.fields[8][0]
             # XXX LONG set of checks for type and various 008 positions :(
-            if (instance[33] == '0'):
+            if (len(instance) > 33 and instance[33] == '0'):
                 xml.append('  <genre authority="marcgt">non fiction</genre>\n')
                 
         if self.fields.has_key(655):
@@ -754,7 +755,7 @@ class MARC:
         if f260 or f46 or f250 or f310 or f321:
             xml.append('  <originInfo>\n')
 
-            if (f8):
+            if (f8 and len(f8[0]) > 18 ):
                 loc = f8[0][15:18]
                 if (loc <> '   ' and loc <> '|||'): 
                     xml.append('    <place><placeTerm type="code" authority="marccountry">%s</placeTerm></place>\n' % (loc))
@@ -775,7 +776,7 @@ class MARC:
                 if (subf260.has_key('c')):
                     xml.append('    <dateIssued>%s</dateIssued>\n' % (subf260['c']))
 
-            if (f8):
+            if (f8 and len(f8[0]) > 6):
                 f8type = f8[0][6]
                 if (f8type in ['e', 'p', 'r', 's', 't']):
                     date = f8[0][7:11]
@@ -788,10 +789,10 @@ class MARC:
                         attrib = ""
                     start = f8[0][7:11]
                     if (start <> '    '):
-                        xml.append('    <dateIssued point="start" encoding="marc"%s>%s</dateIssued>\n' % (qualifier, start))
+                        xml.append('    <dateIssued point="start" encoding="marc"%s>%s</dateIssued>\n' % (attrib, start))
                     end = f8[0][11:15]
                     if (end <> '    '):
-                        xml.append('    <dateIssued point="end" encoding="marc"%s>%s</dateIssued>\n' % (qualifier, end))
+                        xml.append('    <dateIssued point="end" encoding="marc"%s>%s</dateIssued>\n' % (attrib, end))
 
             if (f260):
                 if subf260.has_key('g'):
@@ -819,11 +820,12 @@ class MARC:
                         xml.append('    <edition>%s</edition>\n' % (s[1]))
                         break
             
-            f0type = self.fields[0][0][2]
-            if (f0type in ['b', 'i', 's']):
-                xml.append('    <issuance>continuing</issuance>\n')
-            elif (f0type in ['a', 'c', 'd', 'm']):
-                xml.append('    <issuance>monographic</issuance>\n')
+            if (self.fields.has_key(0) and len(self.fields[0][0]) > 2):
+                f0type = self.fields[0][0][2]
+                if (f0type in ['b', 'i', 's']):
+                    xml.append('    <issuance>continuing</issuance>\n')
+                elif (f0type in ['a', 'c', 'd', 'm']):
+                    xml.append('    <issuance>monographic</issuance>\n')
 
             if (f310):
                 subf310 = {'a' : '', 'b' : ''}
@@ -839,8 +841,8 @@ class MARC:
                 
 
         # --- Language ---
-        if (f8):
-            lang = f8[0][0][35:38]
+        if (f8 and len(f8[0]) > 38):
+            lang = f8[0][35:38]
             if (lang <> '   '):
                 xml.append('  <language><languageTerm type="code" authority="iso639-2b">%s</languageTerm></language>\n' % (lang))
         if self.fields.has_key(41):
@@ -863,7 +865,10 @@ class MARC:
         # --- Physical Description ---
         # XXX: Better field 008, 242,245,246$h, 256$a
         f300 = self.fields.get(300, [])
-        f8_23 = self.fields[8][0][23]
+        if (f8 and len(f8[0]) > 23):
+            f8_23 = self.fields[8][0][23]
+        else:
+            f8_23 = ' '
         if (f300 or f8_23 == ' '):
             xml.append("  <physicalDescription>\n")
             if (f8_23 == ' '):
@@ -897,7 +902,7 @@ class MARC:
 
         # --- Note ---
         if (self.fields.has_key(500)):
-            for n in (self.fields[505]):
+            for n in (self.fields[500]):
                 xml.append('  <note>');
                 for s in n:
                     if (s[0] == 'a'):
@@ -1041,7 +1046,7 @@ class MARC:
                     if (sub[0] == 'a'):
                         stuff.append(sub[1])
                     elif (sub[0] == 'b'):
-                        stuff.append(sub[2])
+                        stuff.append(sub[1])
                 txt = ' '.join(stuff)
                 xml.append('  <classification authority="%s">%s</classification>\n' % (cfields[k], txt))
 
@@ -1106,7 +1111,7 @@ class MARC:
                 if (s[0] == 'b'):
                     xml.append('    <languageOfCataloging><languageTerm authority="iso639-2b">%s</languageTerm></languageOfCataloging>\n' % (s[1]))
 
-
+        xml.append('  </recordInformation>\n')
         xml.append("</mods>")
         return ''.join(xml)
 
