@@ -2006,7 +2006,6 @@ def run (print_flag):
     
          
 
-import profile
 
 if __name__ == '__main__':
     pwc = PERWriteCtx (aligned = 0)
@@ -2029,8 +2028,5 @@ if __name__ == '__main__':
     test_def.encode_per (pwc, test)
     print "bit offset", pwc.bit_offset
     print map (hex, pwc.get_data ())
-    if 0:
-        profile.run ("run (0)")
-    else:
-        run (1)
+    run (1)
     
