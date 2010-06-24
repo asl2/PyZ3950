@@ -803,6 +803,8 @@ def render_OPAC (opac_data):
 
 _RecordType ('USMARC', z3950.Z3950_RECSYN_USMARC_ov,
             renderer = lambda v: str(zmarc.MARC(v)))
+_RecordType ('USMARCnonstrict', z3950.Z3950_RECSYN_USMARC_ov,
+            renderer = lambda v: str(zmarc.MARC(v, strict=0)))
 _RecordType ('UKMARC', z3950.Z3950_RECSYN_UKMARC_ov,
             renderer = lambda v: str(zmarc.MARC(v)))
 _RecordType ('SUTRS', z3950.Z3950_RECSYN_SUTRS_ov)
