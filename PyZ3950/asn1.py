@@ -356,8 +356,10 @@ class CtxBase:
         self.codec_dict_stack[-1][defn_inst.base_tag] = (codec, strip_bom)
     def get_codec (self, base_tag):
         def default_enc (x):
-            if isinstance (x, type (u"")):
+            if isinstance (x, str):
                 return (x.encode ('ascii'), 0)
+            elif isinstance (x, basestring):
+                return (x.encode ('utf-8'), 0)
             return (x, 0)
         identity = ((default_enc, lambda x:(x,0)), 0)
         # we ignore lengths consumed.  I don't think this means
