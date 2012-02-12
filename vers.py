@@ -1,1 +1,1 @@
-version = 2.04
+version = '2.04'
