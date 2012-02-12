@@ -203,9 +203,10 @@ class MARC:
                 # 1-elt list for orthogonality of processing
             else:
                 ps = parse_sub (line)
-                if ps == None:
-                    raise MarcError (line)
-                self.fields.setdefault (field, []).append (ps)
+                #if ps == None:
+                #    raise MarcError (line)
+                if ps != None:
+                    self.fields.setdefault (field, []).append (ps)
         self.ok = 1
         # XXX should do more error-checking
     def __str__ (self):

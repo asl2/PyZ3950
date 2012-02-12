@@ -120,8 +120,8 @@ t_ignore = " \t"
 def t_error(t):
     raise LexError ('t_error: ' + str (t))
 
-    
-import lex
+
+from ply import lex
 
 
 
@@ -137,7 +137,7 @@ def add_qual (qual_name, val):
     qual_dict[qual_name] = val
     relex ()
 
-import yacc
+from ply import yacc
 
 #if in_setup:
 #    import yacc
