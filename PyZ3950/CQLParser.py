@@ -12,7 +12,7 @@ from xml.sax.saxutils import escape
 from xml.dom.minidom import Node, parseString
 from PyZ3950.SRWDiagnostics import *
 # Don't use cStringIO as it borks Unicode (apparently)
-from StringIO import StringIO
+from io import StringIO
 import types
 
 # Parsing strictness flags
@@ -51,14 +51,14 @@ class PrefixableObject:
         # Just generate our prefixes
         space = "  " * depth
         xml = ['%s<prefixes>\n' % (space)]
-        for p in self.prefixes.keys():
+        for p in list(self.prefixes.keys()):
             xml.append("%s  <prefix>\n%s    <name>%s</name>\n%s    <identifier>%s</identifier>\n%s  </prefix>\n" % (space, space, escape(p), space, escape(self.prefixes[p]), space))
         xml.append("%s</prefixes>\n" % (space))
         return ''.join(xml)
         
 
     def addPrefix(self, name, identifier):
-        if (errorOnDuplicatePrefix and (self.prefixes.has_key(name) or reservedPrefixes.has_key(name))):
+        if (errorOnDuplicatePrefix and (name in self.prefixes or name in reservedPrefixes)):
             # Maybe error
             diag = Diagnostic45()
             diag.details = name
@@ -67,13 +67,13 @@ class PrefixableObject:
 
     def resolvePrefix(self, name):
         # Climb tree
-        if (reservedPrefixes.has_key(name)):
+        if (name in reservedPrefixes):
             return reservedPrefixes[name]
-        elif (self.prefixes.has_key(name)):
+        elif (name in self.prefixes):
             return self.prefixes[name]
-        elif (self.parent <> None):
+        elif (self.parent != None):
             return self.parent.resolvePrefix(name)
-        elif (self.config <> None):
+        elif (self.config != None):
             # Config is some sort of server config which specifies defaults
             return self.config.resolvePrefix(name)
         else:
@@ -136,7 +136,7 @@ class ModifiableObject:
     modifiers = []
 
     def __getitem__(self, k):
-        if (type(k) == types.IntType):
+        if (type(k) == int):
             try:
                 return self.modifiers[k]
             except:
@@ -176,8 +176,8 @@ class Triple (PrefixableObject):
     def toCQL(self):
         txt = []
         if (self.prefixes):
-            for p in self.prefixes.keys():
-                if (p <> ''):
+            for p in list(self.prefixes.keys()):
+                if (p != ''):
                     txt.append('>%s="%s"' % (p, self.prefixes[p]))
                 else:
                     txt.append('>"%s"' % (self.prefixes[p]))
@@ -252,8 +252,8 @@ class SearchClause (PrefixableObject):
 
     def toCQL(self):
         text = []
-        for p in self.prefixes.keys():
-            if (p <> ''):
+        for p in list(self.prefixes.keys()):
+            if (p != ''):
                 text.append('>%s="%s"' % (p, self.prefixes[p]))
             else:
                 text.append('>"%s"' % (self.prefixes[p]))
@@ -311,13 +311,13 @@ class Relation(PrefixedObject, ModifiableObject):
 
     def toCQL(self):
         txt = [self.value]
-        txt.extend(map(str, self.modifiers))
+        txt.extend(list(map(str, self.modifiers)))
         return '/'.join(txt)
 
 class Term:
     value = ""
     def __init__(self, v):
-        if (v <> ""):
+        if (v != ""):
             # Unquoted literal
             if v in ['>=', '<=', '>', '<', '<>', "/", '=']:
                 diag = Diagnostic25()
@@ -453,7 +453,7 @@ class CQLshlex(shlex):
     def __init__(self, thing):
         shlex.__init__(self, thing)
         self.wordchars += "!@#$%^&*-+{}[];,.?|~`:\\"
-        self.wordchars += ''.join(map(chr, range(128,254)))
+        self.wordchars += ''.join(map(chr, list(range(128,254))))
 
     def read_token(self):
         "Read a token from the input stream (no pushback or inclusions)"
@@ -471,7 +471,7 @@ class CQLshlex(shlex):
             if nextchar == '\n':
                 self.lineno = self.lineno + 1
             if self.debug >= 3:
-                print "shlex: in state ", repr(self.state),  " I see character:", repr(nextchar)
+                print("shlex: in state ", repr(self.state),  " I see character:", repr(nextchar))
 
             if self.state is None:
                 self.token = ''        # past end of file
@@ -482,7 +482,7 @@ class CQLshlex(shlex):
                     break
                 elif nextchar in self.whitespace:
                     if self.debug >= 2:
-                        print "shlex: I see whitespace in whitespace state"
+                        print("shlex: I see whitespace in whitespace state")
                     if self.token:
                         break   # emit current token
                     else:
@@ -543,7 +543,7 @@ class CQLshlex(shlex):
                     break
                 elif not nextchar:      # end of file
                     if self.debug >= 2:
-                        print "shlex: I see EOF in quotes state"
+                        print("shlex: I see EOF in quotes state")
                     # Override SHLEX's ValueError to throw diagnostic
                     diag = Diagnostic14()
                     diag.details = self.token[:-1]
@@ -554,7 +554,7 @@ class CQLshlex(shlex):
                     break
                 elif nextchar in self.whitespace:
                     if self.debug >= 2:
-                        print "shlex: I see whitespace in word state"
+                        print("shlex: I see whitespace in word state")
                     self.state = ' '
                     if self.token:
                         break   # emit current token
@@ -572,7 +572,7 @@ class CQLshlex(shlex):
                 else:
                     self.pushback = [nextchar] + self.pushback
                     if self.debug >= 2:
-                        print "shlex: I see punctuation in word state"
+                        print("shlex: I see punctuation in word state")
                     self.state = ' '
                     if self.token:
                         break   # emit current token
@@ -582,9 +582,9 @@ class CQLshlex(shlex):
         self.token = ''
         if self.debug > 1:
             if result:
-                print "shlex: raw token=" + `result`
+                print("shlex: raw token=" + repr(result))
             else:
-                print "shlex: raw token=EOF"
+                print("shlex: raw token=EOF")
         return result
 
 class CQLParser:
@@ -627,7 +627,7 @@ class CQLParser:
                 name = ""
                 identifier = self.currentToken
                 self.fetch_token()
-            if (errorOnDuplicatePrefix and prefs.has_key(name)):
+            if (errorOnDuplicatePrefix and name in prefs):
                 # Error condition
                 diag = Diagnostic45()
                 diag.details = name
@@ -662,7 +662,7 @@ class CQLParser:
             else:
                 break;
 
-        for p in prefs.keys():
+        for p in list(prefs.keys()):
             left.addPrefix(p, prefs[p])
         return left
 
@@ -681,7 +681,7 @@ class CQLParser:
             prefs = self.prefixes()
             if (prefs):
                 object = self.query()
-                for p in prefs.keys():
+                for p in list(prefs.keys()):
                     object.addPrefix(p, prefs[p])
             else:
                 object = self.clause()
@@ -713,7 +713,7 @@ class CQLParser:
             prefs = self.prefixes()
             # iterate to get object
             object = self.clause()
-            for p in prefs.keys():
+            for p in list(prefs.keys()):
                 object.addPrefix(p, prefs[p]);
             return object
             
@@ -808,7 +808,7 @@ class XCQLParser:
                 elif c.localName == "prefixes":
                     sc.prefixes = self.prefixes(c)
                 else:
-                    raise(ValueError, c.localName)
+                    raise ValueError
         return sc
 
     def triple(self, elem):
@@ -878,7 +878,7 @@ class XCQLParser:
 
                     modlist = []
                     for t in booleanModifierTypes[1:]:
-                        if mods.has_key(t):
+                        if t in mods:
                             modlist.append(mods[t])
                         else:
                             modlist.append('')
@@ -926,7 +926,7 @@ def parse(query):
 
     try:
         query = query.encode("utf-8")
-    except Exception, e:
+    except Exception as e:
         diag = Diagnostic10()
         diag.details = "Cannot parse non utf-8 characters"
         raise diag
@@ -957,7 +957,7 @@ indexType = Index
 termType = Term
 
 try:
-    from CQLUtils import *
+    from .CQLUtils import *
     tripleType = CTriple
     booleanType = CBoolean
     relationType = CRelation
@@ -977,12 +977,12 @@ if (__name__ == "__main__"):
     s = sys.stdin.readline()
     try:
         q = parse(s);
-    except SRWDiagnostic, diag:
+    except SRWDiagnostic as diag:
         # Print a full version, not just str()
-        print "Diagnostic Generated."
-        print "  Code:        " + str(diag.code)
-        print "  Details:     " + str(diag.details)
-        print "  Message:     " + str(diag.message)
+        print("Diagnostic Generated.")
+        print("  Code:        " + str(diag.code))
+        print("  Details:     " + str(diag.details))
+        print("  Message:     " + str(diag.message))
     else:
-        print q.toXCQL()[:-1];
+        print(q.toXCQL()[:-1]);
     

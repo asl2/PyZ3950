@@ -1,8 +1,6 @@
-#!/usr/bin/env python
-
 """Utility functions for GRS-1 data"""
+from __future__ import print_function, generators, absolute_import
 
-from __future__ import nested_scopes
 # XXX still need to tag non-leaf nodes w/ (tagType, tagValue)
 # XXX tagType can be omitted.  If so, default either supplied
 # dynamically by tagSet-M or statically spec'd by schema
@@ -26,17 +24,16 @@ class Node:
         leaf = getattr (self, 'leaf', None)
         tag  = getattr (self, 'tag', None)
         indent = " " * (self.tab_size * depth)
-        if leaf <> None:
+        if leaf != None:
             l.append ("%s%s %s" % (
                 indent, str (tag), leaf.content))
         else:
-            if tag <> None:
+            if tag != None:
                 l.append (indent + str (tag))
         meta = getattr (self, 'metadata', None)
-        if meta <> None:
+        if meta != None:
             l.append (indent + 'metadata: ' + str (meta))
-        l.append ("".join (map (
-            lambda n: n.str_depth (depth + 1), children)))
+        l.append ("".join ([n.str_depth (depth + 1) for n in children]))
         return "\n".join (l)
     def __str__ (self):
         return "\n" + self.str_depth (-1)
@@ -49,23 +46,23 @@ def preproc (raw):
     using the raw z3950 API.)
     """
     if isinstance (raw, type ([])):
-        return Node (children = map (preproc, raw))
+        return Node (children = list(map (preproc, raw)))
     else: # TaggedElement
         kw = {}
         tag = (raw.tagType, raw.tagValue [1])
         # Value [0] is str vs. num indicator
         kw ['tag'] = tag
         meta = getattr (raw, 'metaData', None)
-        if meta <> None:
+        if meta != None:
             kw ['metadata'] = meta
         if raw.content[0] == 'subtree':
-            return Node (children = map (preproc, raw.content [1]), **kw)
+            return Node (children = list(map (preproc, raw.content [1])), **kw)
         else:
             # tag and metadata are here redundantly encoded as
             # both attributes of leaf and of Node.  Use the Node
             # attribs, I'll try to clean this up sometime.
             return Node (leaf = raw, **kw)
-        
+
 
 
 

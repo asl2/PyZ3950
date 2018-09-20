@@ -1,9 +1,9 @@
 
 """CQL utility functions and subclasses"""
 
-from CQLParser import *
+from .CQLParser import *
 from types import ListType, IntType
-from SRWDiagnostics import *
+from .SRWDiagnostics import *
 
 from PyZ3950 import z3950, asn1, oids
 from PyZ3950.zdefs import make_attr
@@ -167,12 +167,12 @@ class ZCQLConfig:
         if (not isinstance(use, int)):
             index = indexType(use)
         else:
-            for v in self.dc.items():
+            for v in list(self.dc.items()):
                 if use == v[1]:
                     index = indexType("dc.%s" % (v[0]))
                     break
             if not index:
-                for v in self.bib1.items():
+                for v in list(self.bib1.items()):
                     if (use == v[1]):
                         index = indexType("bib1.%s" % (v[0]))
                         break
@@ -347,7 +347,7 @@ class CSearchClause(SearchClause):
             relattrs = self.relation.toRPN(top)
             attrs.update(relattrs)
             butes =[]
-            for e in attrs.iteritems():
+            for e in attrs.items():
                 butes.append((e[0][0], e[0][1], e[1]))
 
             clause.attributes = [make_attr(*e) for e in butes]
@@ -439,13 +439,13 @@ class CIndex(Index):
                 pf = cidx.prefix
                 index = cidx.value
 
-            if config.indexHash.has_key(pf):
-                if config.indexHash[pf].has_key(index):
+            if pf in config.indexHash:
+                if index in config.indexHash[pf]:
                     idx = config.indexHash[pf][index]
                     # Need to map from this list to RPN list
                     attrs = {}
                     for i in idx:
-                        set = asn1.OidVal(map(int, i[0].split('.')))
+                        set = asn1.OidVal(list(map(int, i[0].split('.'))))
                         type = int(i[1])
                         if (i[2].isdigit()):
                             val = int(i[2])
@@ -465,11 +465,11 @@ class CIndex(Index):
                 raise diag
         elif (hasattr(zConfig, pf)):
             mp = getattr(zConfig, pf)
-            if (mp.has_key(self.value)):
+            if (self.value in mp):
                 val = mp[self.value]
             else:
                 val = self.value
-        elif (oids.oids['Z3950']['ATTRS'].has_key(pf.upper())):
+        elif (pf.upper() in oids.oids['Z3950']['ATTRS']):
             set = oids.oids['Z3950']['ATTRS'][pf.upper()]['oid']
             if (self.value.isdigit()):
                 # bib1.1018
@@ -478,7 +478,7 @@ class CIndex(Index):
                 # complex attribute for bib1
                 val = self.value
         else:
-            print "Can't resolve %s" % pf
+            print("Can't resolve %s" % pf)
             raise(ValueError)
             
         return {(set, 1) :  val}

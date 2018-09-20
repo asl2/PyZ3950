@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function, absolute_import
 from PyZ3950 import zoom
 
 conn = zoom.Connection ('z3950.loc.gov', 7090)
@@ -9,6 +10,6 @@ query = zoom.Query ('CCL', 'ti="1066 and all that"')
 
 res = conn.search (query)
 for r in res:
-    print r
+    print(r)
 conn.close ()
 

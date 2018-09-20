@@ -4,7 +4,7 @@ assert (0)
 # XXX shouldn't use, absorbed into z3950_2001.py
 
 #from PyZ3950 import asn1
-import asn1
+from . import asn1
 
 InitialSet=asn1.SEQUENCE ([('g0',None,asn1.TYPE(asn1.IMPLICIT(0,cls=asn1.CONTEXT_FLAG),asn1.INTEGER),1),
     ('g1',None,asn1.TYPE(asn1.IMPLICIT(1,cls=asn1.CONTEXT_FLAG),asn1.INTEGER),1),
