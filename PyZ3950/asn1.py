@@ -605,7 +605,7 @@ def len_to_buf (mylen):
         l = []
         while mylen:
             l.append (mylen % 256)
-            mylen = mylen / 256
+            mylen = mylen // 256
         assert (len (l) < 0x80)
         l.append (len (l) | 0x80)
         l.reverse ()
@@ -642,7 +642,7 @@ def extract_bits (val, lo_bit, hi_bit):
 log_of_2 = math.log (2)
 
 def log2 (x):
-    return int(math.log (x) / log_of_2)
+    return int(math.log (x) // log_of_2)
 
 class PERWriteCtx(WriteCtx):
     def __init__ (self, aligned = 0, canonical = 0):
@@ -653,7 +653,7 @@ class PERWriteCtx(WriteCtx):
         WriteCtx.__init__ (self)
     def write_bits_unaligned (self, val, bit_len):
         # write starting at bit_offset, no matter what
-        byte_count = (bit_len + self.bit_offset) / BYTE_BITS
+        byte_count = (bit_len + self.bit_offset) // BYTE_BITS
         if (bit_len + self.bit_offset) % BYTE_BITS != 0:
             byte_count += 1
         my_range = list(range(byte_count - 1, -1, -1))
@@ -938,7 +938,7 @@ class OID_class (ELTBASE):
         ctx.bytes_write (val.encoded)
     def decode_val (self, ctx, buf):
         b1 = buf [0]
-        oid = [b1 / 40, b1 % 40]
+        oid = [b1 // 40, b1 % 40]
         start = 1
         mylen = len (buf)
         while start < mylen:
@@ -1350,7 +1350,7 @@ class BITSTRING_class (ConditionalConstr, ELTBASE, NamedBase):
 
         pad_bits_count = top_ind_to_pad_bits (val.top_ind)
 
-        val_len = ((val.top_ind + 1) / 8) + 1
+        val_len = ((val.top_ind + 1) // 8) + 1
         # + 1 for count of padding bits, count always 1 byte
         if pad_bits_count != 0:
             val_len += 1
@@ -1358,7 +1358,7 @@ class BITSTRING_class (ConditionalConstr, ELTBASE, NamedBase):
         to_write = (1 * val.bits) <<  pad_bits_count
         for i in range (val_len - 1):
             l.append (to_write % 256)
-            to_write = to_write / 256
+            to_write = to_write // 256
 
         assert (to_write >= 0)
         if not cons_encoding:
