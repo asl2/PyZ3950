@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # This file should be available from
 # http://www.pobox.com/~asl2/software/PyZ3950/
 # and is licensed under the X Consortium license:
@@ -39,6 +37,8 @@
 # Make SUTRS printing a little more useful
 # Correctly close connection when done
 # Handle receiving diagnostics instead of records a little better
+
+from __future__ import print_function, absolute_import
 
 """<p>PyZ3950 currently is capable of sending and receiving v2 or v3 PDUs
 Initialize, Search, Present, Scan, Sort, Close, and Delete.  For client

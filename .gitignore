@@ -2,3 +2,4 @@
 *.pyo
 /.pytest_cache/
 /.idea/
+PyZ3950/PyZ3950_parsetab.py

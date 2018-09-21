@@ -36,8 +36,6 @@
 # by Z3950.
 
 
-
-
 """<p>asn1 is a relatively general-purpose ASN.1 BER encoder and decoder.
 Encoding and
 decoding functions  (asn1.encode and asn1.decode) take an ASN.1 spec, and
@@ -119,6 +117,7 @@ _ASN.1: Communication between Heterogeneous Systems_</a>
 (or available in book form)</li>
 </ul>
 """
+from __future__ import print_function, absolute_import
 
 
 vers = "0.83"
@@ -239,7 +238,7 @@ GENERALSTRING_TAG = 0x1B
 UNIVERSALSTRING_TAG = 0x1C
 BMPSTRING_TAG = 0x1E
 
-class StructBase:
+class StructBase(object):
     # replace _allowed_attrib_list with __slots__ mechanism
     # once we no longer need to support Python 2.1
     _allowed_attrib_list = []

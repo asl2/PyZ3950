@@ -2,12 +2,10 @@
 from __future__ import print_function, absolute_import
 
 from PyZ3950 import zoom
-#conn = zoom.Connection ('z3950.loc.gov', 7090)
-#conn.databaseName = 'VOYAGER'
-conn = zoom.Connection ('z3950.bibsys.no', 2100)
-conn.databaseName = 'BIBSYS'
+conn = zoom.Connection ('ilsz3950.nlm.nih.gov', 7090)
+conn.databaseName = 'voyager'
 
-conn.preferredRecordSyntax = 'USMARC'
+conn.preferredRecordSyntax = 'MARC8'
 
 query1 = zoom.Query ('CCL', 'au=Gould, Stephen Jay')
 res1 = conn.search (query1)
