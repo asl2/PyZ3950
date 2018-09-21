@@ -1,6 +1,6 @@
 # PyZ3950
 
-<img src="https://travis-ci.org/travis-ci/travis-web.svg?branch=master" alt="Build Status">
+<img src="https://travis-ci.org/danizen/PyZ3950.svg?branch=master" alt="Build Status">
 
 ## Summary
 
