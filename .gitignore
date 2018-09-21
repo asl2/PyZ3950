@@ -4,4 +4,5 @@
 /.idea/
 /.coverage
 /dist/
+/.tox/
 PyZ3950/PyZ3950_parsetab.py

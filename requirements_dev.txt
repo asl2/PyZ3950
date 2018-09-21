@@ -2,6 +2,7 @@
 
 pytest
 pytest-pythonpath
+pytest-cov
 coverage
 tox
 
