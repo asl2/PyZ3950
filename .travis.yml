@@ -8,8 +8,8 @@ matrix:
       env: TOXENV=py27
     - python: 3.5
       env: TOXENV=py35
-  install:
-    - pip install tox
-  script:
-    - tox -v
+install:
+  - pip install tox pytest
+script:
+  - tox -e $TOXENV -v
 
