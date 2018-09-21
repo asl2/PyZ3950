@@ -2,7 +2,7 @@
 """Quick hack at graphical browser for Zthes data.  Should probably
 update to use GtkCList (vs. gtk 1.2) or new fns in gtk2.0"""
 
-from __future__ import nested_scopes
+
 import sys
 import string
 
@@ -85,7 +85,7 @@ class App:
         self.lb_head.clear_items (0, -1)
         self.lb_rel.clear_items (0, -1)
         self.dat = self.zthes.lookup (term)
-        toplist = map (lambda t: t[0], self.dat)
+        toplist = [t[0] for t in self.dat]
         for e in toplist:
             obj = gtk.GtkListItem (make_tv (e.typ, e.name))
             obj.show ()

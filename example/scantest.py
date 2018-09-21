@@ -8,7 +8,7 @@ def run ():
     q = zoom.Query ('CCL', 'ti="1066"')
     ss = conn.scan (q)
     for s in ss[0:10]:
-        print s
+        print(s)
     
 
 if __name__ == '__main__':

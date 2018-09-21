@@ -19,7 +19,7 @@ def fetch_mods (query):
 
 conn = make_conn ()
 mods_list = fetch_mods (zoom.Query ('CCL', 'ti="1066 and all that"'))
-print mods_list
+print(mods_list)
 
 
     

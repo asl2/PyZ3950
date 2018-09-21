@@ -28,7 +28,7 @@ class Visitor:
     def finish (self):
         self.output_assignments ()
         self.output_pyquotes ()
-        print self.text
+        print(self.text)
     def spaces (self):
         return " " * (4 * self.indent_lev)
     def indent (self):
@@ -37,9 +37,9 @@ class Visitor:
         self.indent_lev -= 1
         assert (self.indent_lev >= 0)
     def register_assignment (self, ident, val, dependencies):
-        if self.assignments.has_key (ident):
+        if ident in self.assignments:
             raise "Duplicate assignment for " + ident
-        if self.defined_dict.has_key (ident):
+        if ident in self.defined_dict:
             raise "cross-module duplicates for " + ident
         self.defined_dict [ident] = 1
         self.assignments[ident] = val
@@ -51,16 +51,16 @@ class Visitor:
         # XXX topo-sorting should be in main compiler
         already_output = {}
         text_list = []
-        assign_keys = self.assignments.keys()
+        assign_keys = list(self.assignments.keys())
         to_output_count = len (assign_keys)
         while 1:
             any_output = 0
-            for (ident, val) in self.assignments.iteritems ():
-                if already_output.has_key (ident):
+            for (ident, val) in self.assignments.items ():
+                if ident in already_output:
                     continue
                 ok = 1
                 for d in self.dependencies [ident]:
-                    if (not already_output.has_key (d) and
+                    if (d not in already_output and
                         d in assign_keys):
                         ok = 0
                 if ok:
@@ -76,8 +76,8 @@ class Visitor:
                 # OK, we detected a cycle
                 cycle_ident_list = []
                 cycle_list = []
-                for ident in self.assignments.iterkeys ():
-                    if not already_output.has_key (ident):
+                for ident in self.assignments.keys ():
+                    if ident not in already_output:
                         text_list.append ('%s = asn1.Promise("%s")' %
                                           (ident, ident))
                         cycle_ident_list.append (ident)
@@ -125,7 +125,7 @@ class Visitor:
     def visitType_Assign (self, node):
         dep_dict = {}
         compiler.calc_dependencies (node.val, dep_dict, 0)
-        depend_list = dep_dict.keys ()
+        depend_list = list(dep_dict.keys ())
         s = self.visit_saving (node.val)
         self.register_assignment (node.name.name, s,  depend_list)
 
@@ -181,11 +181,11 @@ class Visitor:
     def mk_seq_or_choice_str (self, node):
         self.indent ()
         def visit_list (l):
-            slist = map (self.visit_saving, l)
+            slist = list(map (self.visit_saving, l))
             return (",\n%s"% self.spaces ()).join (slist)
 
         mainstr = visit_list (node.elt_list)
-        if node.ext_list <> None:
+        if node.ext_list != None:
             extstr = visit_list (node.ext_list)
         else:
             extstr = None
@@ -222,7 +222,7 @@ class Visitor:
         self.output ("('%s',%s,%s,%d)" % (identstr, tagstr,typstr, optflag))
     def visitNamedType (self, node):
         typstr = self.visit_saving (node.typ)
-        if node.ident <> None:
+        if node.ident != None:
             identstr = node.ident
         else:
             if hasattr (node.typ, 'val'):
@@ -245,9 +245,9 @@ class Visitor:
 def parse_and_output (s, fn, defined_dict):
     ast = compiler.yacc.parse (s)
     time_str = time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime())
-    print """#!/usr/bin/env python
+    print("""#!/usr/bin/env python
 # Auto-generated from %s at %s
-from PyZ3950 import asn1""" % (fn, time_str)
+from PyZ3950 import asn1""" % (fn, time_str))
     for module in ast:
         assert (module.type == 'Module')
         visit_instance = Visitor (defined_dict, fn)

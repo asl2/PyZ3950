@@ -9,8 +9,8 @@ c.preferredRecordSyntax = 'SUTRS'
 q = Query('pqf', '@attr 1=4 "sword"')
 q2 = Query('pqf', '@attr 1=3201 foo')
 rs = c.search(q)
-print len(rs)
-print rs[0].data
+print(len(rs))
+print(rs[0].data)
 sk = SortKey()
 
 #sk.sequence = q2
@@ -23,4 +23,4 @@ sk.relation = "descending"
 #sk.type = "elementSetName"
 
 rs2 = c.sort([rs], [sk])
-print rs2[0].data
+print(rs2[0].data)

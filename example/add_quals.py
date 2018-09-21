@@ -15,7 +15,7 @@ query = zoom.Query ('CCL', 'aupersonal=MacLane, Saunders')
 
 res = conn.search (query)
 for r in res[:20]:
-    print r
+    print(r)
 
 conn.close ()
 

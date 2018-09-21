@@ -15,7 +15,7 @@ class Explainer:
     def run_query (self, qstr):
         query = zoom.Query ('CCL',qstr)
         res = conn.search (query)
-        print qstr
+        print(qstr)
         self.disp_res (res)
         return res
     def run (self):
@@ -33,18 +33,18 @@ class Explainer:
                      'extendedservicesinfo',
                      'elementsetdetails', 'retrievalrecorddetails',
                      'processinginfo', 'variantsetinfo', 'unitinfo']:
-            if self.categories.has_key (info):
+            if info in self.categories:
                 def report_unsupp ():
-                    print "client does not support", info
+                    print("client does not support", info)
                 fn = getattr (self, 'run_' + info, lambda: report_unsupp ())
-                print " *** %s *** " % info
+                print(" *** %s *** " % info)
                 fn ()
 
             else:
-                print "server does not support", info
+                print("server does not support", info)
 
     def run_sortdetails (self):
-        for db in self.databases.keys ():
+        for db in list(self.databases.keys ()):
             self.run_query ('attrset(exp1/(1,1)="SortDetails" and (1,3) = %s)' % db)
     def run_recordsyntaxinfo (self):
         for rs in self.record_syntaxes:
@@ -53,17 +53,17 @@ class Explainer:
         
 
     def run_attributedetails (self):
-        for db in self.databases.keys ():
+        for db in list(self.databases.keys ()):
             self.run_query ('attrset(exp1/(1,1)="AttributeDetails" and (1,3) = %s)' % db)
 
     def run_attributesetinfo (self):
-        for attr in self.attributes.keys ():
+        for attr in list(self.attributes.keys ()):
             attr_str = oid_to_str (attr)
 
             self.run_query ('attrset(exp1/(1,1)="AttributeSetInfo" and (1,5) = %s)' % attr_str)
 
     def run_databaseinfo (self):
-        for db in self.databases.keys ():
+        for db in list(self.databases.keys ()):
             ret = self.run_query ('attrset(exp1/(1,1)="DatabaseInfo" and (1,3) = %s)' % db)
 
     def run_targetinfo (self):
@@ -84,7 +84,7 @@ class Explainer:
         
     def disp_res (self, res):
         for r in res:
-            print r
+            print(r)
                            
 
 if __name__ == '__main__':
