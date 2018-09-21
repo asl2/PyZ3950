@@ -1,12 +1,11 @@
 #!/usr/local/bin/python2.3
 
 try:
-    from cStringIO import StringIO
+    from io import StringIO
 except:
-    from StringIO import StringIO
+    from io import StringIO
 from PyZ3950 import z3950, oids,asn1
 from PyZ3950.zdefs import make_attr
-from types import IntType, StringType, ListType
 from PyZ3950.CQLParser import CQLshlex
 
 
@@ -76,7 +75,7 @@ class PQFParser:
             self.fetch_token()
             n = self.currentToken.upper()
             if (n[:14] == "1.2.840.10003."):
-                return asn1.OidVal(map(int, n.split('.')))
+                return asn1.OidVal(list(map(int, n.split('.'))))
             return oids.oids['Z3950']['ATTRS'][n]['oid']
         else:
             return None
@@ -104,7 +103,7 @@ class PQFParser:
         elif (self.currentToken == "{"):
             # Parens
             s = self.query_struct()
-            if (self.nextToken <> "}"):
+            if (self.nextToken != "}"):
                 raise(ValueError)
             else:
                 self.fetch_token()
@@ -142,7 +141,7 @@ class PQFParser:
             # attrset
             set = self.currentToken
             if (set[:14] == "1.2.840.10003."):
-                set = asn1.OidVal(map(int, set.split('.')))
+                set = asn1.OidVal(list(map(int, set.split('.'))))
             else:
                 set = oids.oids['Z3950']['ATTRS'][set.upper()]['oid']
             self.fetch_token()

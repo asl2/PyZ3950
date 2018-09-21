@@ -2,7 +2,6 @@
 """CQL utility functions and subclasses"""
 
 from .CQLParser import *
-from types import ListType, IntType
 from .SRWDiagnostics import *
 
 from PyZ3950 import z3950, asn1, oids

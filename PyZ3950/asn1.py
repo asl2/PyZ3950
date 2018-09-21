@@ -320,7 +320,7 @@ def encode_base128 (val):
     l = []
     while val:
         l.append ((val % 128) | 0x80)
-        val = val / 128
+        val = val // 128
     if len (l) > 0:
         l[0] = l[0] & 0x7F
         l.reverse ()
