@@ -249,7 +249,7 @@ class Connection(_AttrCheck, _ErrHdlr):
     group = None
     presentChunk = 20 # for result sets
 
-    def __init__(self, host, port, connect=1, **kw):
+    def __init__(self, host, port, connect=True, **kw):
         """Establish connection to hostname:port.  kw contains initial
         values for options, and is useful for options which affect
         the InitializeRequest.  Currently supported values:

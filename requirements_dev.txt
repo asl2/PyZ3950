@@ -1,8 +1,4 @@
--r requirements.txt
+-r requirements_test.txt
 
-pytest
-pytest-pythonpath
-pytest-cov
-coverage
-tox
-
+asn1ate
+ipython
