@@ -1,9 +1,4 @@
-#!/usr/local/bin/python2.3
-
-try:
-    from io import StringIO
-except:
-    from io import StringIO
+from io import StringIO
 from PyZ3950 import z3950, oids,asn1
 from PyZ3950.zdefs import make_attr
 from PyZ3950.CQLParser import CQLshlex
@@ -249,11 +244,3 @@ def rpn2pqf(rpn):
             return ''.join(query)
         elif (q[0] == 'resultSet'):
             return "@set %s" % (q[1])
-
-            
-        
-
-    
-
-
-
