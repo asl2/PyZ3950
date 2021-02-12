@@ -139,7 +139,7 @@ class ModifiableObject:
     modifiers = []
 
     def __getitem__(self, k):
-        if (type(k) == int):
+        if isinstance(k, int):
             try:
                 return self.modifiers[k]
             except:

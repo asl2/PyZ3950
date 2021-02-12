@@ -1,10 +1,6 @@
-
 #!/usr/local/bin/python2.3
+from io import StringIO
 
-try:
-    from io import StringIO
-except:
-    from io import StringIO
 from PyZ3950 import z3950, oids
 # We need "\"\""  to be one token
 from PyZ3950.CQLParser import CQLshlex
