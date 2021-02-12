@@ -12,7 +12,10 @@ from xml.sax.saxutils import escape
 from xml.dom.minidom import Node, parseString
 from PyZ3950.SRWDiagnostics import *
 # Don't use cStringIO as it borks Unicode (apparently)
-from io import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 import types
 
 # Parsing strictness flags
