@@ -1,10 +1,8 @@
-#!/usr/bin/env python
-
 # This file should be available from
 # http://www.pobox.com/~asl2/software/PyZ3950/
 # and is licensed under the X Consortium license:
 # Copyright (c) 2001, Aaron S. Lav, asl2@pobox.com
-# All rights reserved. 
+# All rights reserved.
 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the
@@ -14,7 +12,7 @@
 # to whom the Software is furnished to do so, provided that the above
 # copyright notice(s) and this permission notice appear in all copies of
 # the Software and that both the above copyright notice(s) and this
-# permission notice appear in supporting documentation. 
+# permission notice appear in supporting documentation.
 
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
 # OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -24,12 +22,12 @@
 # INDIRECT OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING
 # FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
-# WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. 
+# WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 # Except as contained in this notice, the name of a copyright holder
 # shall not be used in advertising or otherwise to promote the sale, use
 # or other dealings in this Software without prior written authorization
-# of the copyright holder. 
+# of the copyright holder.
 
 # Change history:
 # 2002/05/23
@@ -39,6 +37,8 @@
 # Make SUTRS printing a little more useful
 # Correctly close connection when done
 # Handle receiving diagnostics instead of records a little better
+
+from __future__ import print_function, absolute_import
 
 """<p>PyZ3950 currently is capable of sending and receiving v2 or v3 PDUs
 Initialize, Search, Present, Scan, Sort, Close, and Delete.  For client
@@ -58,16 +58,21 @@ Official Specification</a></li>
 </ul>
 """
 
-from __future__ import nested_scopes
+
 import getopt
 import sys
-import exceptions
+
 import random
 import socket
 import string
 import traceback
 
 import codecs
+
+try:
+    from exceptions import Exception
+except ImportError:
+    pass
 
 from PyZ3950 import asn1
 from PyZ3950 import zmarc
@@ -105,7 +110,7 @@ Z3950_VERS = 3 # This is a global switch: do we support V3 at all?
 
 def extract_recs (resp):
     (typ, recs) = resp.records
-    if (typ <> 'responseRecords'):
+    if (typ != 'responseRecords'):
         raise ProtocolError ("Bad records typ " + str (typ) + str (recs))
     if len (recs) == 0:
         raise ProtocolError ("No records")
@@ -113,41 +118,41 @@ def extract_recs (resp):
     extract = []
     for r in recs:
         (typ, data) = r.record
-        if (typ <> 'retrievalRecord'):
+        if (typ != 'retrievalRecord'):
             raise ProtocolError ("Bad typ %s data %s" % (str (typ), str(data)))
         oid = data.direct_reference
         if fmtoid == None:
             fmtoid = oid
-        elif fmtoid <> oid:
+        elif fmtoid != oid:
             raise ProtocolError (
                 "Differing OIDs %s %s" % (str (fmtoid), str (oid)))
         # Not, strictly speaking, an error.
         dat = data.encoding
         (typ, dat) = dat
         if (oid == Z3950_RECSYN_USMARC_ov):
-            if typ <> 'octet-aligned':
+            if typ != 'octet-aligned':
                 raise ProtocolError ("Weird record EXTERNAL MARC type: " + typ)
         extract.append (dat)
     return (fmtoid, extract)
 
 def get_formatter (oid):
     def printer (x):
-        print oid, repr (x)
+        print(oid, repr (x))
     def print_marc (marc):
-        print str (zmarc.MARC(marc))
+        print(str (zmarc.MARC(marc)))
     def print_sutrs (x):
-        print "SUTRS:",
+        print("SUTRS:", end=' ')
         if isinstance (x, type ('')):
-            print x
-        elif isinstance (x, type (u'')):
+            print(x)
+        elif isinstance (x, type ('')):
             if out_encoding == None:
-                print repr (x)
+                print(repr (x))
             else:
                 try:
-                    print x.encode (out_encoding)
-                except UnicodeError, u:
-                    print "Cannot print %s in current encoding %s" % (
-                        repr (x), out_encoding)
+                    print(x.encode (out_encoding))
+                except UnicodeError as u:
+                    print("Cannot print %s in current encoding %s" % (
+                        repr (x), out_encoding))
     if oid == Z3950_RECSYN_SUTRS_ov:
         return print_sutrs
     if oid == Z3950_RECSYN_USMARC_ov:
@@ -158,8 +163,8 @@ def get_formatter (oid):
 def disp_resp (resp):
     try:
         (fmtoid, recs) = extract_recs (resp)
-    except ProtocolError, val:
-        print "Bad records", str (val)
+    except ProtocolError as val:
+        print("Bad records", str (val))
     formatter = get_formatter (fmtoid)
     for rec in recs:
         formatter (rec)
@@ -185,11 +190,11 @@ class Conn:
         self.charset_name = charset_name
         self.charsets_in_records = not not charsets_in_records # collapse None and 0
         if trace_charset:
-            print "Setting up codec!", self.charset_name
+            print("Setting up codec!", self.charset_name)
         strip_bom = self.charset_name == 'utf-16'
         # XXX should create a new codec which wraps utf-16 but
         # strips the Byte Order Mark, or use stream codecs
-        if self.charset_name <> None:
+        if self.charset_name != None:
             self.encode_ctx.set_codec (asn1.GeneralString,
                                        codecs.lookup (self.charset_name),
                                        strip_bom)
@@ -199,20 +204,20 @@ class Conn:
             if not charsets_in_records: # None or 0
                 register_retrieval_record_oids(self.decode_ctx)
                 register_retrieval_record_oids(self.encode_ctx)
-            
+
     def readproc (self):
         if self.sock == None:
             raise self.ConnectionError ('disconnected')
         try:
             b = self.sock.recv (self.rdsz)
-        except socket.error, val:
+        except socket.error as val:
             self.sock = None
             raise self.ConnectionError ('socket', str (val))
         if len (b) == 0: # graceful close
             self.sock = None
             raise self.ConnectionError ('graceful close')
         if trace_recv:
-            print map (lambda x: hex(ord(x)), b)
+            print([hex(ord(x)) for x in b])
         return b
     def read_PDU (self):
         while 1:
@@ -220,8 +225,8 @@ class Conn:
                 return self.decode_ctx.get_first_decoded ()
             try:
                 b = self.readproc ()
-                self.decode_ctx.feed (map (ord, b))
-            except asn1.BERError, val:
+                self.decode_ctx.feed (list(map (ord, b)))
+            except asn1.BERError as val:
                 raise self.ProtocolError ('ASN1 BER', str(val))
 
 
@@ -239,13 +244,13 @@ class Server (Conn):
             fn = self.fn_dict.get (typ, None)
             if fn == None:
                 raise self.ProtocolError ("Bad typ", typ + " " + str (val))
-            if typ <> 'initRequest' and self.expecting_init:
+            if typ != 'initRequest' and self.expecting_init:
                 raise self.ProtocolError ("Init expected", typ)
             fn (self, val)
     def send (self, val):
         b = self.encode_ctx.encode (APDU, val)
         if self.test:
-            print "Internal Testing"
+            print("Internal Testing")
             # a reminder not to leave this switched on by accident
             self.decode_ctx.feed (b)
             decoded = self.read_PDU ()
@@ -261,12 +266,11 @@ class Server (Conn):
     def close (self, parm):
         self.done = 1
         self.do_close (0, 'Normal close')
-        
+
     def search_child (self, query):
-        return range (random.randint (2,10))
+        return list(range(random.randint (2,10)))
     def search (self, sreq):
-        if sreq.replaceIndicator == 0 and self.result_sets.has_key (
-            sreq.resultSetName):
+        if sreq.replaceIndicator == 0 and sreq.resultSetName in self.result_sets:
             raise self.ProtocolError ("replaceIndicator 0")
         result = self.search_child (sreq.query)
         sresp = SearchResponse ()
@@ -291,12 +295,12 @@ class Server (Conn):
             # once rearranged a little.
             strings = [
                 'seek, and ye shall find; ask, and it shall be given you',
-                u"""Car quiconque demande re\u00e7oit, qui cherche trouve, et \u00e0 quit frappe on ouvrira""", # This (next) verse has non-ASCII characters
-                u"\u0391\u03b9\u03c4\u03b5\u03b9\u03c4\u03b5, "
-                u"\u03ba\u03b1\u03b9 \u03b4\u03bf\u03b8\u03b7\u03c3\u03b5\u03c4\u03b1\u03b9 "+ 
-                u"\u03c5\u03bc\u03b9\u03bd; \u03b6\u03b7\u03c4\u03b5\u03b9\u03c4\u03b5 " + 
-                u"\u03ba\u03b1\u03b9 \u03b5\u03c5\u03c1\u03b7\u03c3\u03b5\u03c4\u03b5",
-                u"\u05e8\u05d0\u05d4 \u05d6\u05d4 \u05de\u05e6\u05d0\u05ea\u05d9"]
+                """Car quiconque demande re\u00e7oit, qui cherche trouve, et \u00e0 quit frappe on ouvrira""", # This (next) verse has non-ASCII characters
+                "\u0391\u03b9\u03c4\u03b5\u03b9\u03c4\u03b5, "
+                "\u03ba\u03b1\u03b9 \u03b4\u03bf\u03b8\u03b7\u03c3\u03b5\u03c4\u03b1\u03b9 "+
+                "\u03c5\u03bc\u03b9\u03bd; \u03b6\u03b7\u03c4\u03b5\u03b9\u03c4\u03b5 " +
+                "\u03ba\u03b1\u03b9 \u03b5\u03c5\u03c1\u03b7\u03c3\u03b5\u03c4\u03b5",
+                "\u05e8\u05d0\u05d4 \u05d6\u05d4 \u05de\u05e6\u05d0\u05ea\u05d9"]
             if self.charsets_in_records:
                 encode_charset = self.charset_name
             else:
@@ -315,7 +319,7 @@ class Server (Conn):
             # language/content selection should not be made on the
             # basis of the selected charset, and a surrogate diagnostic
             # should be generated if the data cannot be encoded.
-            text = random.choice (candidate_strings) 
+            text = random.choice (candidate_strings)
             add_str = " #%d charset %s cir %d" % (elt, encode_charset,
                                               self.charsets_in_records)
             elt_external.encoding = ('single-ASN1-type', text + add_str)
@@ -324,7 +328,7 @@ class Server (Conn):
             n.record = ('retrievalRecord', elt_external)
             l.append (n)
         return l
-        
+
     def present (self, preq):
         presp = PresentResponse ()
         res_set = self.result_sets [preq.resultSetId]
@@ -338,13 +342,13 @@ class Server (Conn):
                                               res_set,
                                               preq.preferredRecordSyntax))
         self.send (('presentResponse', presp))
-        
+
     def init (self, ireq):
         if trace_init:
-            print "Init received", ireq
+            print("Init received", ireq)
         self.v3_flag = (ireq.protocolVersion ['version_3'] and
                         Z3950_VERS == 3)
-        
+
         ir = InitializeResponse ()
         ir.protocolVersion = ProtocolVersion ()
         ir.protocolVersion ['version_1'] = 1
@@ -353,7 +357,7 @@ class Server (Conn):
         val = get_charset_negot (ireq)
         charset_name = None
         records_in_charsets = 0
-        if val <> None:
+        if val != None:
             csreq = CharsetNegotReq ()
             csreq.unpack_proposal (val)
             def rand_choose (list_or_none):
@@ -361,10 +365,10 @@ class Server (Conn):
                     return None
                 return random.choice (list_or_none)
             charset_name = rand_choose (csreq.charset_list)
-            if charset_name <> None:
+            if charset_name != None:
                 try:
                     codecs.lookup (charset_name)
-                except LookupError, l:
+                except LookupError as l:
                     charset_name = None
             csresp = CharsetNegotResp (
                 charset_name,
@@ -372,20 +376,20 @@ class Server (Conn):
                 csreq.records_in_charsets)
             records_in_charsets = csresp.records_in_charsets
             if trace_charset:
-                print csreq, csresp
+                print(csreq, csresp)
             set_charset_negot (ir, csresp.pack_negot_resp (), self.v3_flag)
-            
+
         optionslist = ['search', 'present', 'delSet', 'scan','negotiation']
         ir.options = Options ()
         for o in optionslist:
             ir.options[o] = 1
-            
+
         ir.preferredMessageSize = 0
-        
-        ir.exceptionalRecordSize = 0 
+
+        ir.exceptionalRecordSize = 0
         # z9350-2001 3.2.1.1.4, 0 means client should be prepared to accept
         # arbitrarily long messages.
-        
+
         ir.implementationId = implementationId
 
         ir.implementationName = 'PyZ3950 Test server'
@@ -393,7 +397,7 @@ class Server (Conn):
         ir.result = 1
 
         if trace_charset or trace_init:
-            print ir
+            print(ir)
         self.expecting_init = 0
         self.send (('initResponse', ir))
         self.set_codec (charset_name, records_in_charsets)
@@ -407,11 +411,11 @@ class Server (Conn):
         dresp.deleteOperationStatus = 0
         self.send (('deleteResultSetResponse', dresp))
     def esrequest (self, esreq):
-        print "ES", esreq
+        print("ES", esreq)
         esresp = ExtendedServicesResponse ()
         esresp.operationStatus = ExtendedServicesResponse['operationStatus'].get_num_from_name ('failure')
         self.send (('extendedServicesResponse', esresp))
-        
+
     fn_dict = {'searchRequest': search,
                'presentRequest': present,
                'initRequest' : init,
@@ -435,12 +439,12 @@ def run_server (test = 0):
         except:
             (typ, val, tb) = sys.exc_info ()
             if typ == exceptions.KeyboardInterrupt:
-                print "kbd interrupt, leaving"
+                print("kbd interrupt, leaving")
                 raise
-            print "error %s %s from %s" % (typ, val, addr)
+            print("error %s %s from %s" % (typ, val, addr))
             traceback.print_exc(40)
         sock.close ()
-        
+
 def extract_apt (rpnQuery):
     """Takes RPNQuery to AttributePlusTerm"""
     RPNStruct = rpnQuery.rpn
@@ -454,20 +458,20 @@ class Client (Conn):
     test = 0
 
     def __init__ (self, addr, port = DEFAULT_PORT, optionslist = None,
-                  charset = None, lang = None, user = None, password = None, 
+                  charset = None, lang = None, user = None, password = None,
                   preferredMessageSize = 0x100000, group = None,
                   maximumRecordSize = 0x100000, implementationId = "",
                   implementationName = "", implementationVersion = "",
                   ConnectionError = ConnectionError,
                   ProtocolError = ProtocolError,
                   UnexpectedCloseError = UnexpectedCloseError):
-    
+
         Conn.__init__ (self, ConnectionError = ConnectionError,
                        ProtocolError = ProtocolError,
                        UnexpectedCloseError = UnexpectedCloseError)
         try:
             self.sock.connect ((addr, port))
-        except socket.error, val:
+        except socket.error as val:
             self.sock = None
             raise self.ConnectionError ('socket', str(val))
         try_v3 =  Z3950_VERS == 3
@@ -497,23 +501,23 @@ class Client (Conn):
             # and clerkes for to seken straunge bookes ...
             cnr = CharsetNegotReq (charset, lang, random.choice((0,1,None)))
             if trace_charset:
-                print cnr
+                print(cnr)
             set_charset_negot (InitReq, cnr.pack_proposal (), try_v3)
 
         if trace_init:
-            print "Initialize request", InitReq
+            print("Initialize request", InitReq)
 
         self.initresp = self.transact (
             ('initRequest', InitReq), 'initResponse')
         if trace_init:
-            print "Initialize Response", self.initresp
+            print("Initialize Response", self.initresp)
         self.v3_flag = self.initresp.protocolVersion ['version_3']
         val = get_charset_negot (self.initresp)
-        if val <> None:
+        if val != None:
             csr = CharsetNegotResp ()
             csr.unpack_negot_resp (val)
             if trace_charset:
-                print "Got csr", str (csr)
+                print("Got csr", str (csr))
             self.set_codec (csr.charset, csr.records_in_charsets)
 
         self.search_results = {}
@@ -524,19 +528,19 @@ class Client (Conn):
     def transact (self, to_send, expected):
         b = self.encode_ctx.encode (APDU, to_send)
         if print_hex:
-            print map (hex, b)
+            print(list(map (hex, b)))
         if self.test:
-            print "Internal Testing"
+            print("Internal Testing")
             # a reminder not to leave this switched on by accident
             self.decode_ctx.feed (b)
             decoded = self.read_PDU ()
-            print "to_send", to_send, "decoded", decoded
+            print("to_send", to_send, "decoded", decoded)
             assert (to_send == decoded)
         if self.sock == None:
             raise self.ConnectionError ('disconnected')
         try:
             self.sock.send (b)
-        except socket.error, val:
+        except socket.error as val:
             self.sock = None
             raise self.ConnectionError('socket', str(val))
 
@@ -545,13 +549,13 @@ class Client (Conn):
         pdu = self.read_PDU ()
         (arm, val) = pdu
         if self.test:
-            print "Internal Testing 2"
+            print("Internal Testing 2")
             b = self.encode_ctx.encode (APDU, (arm, val))
             self.decode_ctx.feed (b)
             redecoded = self.read_PDU ()
-            if redecoded <> (arm, val):
-                print "Redecoded", redecoded
-                print "old", (arm, val)
+            if redecoded != (arm, val):
+                print("Redecoded", redecoded)
+                print("old", (arm, val))
                 assert (redecoded == (arm, val))
         if arm == expected: # may be 'close'
             return val
@@ -579,7 +583,7 @@ class Client (Conn):
         # for backwards compat
         recv = self.search_2 (('type_1', query), rsn, **kw)
         return recv.searchStatus and (recv.resultCount > 0)
-    # If searchStatus is failure, check result-set-status - 
+    # If searchStatus is failure, check result-set-status -
     # -subset - partial, valid results available
     # -interim - partial, not necessarily valid
     # -none - no result set
@@ -623,7 +627,7 @@ class Client (Conn):
         preq.resultSetStartPoint = start
         preq.numberOfRecordsRequested = count
         preq.preferredRecordSyntax = recsyn
-        if esn <> None:
+        if esn != None:
             preq.recordComposition = ('simple', esn)
         return self.transact (('presentRequest', preq), 'presentResponse')
     def scan (self, query, **kw):
@@ -633,7 +637,7 @@ class Client (Conn):
         sreq.attributeSet = query[1].attributeSet
         sreq.termListAndStartPoint = extract_apt (query[1])
         sreq.numberOfTermsRequested = 20 # default
-        for (key, val) in kw.items ():
+        for (key, val) in list(kw.items ()):
             setattr (sreq, key, val)
 
         return self.transact (('scanRequest', sreq), 'scanResponse')
@@ -645,7 +649,7 @@ class Client (Conn):
             rv =  self.transact (('close', close), 'close')
         except self.ConnectionError:
             rv = None
-        if self.sock <> None:
+        if self.sock != None:
             self.sock.close ()
             self.sock = None
         return rv
@@ -731,7 +735,7 @@ if __name__ == '__main__':
                   lang = lang_list)
     cli.test = test
     cli.set_dbnames ([dbname])
-    print "Starting search"
+    print("Starting search")
 #    rpnq = mk_simple_query ('Perec, Georges')
 #    rpnq = mk_simple_query ('Johnson, Kim')
     rpnq = mk_compound_query ()
@@ -739,11 +743,11 @@ if __name__ == '__main__':
                    largeSetLowerBound = 1):
         disp_resp (cli.present (recsyn = Z3950_RECSYN_USMARC_ov))
     else:
-        print "Not found"
-    print "Deleting"
+        print("Not found")
+    print("Deleting")
     cli.delete (default_resultSetName)
     cli.delete ('bogus')
-    print "Closing"
+    print("Closing")
     try:
         cli.close ()
     except ConnectionError:

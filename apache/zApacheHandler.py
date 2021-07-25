@@ -64,7 +64,7 @@ class ZHandler:
         c = self.connection.read()
         while (c):
             try:
-                self.ctx.feed(map(ord, c))
+                self.ctx.feed(list(map(ord, c)))
                 while self.ctx.val_count() > 0:
                     # We have a PDU
                     (type, data) = self.ctx.get_first_decoded()
@@ -72,7 +72,7 @@ class ZHandler:
                     # Successfully decoded.
                     self.log("Received " + type);
                     
-                    if (self.handlers.has_key(type)):
+                    if (type in self.handlers):
                         resp = self.handlers[type](data)
                         self.connection.write(resp.tostring())
                         self.log("Sent response");
@@ -341,7 +341,7 @@ def connectionhandler(conn):
         handler = ZHandler(conn, logfile)
         handler.read()
 
-    except Exception, err:
+    except Exception as err:
         logfile.write("Major Failure:\n")
         traceback.print_exc(100, logfile)
         logfile.flush()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import nested_scopes
+
 import visitor
 
 """Compiler from ASN.1 specification to the Python format acceptable
@@ -125,7 +125,7 @@ reserved_words = {
 #      'RECURRING' : None
     }
 
-for k in static_tokens.keys ():
+for k in list(static_tokens.keys ()):
     if static_tokens [k] == None:
         static_tokens [k] = k
 
@@ -133,13 +133,13 @@ StringTypes = ['Numeric', 'Printable', 'IA5', 'BMP', 'Universal', 'UTF8',
                'Teletex', 'T61', 'Videotex', 'Graphics', 'ISO646', 'Visible',
                'General']
 
-string_tok_names = map (lambda x : x + 'String', StringTypes)
+string_tok_names = [x + 'String' for x in StringTypes]
 
 
-tokens = static_tokens.values () + ['OBJECT_IDENTIFIER', 'STRING_T',
+tokens = list(static_tokens.values ()) + ['OBJECT_IDENTIFIER', 'STRING_T',
                                     'BSTRING', 'HSTRING', 'QSTRING',
                                     'UCASE_IDENT', 'LCASE_IDENT',
-                                    'NUMBER', 'PYQUOTE']  + reserved_words.values ()
+                                    'NUMBER', 'PYQUOTE']  + list(reserved_words.values ())
 
 def t_OBJECT_IDENTIFIER (t):
     r"OBJECT\s+IDENTIFIER"
@@ -148,12 +148,11 @@ def t_OBJECT_IDENTIFIER (t):
 def t_STRING_T(t):
     return t
 
-t_STRING_T.__doc__ = "(%s)String" % "|".join (map
-                                              (lambda x: '(' + x + ')', StringTypes))
+t_STRING_T.__doc__ = "(%s)String" % "|".join (['(' + x + ')' for x in StringTypes])
 
 cur_mod = __import__ (__name__) # XXX blech!
 
-for (k, v) in static_tokens.items ():
+for (k, v) in list(static_tokens.items ()):
     cur_mod.__dict__['t_' + v] = k
 
 def t_BSTRING (t):
@@ -201,7 +200,7 @@ def t_NEWLINE(t):
     t.lineno += t.value.count("\n")
 
 def t_error(t):
-    print "Error", repr(t.value[:100]), t.lineno
+    print("Error", repr(t.value[:100]), t.lineno)
     raise LexError
 
     
@@ -232,8 +231,7 @@ class Node:
     def str_depth (self, depth): # ugh
         indent = " " * (4 * depth)
         l = ["%s%s" % (indent, self.type)]
-        l.append ("".join (map (lambda (k,v): self.str_child (k, v, depth + 1),
-                                self.__dict__.items ())))
+        l.append ("".join ([self.str_child (k_v[0], k_v[1], depth + 1) for k_v in list(self.__dict__.items ())]))
         return "\n".join (l)
     def get_typ (self):
         return self
@@ -596,7 +594,7 @@ def p_sequence_type (t):
         assert (len (t[3]) == 0)
         t[0] = Sequence (elt_list=[], ext_list = None)
     else:
-        if t[3].has_key('ext_list'):
+        if 'ext_list' in t[3]:
             t[0] = Sequence (elt_list = t[3]['elt_list'], ext_list = t[3]['ext_list'])
         else:
             t[0] = Sequence (elt_list = t[3]['elt_list'], ext_list = None)
@@ -693,7 +691,7 @@ def p_setof_type (t):
 
 def p_choice_type (t):
     'choice_type : CHOICE LBRACE alternative_type_lists RBRACE'
-    if t[3].has_key('ext_list'):
+    if 'ext_list' in t[3]:
         t[0] = Choice (elt_list = t[3]['elt_list'], ext_list = t[3]['ext_list'])
     else:
         t[0] = Choice (elt_list = t[3]['elt_list'], ext_list = None)
@@ -1087,14 +1085,14 @@ yacc.yacc ()
 
 def calc_dependencies (node, dict, trace = 0):
     if not hasattr (node, '__dict__'):
-        if trace: print "#returning, node=", node
+        if trace: print("#returning, node=", node)
         return
     if node.type == 'Type_Ref': # XXX
         dict [node.name] = 1
-        if trace: print "#Setting", node.name
+        if trace: print("#Setting", node.name)
         return
-    for (a, val) in node.__dict__.items ():
-        if trace: print "# Testing node ", node, "attr", a, " val", val
+    for (a, val) in list(node.__dict__.items ()):
+        if trace: print("# Testing node ", node, "attr", a, " val", val)
         if a[0] == '_':
             continue
         elif isinstance (val, type ([])):
@@ -1110,7 +1108,7 @@ def testlex (s, fn, dict):
         token = lexer.token ()
         if not token:
             break
-        print token
+        print(token)
 
 import sys
 
@@ -1119,6 +1117,6 @@ if __name__ == '__main__':
     for fn in sys.argv [1:]:
         f = open (fn, "r")
         ast = yacc.parse (f.read())
-        print map (str, ast)
+        print(list(map (str, ast)))
         lexer.lineno = 1
 

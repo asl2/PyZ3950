@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function, absolute_import
 
 from PyZ3950 import zoom
 
@@ -10,7 +11,7 @@ def run ():
     conn.numberOfEntries = 80
     ss = conn.scan (q)
     for i in range (len (ss)):
-        print ss.get_term (i), ss.get_fields (i)
+        print(ss.get_term (i), ss.get_fields (i))
 
 if __name__ == '__main__':
     run ()

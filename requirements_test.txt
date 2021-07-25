@@ -1,0 +1,7 @@
+-r requirements.txt
+
+pytest
+pytest-pythonpath
+pytest-cov
+tox
+

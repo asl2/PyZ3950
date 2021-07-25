@@ -45,7 +45,7 @@ class ScanDiagnostic (SRWDiagnostic):
 
 class DeprecatedDiagnostic(SRWDiagnostic):
     def __init__(self,  name=None):
-        print "WARNING:  Use of deprecated diagnostic %s" % (self)
+        print("WARNING:  Use of deprecated diagnostic %s" % (self))
         SRWDiagnostic.__init__(self)
 
 class ExplainDiagnostic (DeprecatedDiagnostic):

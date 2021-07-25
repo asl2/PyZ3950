@@ -1,4 +1,3 @@
-./mkdoc.py
-rm dist/*
+#!/bin/bash
+rm -rf dist build *.egg-info
 python setup.py build sdist
-tar cvf upload.tar dist/* PyZ3950/*.html CHANGELOG

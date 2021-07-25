@@ -34,11 +34,11 @@ def test_req ():
     rom.requester_CHECKED_IN = 1 # ditto
     req.requester_optional_messages = rom
     req =  ('ILL_Request', req)
-    print req
+    print(req)
     ber = asn1.encode (ill.ILL_APDU,req)
-    print ber
+    print(ber)
     req_1 = asn1.decode (ill.ILL_APDU, ber)
-    print req_1
+    print(req_1)
     assert (req_1 == req)
     
 if __name__ == '__main__':

@@ -1,0 +1,10 @@
+*.pyc
+*.pyo
+/.pytest_cache/
+/.idea/
+/.coverage
+/dist/
+/.tox/
+upload.tar
+/build/
+PyZ3950/PyZ3950_parsetab.py

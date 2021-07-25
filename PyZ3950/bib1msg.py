@@ -183,9 +183,9 @@ msg_dict = {
 
 
 def lookup_errmsg (condition, oid):
-    if oid <> oids.Z3950_DIAG_BIB1_ov:
+    if oid != oids.Z3950_DIAG_BIB1_ov:
         return "Unknown oid: %s condition %d" % (str (oid), condition)
-    if msg_dict.has_key (condition):
+    if condition in msg_dict:
         return msg_dict[condition]
     else:
         return "Unknown BIB-1 error condition %d" % (condition,)

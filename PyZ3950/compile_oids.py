@@ -44,7 +44,7 @@ for line in inh:
         else:
             # base
             splitnums = number.split('.')
-            numlist = map(int, splitnums)
+            numlist = list(map(int, splitnums))
             
             oids[name] = {}
             oids[name]['oid'] = asn1.OidVal(numlist)
@@ -56,7 +56,7 @@ for line in inh:
 
 inh.close()
 
-items = vars.items()
+items = list(vars.items())
 items.sort()
 for k,v in items:
     outh.write(k + " = " + str(v) + "\n")

@@ -15,7 +15,7 @@ query = zoom.Query ('CCL', 'au=Thucydides')
 res = conn.search (query)
 res.presentChunk = 1
 for a in res:
-    print a
+    print(a)
 
 conn.close ()
 

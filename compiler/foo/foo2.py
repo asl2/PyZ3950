@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import nested_scopes
+
 
 """Compiler from ASN.1 specification to the Python format acceptable
 to my asn1.py module.  Loosely based on esnacc grammar.  We ignore
@@ -123,7 +123,7 @@ reserved_words = {
 #      'RECURRING' : None
     }
 
-for k in static_tokens.keys ():
+for k in list(static_tokens.keys ()):
     if static_tokens [k] == None:
         static_tokens [k] = k
 
@@ -131,13 +131,13 @@ StringTypes = ['Numeric', 'Printable', 'IA5', 'BMP', 'Universal', 'UTF8',
                'Teletex', 'T61', 'Videotex', 'Graphics', 'ISO646', 'Visible',
                'General']
 
-string_tok_names = map (lambda x : x + 'String', StringTypes)
+string_tok_names = [x + 'String' for x in StringTypes]
 
 
-tokens = static_tokens.values () + ['OBJECT_IDENTIFIER', 'STRING_T',
+tokens = list(static_tokens.values ()) + ['OBJECT_IDENTIFIER', 'STRING_T',
                                     'BSTRING', 'HSTRING', 'QSTRING',
                                     'UCASE_IDENT', 'LCASE_IDENT',
-                                    'NUMBER']  + reserved_words.values ()
+                                    'NUMBER']  + list(reserved_words.values ())
 
 def t_OBJECT_IDENTIFIER (t):
     r"OBJECT\s+IDENTIFIER"
@@ -146,14 +146,13 @@ def t_OBJECT_IDENTIFIER (t):
 def t_STRING_T(t):
     return t
 
-t_STRING_T.__doc__ = "(%s)String" % "|".join (map
-                                              (lambda x: '(' + x + ')', StringTypes))
+t_STRING_T.__doc__ = "(%s)String" % "|".join (['(' + x + ')' for x in StringTypes])
 
 
 
 import __main__ # XXX blech!
 
-for (k, v) in static_tokens.items ():
+for (k, v) in list(static_tokens.items ()):
     __main__.__dict__['t_' + v] = k
 
 def t_BSTRING (t):
@@ -193,7 +192,7 @@ def t_NEWLINE(t):
 
 
 def t_error(t):
-    print "Error", t.value[:100]
+    print("Error", t.value[:100])
     raise LexError
 
     
@@ -215,18 +214,17 @@ class Node:
             return child.str_depth (depth)
         indent = " " * (4 * depth)
         if hasattr (child, '__getitem__'): #XXX
-            return ident + map (str, child) + "\n"
+            return ident + list(map (str, child)) + "\n"
         else:
             return indent + str (child) + "\n"
     def str_depth (self, depth): # ugh
         indent = " " * (4 * depth)
         if hasattr (self.leaf, '__getitem__'):
-            lstring = map (str, self.leaf)
+            lstring = list(map (str, self.leaf))
         else:
             lstring = str (self.leaf)
         l = ["%s%s %s" % (indent, self.type, lstring)]
-        l.append ("".join (map (lambda s: self.str_child (s, depth + 1),
-                                self.children)))
+        l.append ("".join ([self.str_child (s, depth + 1) for s in self.children]))
         return "\n".join (l)
     def __str__(self):
         return "\n" + self.str_depth (0)
@@ -353,7 +351,7 @@ def p_assign (t):
 
 def p_type_assign (t):
     'type_assign : type_ref GETS type'
-    print "type_assign", t[3], t[1]
+    print("type_assign", t[3], t[1])
     t[0] = Node ('type', [t[3]], t[1])
 
 def p_type (t): # XXX ignore DefinedMacroType
@@ -512,7 +510,7 @@ def p_element_type_3 (t):
 
 def p_sequenceof_type (t):
     'sequenceof_type : SEQUENCE OF type'
-    print "seq_of:", t[3]
+    print("seq_of:", t[3])
     t[0] = Node ('seq_of', [], t[3])
 
 def p_set_type (t):
@@ -1061,12 +1059,12 @@ def testlex (s):
         token = lexer.token ()
         if not token:
             break
-        print token
+        print(token)
             
 def testyacc (s):
     ast = yacc.parse (s)
     assert (ast.type == 'module')
-    print "ast:", ast
+    print("ast:", ast)
 #    body = ast.children[0]
 #    print "module name:", ast.leaf
 #    assignlist = body.children[0]
@@ -1080,7 +1078,7 @@ if __name__ == '__main__':
     testfn = testyacc
     if len (sys.argv) == 1:
         while 1:
-            s = raw_input ('Query: ')
+            s = input ('Query: ')
             if len (s) == 0:
                 break
             testfn (s)

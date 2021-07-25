@@ -21,7 +21,7 @@ Eventually I will support v3-style mixing attribute sets within
 a single query, but for now I don't.
 """
 
-from __future__ import nested_scopes
+
 import string
 
 in_setup = 0
@@ -39,8 +39,8 @@ try:
         'exp1':  oids.Z3950_ATTRS_EXP1_ov
         }
     
-except ImportError, err:
-    print "Error importing (OK during setup)", err
+except ImportError as err:
+    print("Error importing (OK during setup)", err)
     in_setup = 1
 
 class QuerySyntaxError(Exception): pass
@@ -72,7 +72,7 @@ relop_to_attrib = {
     '>': 5,
     '<>': 6}
 
-t_RELOP = "|".join (["(%s)" % r for r in relop_to_attrib.keys()])
+t_RELOP = "|".join (["(%s)" % r for r in list(relop_to_attrib.keys())])
 # XXX Index Data docs say 'doesn't follow ... ISO8777'?
 
 # XXX expand to rd. addt'l defns from file?
@@ -96,7 +96,7 @@ def t_QUAL(t):
     return t
 
 def mk_quals ():
-    quals = ("|".join (map (lambda x: '(' + x + ')', qual_dict.keys())))
+    quals = ("|".join (['(' + x + ')' for x in list(qual_dict.keys())]))
     t_QUAL.__doc__ = "(?i)" + quals + r"|(\([0-9]+,[0-9]+\))"
 
 def t_QUOTEDVALUE(t):
@@ -160,8 +160,7 @@ class Node:
     def str_depth (self, depth): # ugh
         indent = " " * (4 * depth)
         l = ["%s%s %s" % (indent, self.type, self.leaf)]
-        l.append ("".join (map (lambda s: self.str_child (s, depth + 1),
-                                self.children)))
+        l.append ("".join ([self.str_child (s, depth + 1) for s in self.children]))
         return "\n".join (l)
     def __str__(self):
         return "\n" + self.str_depth (0)
@@ -210,17 +209,17 @@ def xlate_qualifier (x):
 
 def p_elements_2 (t):
     'elements : SET RELOP WORD'
-    if t[2] <> '=':
+    if t[2] != '=':
         raise QuerySyntaxError (str (t[1], str (t[2]), str (t[3])))
     t[0] = Node ('set', leaf = t[3])
 
 def p_elements_3(t):
     'elements : val'
-    t[0] = Node ('relop', QuallistVal (map (xlate_qualifier, default_quals), t[1]), default_relop)
+    t[0] = Node ('relop', QuallistVal (list(map (xlate_qualifier, default_quals)), t[1]), default_relop)
 
 def p_elements_4(t):
     'elements : quallist RELOP val'
-    t[0] = Node ('relop', QuallistVal(map (xlate_qualifier, t[1]),t[3]), t[2])
+    t[0] = Node ('relop', QuallistVal(list(map (xlate_qualifier, t[1])),t[3]), t[2])
     
 # XXX p_elements_5 would be quals followed by recursive def'n, not yet implemented
 # XXX p_elements_6 would be quals followed by range, not yet implemented.
@@ -261,13 +260,13 @@ yacc.yacc (debug=0, tabmodule = 'PyZ3950_parsetab')
 
 def attrset_to_oid (attrset):
     l = attrset.lower ()
-    if _attrdict.has_key (l):
+    if l in _attrdict:
         return _attrdict [l]
     split_l = l.split ('.')
     if split_l[0] == '':
         split_l = oids.Z3950_ATTRS + split_l[1:]
     try:
-        intlist = map (string.atoi, split_l)
+        intlist = list(map (string.atoi, split_l))
     except ValueError:
         raise ParseError ('Bad OID: ' + l)
     return asn1.OidVal (intlist)
@@ -295,10 +294,10 @@ def tree_to_q (ast):
                                            attributeValue = val)
         apt  = z3950.AttributesPlusTerm ()
         quallist = ast.children.quallist
-        if ast.leaf <> '=':
+        if ast.leaf != '=':
             quallist.append ((2,relattr)) # 2 is relation attribute
             # see http://www.loc.gov/z3950/agency/markup/13.html ATR.1.1
-        apt.attributes = map (make_aelt, quallist)
+        apt.attributes = list(map (make_aelt, quallist))
         apt.term = ('general', ast.children.val) # XXX update for V3?
         return ('op', ('attrTerm', apt))
     elif ast.type == 'set':
@@ -344,20 +343,20 @@ def testlex (s):
         token = lexer.token ()
         if not token:
             break
-        print token
+        print(token)
             
 def testyacc (s):
     copylex = lexer.__copy__ ()
     ast = yacc.parse (s, lexer = copylex)
-    print "AST:", ast
-    print "RPN Query:", ast_to_rpn (ast)
+    print("AST:", ast)
+    print("RPN Query:", ast_to_rpn (ast))
 
 if __name__ == '__main__':
     testfn = testyacc
     #    testfn = testlex
     testfn ('attrset (BIB1/ au="Gaiman, Neil" or ti=Sandman)')
     while 1:
-        s = raw_input ('Query: ')
+        s = input ('Query: ')
         if len (s) == 0:
             break
         testfn (s)

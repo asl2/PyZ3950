@@ -27,7 +27,7 @@ relationSeparator = "/"
 
 simpleBooleans = ['and', 'or', 'not']
 complexBooleans = ['prox']
-booleanModifiers = [['prox'], ['<=', '>', '<', '>=', '=', '<>'], map(str, range(0,50)), ['word', 'sentence', 'paragraph', 'element'], ['unordered', 'ordered']]
+booleanModifiers = [['prox'], ['<=', '>', '<', '>=', '=', '<>'], list(map(str, list(range(0,50)))), ['word', 'sentence', 'paragraph', 'element'], ['unordered', 'ordered']]
 booleanModifierTypes = ['', 'relation', 'distance', 'unit', 'ordering']
 booleanSeparator = "/"
 booleanModifierDiagnostics = ['', Diagnostic40(), Diagnostic41(), Diagnostic42(), Diagnostic43()]
@@ -48,15 +48,15 @@ def convertIndex(sc, top):
         set = ""
 
     # Look for set in prefixes
-    if top.prefixes.has_key(set):
+    if set in top.prefixes:
         setURI = top.prefixes[set]
-        for v in config.indexSetNamespaces.keys():
+        for v in list(config.indexSetNamespaces.keys()):
             if config.indexSetNamespaces[v] == setURI:
                 set = v
                 break
     elif not set:
         set = config.defaultIndexSet
-    elif not config.indexSetNamespaces.has_key(set):
+    elif set not in config.indexSetNamespaces:
         # Unknown index set
         diag = Diagnostic15()
         diag.details = set
@@ -71,7 +71,7 @@ def convertIndex(sc, top):
     if set =="srw" and idx == "resultsetname":
         return ":"
 
-    if config.indexHash.has_key(set) and config.indexHash[set].has_key(idx):
+    if set in config.indexHash and idx in config.indexHash[set]:
         idx = config.indexHash[set][idx]
 
     if type(idx) == ListType:
@@ -132,7 +132,7 @@ class CQLshlex(shlex):
             if nextchar == '\n':
                 self.lineno = self.lineno + 1
             if self.debug >= 3:
-                print "shlex: in state", repr(self.state),  "I see character:", repr(nextchar), "self.quotes: ", repr(self.quotes)
+                print("shlex: in state", repr(self.state),  "I see character:", repr(nextchar), "self.quotes: ", repr(self.quotes))
 
             if self.state is None:
                 self.token = ''        # past end of file
@@ -143,7 +143,7 @@ class CQLshlex(shlex):
                     break
                 elif nextchar in self.whitespace:
                     if self.debug >= 2:
-                        print "shlex: I see whitespace in whitespace state"
+                        print("shlex: I see whitespace in whitespace state")
                     if self.token:
                         break   # emit current token
                     else:
@@ -201,7 +201,7 @@ class CQLshlex(shlex):
                     break
                 elif not nextchar:      # end of file
                     if self.debug >= 2:
-                        print "shlex: I see EOF in quotes state"
+                        print("shlex: I see EOF in quotes state")
                     # Override SHLEX's ValueError to throw diagnostic
                     diag = Diagnostic14()
                     diag.details = self.token[:-1]
@@ -212,7 +212,7 @@ class CQLshlex(shlex):
                     break
                 elif nextchar in self.whitespace:
                     if self.debug >= 2:
-                        print "shlex: I see whitespace in word state"
+                        print("shlex: I see whitespace in word state")
                     self.state = ' '
                     if self.token:
                         break   # emit current token
@@ -230,7 +230,7 @@ class CQLshlex(shlex):
                 else:
                     self.pushback = [nextchar] + self.pushback
                     if self.debug >= 2:
-                        print "shlex: I see punctuation in word state"
+                        print("shlex: I see punctuation in word state")
                     self.state = ' '
                     if self.token:
                         break   # emit current token
@@ -240,9 +240,9 @@ class CQLshlex(shlex):
         self.token = ''
         if self.debug > 1:
             if result:
-                print "shlex: raw token=" + `result`
+                print("shlex: raw token=" + repr(result))
             else:
-                print "shlex: raw token=EOF"
+                print("shlex: raw token=EOF")
         return result
 
 
@@ -269,7 +269,7 @@ class PrefixableObject:
     "Root object for triple and searchClause"
     prefixes = {}
     def addPrefix(self, name, identifier):
-        if (self.prefixes.has_key(name) or reservedPrefixes.has_key(name)):
+        if (name in self.prefixes or name in reservedPrefixes):
             # Error condition
             diag = Diagnostic45()
             raise diag;
@@ -318,7 +318,7 @@ class SearchClause (PrefixableObject):
         xml = space + "<searchClause>\n"
         if self.prefixes:
             xml = xml + space + "  <prefixes>\n"
-            for p in self.prefixes.keys():
+            for p in list(self.prefixes.keys()):
                 xml = xml + space + "    <prefix>\n"
                 xml = xml + space + "      <name>" + escape(p) + "</name>\n"
                 xml = xml + space + "      <identifier>" + escape(self.prefixes[p]) + "</identifier>\n"
@@ -533,16 +533,16 @@ class SearchClause (PrefixableObject):
             set = ""
 
         # Look for set in prefixes
-        if top.prefixes.has_key(set):
+        if set in top.prefixes:
             setURI = top.prefixes[set]
             # Translate to local short form
-            for v in config.indexSetNamespaces.keys():
+            for v in list(config.indexSetNamespaces.keys()):
                 if config.indexSetNamespaces[v] == setURI:
                     set = v
                     break
         elif not set:
             set = config.defaultIndexSet
-        elif not config.indexSetNamespaces.has_key(set):
+        elif set not in config.indexSetNamespaces:
             # Unknown index set
             diag = Diagnostic15()
             diag.details = set
@@ -661,7 +661,7 @@ class Triple (PrefixableObject):
 
         if self.prefixes:
             xml = xml + space + "  <prefixes>\n"
-            for p in self.prefixes.keys():
+            for p in list(self.prefixes.keys()):
                 xml = xml + space + "    <prefix>\n"
                 xml = xml + space + "      <name>" + escape(p) + "</name>\n"
                 xml = xml + space + "      <identifier>" + escape(self.prefixes[p]) + "</identifier>\n"
@@ -794,7 +794,7 @@ class CQLParser:
                 name = ""
                 identifier = self.currentToken
                 self.fetch_token()
-            if (prefs.has_key(name)):
+            if (name in prefs):
                 # Error condition
                 diag = Diagnostic45()
                 diag.details = name
@@ -829,7 +829,7 @@ class CQLParser:
             else:
                 break;
 
-        for p in prefs.keys():
+        for p in list(prefs.keys()):
             left.addPrefix(p, prefs[p])
         return left
 
@@ -892,7 +892,7 @@ class CQLParser:
             prefs = self.prefixes()
             # iterate to get object
             object = self.clause()
-            for p in prefs.keys():
+            for p in list(prefs.keys()):
                 object.addPrefix(p, prefs[p]);
             return object
             
@@ -1040,7 +1040,7 @@ class XCQLParser:
                 elif c.localName == "prefixes":
                     sc.prefixes = self.prefixes(c)
                 else:
-                    raise(ValueError, c.localName)
+                    raise ValueError
         return sc
 
     def triple(self, elem):
@@ -1110,7 +1110,7 @@ class XCQLParser:
 
                     modlist = []
                     for t in booleanModifierTypes[1:]:
-                        if mods.has_key(t):
+                        if t in mods:
                             modlist.append(mods[t])
                         else:
                             modlist.append('')
@@ -1173,12 +1173,12 @@ if (__name__ == "__main__"):
     s = sys.stdin.readline()
     try:
         q = parse(s);
-    except SRWDiagnostic, diag:
+    except SRWDiagnostic as diag:
         # Print a full version, not just str()
-        print "Diagnostic Generated."
-        print "  Code:        " + str(diag.code)
-        print "  Details:     " + str(diag.details)
-        print "  Description: " + diag.description
+        print("Diagnostic Generated.")
+        print("  Code:        " + str(diag.code))
+        print("  Details:     " + str(diag.details))
+        print("  Description: " + diag.description)
     else:
-        print q.toXCQL()[:-1];
+        print(q.toXCQL()[:-1]);
     

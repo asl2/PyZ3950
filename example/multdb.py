@@ -6,4 +6,4 @@ conn.preferredRecordSyntax = 'USMARC'
 query = zoom.Query ('CCL', 'ti=Journal or au=Turgenev')
 res = conn.search (query)
 for r in res:
-    print "db:", repr(r.databaseName), r
+    print("db:", repr(r.databaseName), r)

@@ -29,7 +29,7 @@ def start_amazon_query (query, callback, errback):
         errback = errback)
     
 def parse_amazon_resp (data, callback, errback):
-    print data
+    print(data)
     xmldoc = minidom.parseString (data)
     data = amazon.unmarshal (xmldoc).ProductInfo
     if hasattr(data, 'ErrorMsg'):
@@ -84,14 +84,14 @@ class Z3950Server(protocol.Protocol):
     def connectionLost (self, reason):
         self.ensure_init ()
         self.transport.loseConnection ()
-        print "lost conn for reason", reason
+        print("lost conn for reason", reason)
     def handle_error (self, errobj):
         raise errobj
     def dataReceived (self, data):
         self.ensure_init ()
         try:
-            self.decode_ctx.feed (map (ord, data))
-        except asn1.BERError, val:
+            self.decode_ctx.feed (list(map (ord, data)))
+        except asn1.BERError as val:
             self.handle_error (val)
             return
         while self.decode_ctx.val_count () > 0:
@@ -120,7 +120,7 @@ class Z3950Server(protocol.Protocol):
         self.send_PDU ('initResponse', ir)
     def process_searchRequest (self, sreq):
         def success (val):
-            print "val len", len (val)
+            print("val len", len (val))
             try:
                 def strify_dict (bag):
                     d = bag.__dict__
@@ -129,7 +129,7 @@ class Z3950Server(protocol.Protocol):
                             return s
                         if isinstance (s, amazon.Bag):
                             return strify_dict (s)
-                        if isinstance (s, unicode):
+                        if isinstance (s, str):
                             try:
                                 return s.encode ('ascii')
                             except UnicodeError:
@@ -137,31 +137,31 @@ class Z3950Server(protocol.Protocol):
                         return repr (s) # Unicode, and catch-all
 
                     return ["%s: %s" % (t[0], represent (t[1]))
-                            for t in d.items ()]
+                            for t in list(d.items ())]
                 string_list = ["\n".join (strify_dict (x)) for x in val]
                 self.result_sets [sreq.resultSetName] = string_list
-                print "creating resp", repr (sreq.resultSetName), self, self.result_sets
+                print("creating resp", repr (sreq.resultSetName), self, self.result_sets)
                 sresp = zdefs.SearchResponse ()
-                print "resp created"
+                print("resp created")
                 sresp.resultCount = len (string_list)
-                print "result count", sresp.resultCount
+                print("result count", sresp.resultCount)
                 sresp.numberOfRecordsReturned = 0
                 sresp.nextResultSetPosition = 1
-                print "setting search status"
+                print("setting search status")
                 sresp.searchStatus = 1
-                print "setting presentStatus"
+                print("setting presentStatus")
                 sresp.presentStatus = zdefs.PresentStatus.get_num_from_name (
                     'success')
-                print "about to send"
+                print("about to send")
 
                 self.send_PDU ('searchResponse', sresp)
-            except Exception, e:
-                print "Exception:", e
+            except Exception as e:
+                print("Exception:", e)
                 raise
                 
             
         def failure (str):
-            print "failed", str
+            print("failed", str)
             sresp = zdefs.SearchResponse ()
             sresp.resultCount = 0
             sresp.numberOfRecordsReturned = 0
@@ -186,7 +186,7 @@ class Z3950Server(protocol.Protocol):
 
     def process_presentRequest (self, preq):
         presp = zdefs.PresentResponse ()
-        print "accessing", repr (preq.resultSetId), self.result_sets
+        print("accessing", repr (preq.resultSetId), self.result_sets)
         res_set = self.result_sets [preq.resultSetId]
         presp.numberOfRecordsReturned = preq.numberOfRecordsRequested
         presp.nextResultSetPosition = preq.resultSetStartPoint + \
@@ -209,9 +209,9 @@ class Z3950Server(protocol.Protocol):
 if __name__ == '__main__':
     if 0:
         from PyZ3950 import z3950
-        print rpn_q_to_amazon (
-            ('type_1', z3950.mk_simple_query ('Among the gently mad')))
-        print rpn_q_to_amazon (('type_1', z3950.mk_compound_query ()))
+        print(rpn_q_to_amazon (
+            ('type_1', z3950.mk_simple_query ('Among the gently mad'))))
+        print(rpn_q_to_amazon (('type_1', z3950.mk_compound_query ())))
     else:
         amazon.setLicense (amazon.getLicense ())
         factory = protocol.Factory ()

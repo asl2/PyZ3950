@@ -35,7 +35,7 @@ def RunQuery():
     for r in res:
         sSaveAs = os.path.join(tempfile.gettempdir(),
                                "PyZ3950 search resultset %d.bin" % ifilecount)
-        print "Saving as file:", sSaveAs
+        print("Saving as file:", sSaveAs)
         fx = open(sSaveAs, "wb")
         fx.write(r.data)
         fx.close()
@@ -72,11 +72,11 @@ def ParseRecord(sMARCfilename):
         #700 additional personal name entry
         
         for fieldno in names_fields: #show raw zmarc structure
-            if not vMARC.fields.has_key (fieldno):
+            if fieldno not in vMARC.fields:
                 continue
             
-            print "Raw zmarc structure, field %d: %s" %  (
-                fieldno, str(vMARC.fields[fieldno]))
+            print("Raw zmarc structure, field %d: %s" %  (
+                fieldno, str(vMARC.fields[fieldno])))
 
             subfield_key = 'a' # text of author's name
             
@@ -87,10 +87,10 @@ def ParseRecord(sMARCfilename):
                 # Note that most of the other subfields may be
                 # required to distinguish among authors, too.
                 if sx != None:
-                    print "Author field %d sub %s: %s" % (fieldno,
-                                                          subfield_key, sx)
+                    print("Author field %d sub %s: %s" % (fieldno,
+                                                          subfield_key, sx))
                 else:
-                    print "No $%s subfield for %d" % (subfield_key, fieldno)
+                    print("No $%s subfield for %d" % (subfield_key, fieldno))
     finally:
         fz.close()
     
