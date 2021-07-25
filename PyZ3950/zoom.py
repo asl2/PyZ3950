@@ -602,7 +602,7 @@ class ResultSet(_AttrCheck, _ErrHdlr):
                 lbound = i
                 count = len (self) - lbound
             else:
-                lbound = (i / maxreq) * maxreq
+                lbound = (i // maxreq) * maxreq
                 count = min (maxreq, len (self) - lbound)
             kw = self._make_keywords ()
             if self._get_rec (lbound) == None:

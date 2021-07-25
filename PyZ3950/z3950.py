@@ -220,12 +220,16 @@ class Conn:
             print([hex(ord(x)) for x in b])
         return b
     def read_PDU (self):
+        PY2 = sys.version_info.major == 2
         while 1:
             if self.decode_ctx.val_count () > 0:
                 return self.decode_ctx.get_first_decoded ()
             try:
-                b = self.readproc ()
-                self.decode_ctx.feed (list(map (ord, b)))
+                b = self.readproc()
+                if PY2:
+                    self.decode_ctx.feed(list(map (ord, b)))
+                else:
+                    self.decode_ctx.feed(list(b))
             except asn1.BERError as val:
                 raise self.ProtocolError ('ASN1 BER', str(val))
 

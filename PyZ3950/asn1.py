@@ -627,10 +627,11 @@ class WriteCtx (CtxBase):
         # type-checking is icky but required by array i/f
         if isinstance (data, type ([])):
             self.buf.fromlist (data)
-        elif isinstance (data, type ('')):
+        elif isinstance (data, type (b'')):
             self.buf.fromstring (data)
         else:
-            raise EncodingError("Bad type to bytes_write")
+            raise EncodingError("Bad type %s to bytes_write" % (
+                type(data)))
 
 BYTE_BITS = 8
 
@@ -920,6 +921,10 @@ class OidVal:
         for i in self.lst:
             s = s + ' %d' % i
         return s
+    def __eq__(self, other):
+        if other is None:
+            return False
+        return self.lst == other.lst
     def __cmp__ (self, other):
         if not hasattr (other, 'lst'):
             return -1
