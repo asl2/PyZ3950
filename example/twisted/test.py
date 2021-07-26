@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import random
 import time
 
@@ -40,10 +41,10 @@ class TestThread (Thread):
                     r = self.conn.search (q)
                     for rec in r:
                         self.consume (rec)
-            except zoom.Bib1Err, err:
+            except zoom.Bib1Err as err:
                 pass
-            except zoom.QuerySyntaxError, e:
-                print "e", e, "q", query_str
+            except zoom.QuerySyntaxError as e:
+                print("e", e, "q", query_str)
 
             if self.count > 500:
                 if not parse_only:
@@ -70,8 +71,8 @@ if __name__ == '__main__':
     
     end_t = time.time ()
     elapsed = end_t - start_t
-    print "total", total_count, "elapsed", elapsed
-    print "rate", total_count * 1.0 / elapsed
+    print("total", total_count, "elapsed", elapsed)
+    print("rate", total_count * 1.0 / elapsed)
     
         
         

@@ -22,9 +22,9 @@ class RegExpAttribXlate (ztwist.AttribXlate):
         lam = ztwist.AttribXlate.translate (self, query)
         return lam
     def term_xlate (self, aval, term):
-        if aval <> 1016: # USE attribute 'generic'
+        if aval != 1016: # USE attribute 'generic'
             self.raise_err (114, str (aval), self.eb)
-        return lambda s: -1 <> s.find (term)
+        return lambda s: -1 != s.find (term)
     def combiner (self, operator, r1, r2):
         if operator == 'and':
             return lambda s: (r1 (s) and r2 (s))
