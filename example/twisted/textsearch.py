@@ -77,8 +77,8 @@ class TextSearcher(ztwist.ErrRaiser):
         for fn in os.listdir ("."):
             if not fn.endswith ('.txt') and not fn.endswith ('.html'):
                 continue
-            f = file (fn)
-            for (lineno, line) in zip (xrange (0, sys.maxint), f.readlines()):
+            f = open(fn)
+            for lineno, line in enumerate(f.readlines()):
                 if self.check_match (line):
                     res_set.append (ResultElt (fn, lineno, line))
             f.close ()
