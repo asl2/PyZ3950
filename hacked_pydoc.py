@@ -37,7 +37,7 @@ Tommy Burnette, the original creator of manpy.
 Paul Prescod, for all his work on onlinehelp.
 Richard Chamberlain, for the first implementation of textdoc.
 
-Mynd you, møøse bites Kan be pretty nasti..."""
+Mynd you, mï¿½ï¿½se bites Kan be pretty nasti..."""
 
 # Known bugs that can't be fixed here:
 #   - imp.load_module() cannot be prevented from clobbering existing
@@ -187,7 +187,8 @@ def synopsis(filename, cache={}):
 
 class ErrorDuringImport(Exception):
     """Errors that occurred while trying to import something to document it."""
-    def __init__(self, filename, (exc, value, tb)):
+    def __init__(self, filename, exc__value__tb):
+        exc, value, tb = exc__value__tb
         self.filename = filename
         self.exc = exc
         self.value = value
@@ -277,7 +278,7 @@ class Doc:
         """Raise an exception for unimplemented types."""
         message = "don't know how to document object%s of type %s" % (
             name and ' ' + repr(name), type(object).__name__)
-        raise TypeError, message
+        raise TypeError(message)
 
     docmodule = docclass = docroutine = docother = fail
 
@@ -424,8 +425,9 @@ TT { font-family: lucidatypewriter, lucida console, courier }
         
         return '<a href="%s.html">%s</a>' % (nms[-1], object.__name__)
 
-    def modpkglink(self, (name, path, ispackage, shadowed)):
+    def modpkglink(self, name__path__ispackage__shadowed):
         """Make a link for a module or package to display in an index."""
+        name, path, ispackage, shadowed = name__path__ispackage__shadowed
         if shadowed:
             return self.grey(name)
         if path:
@@ -575,12 +577,12 @@ TT { font-family: lucidatypewriter, lucida console, courier }
                 'Package Contents', '#ffffff', '#aa55cc', contents)
         elif modules:
             contents = self.multicolumn(
-                modules, lambda (key, value), s=self: s.modulelink(value))
+                modules, lambda key__value), s=self: s.modulelink(key__value[1]))
             result = result + self.bigsection(
                 'Modules', '#fffff', '#aa55cc', contents)
 
         if classes:
-            classlist = map(lambda (key, value): value, classes)
+            classlist = map(lambda key__value: key__value[1], classes)
             contents = [
                 self.formattree(inspect.getclasstree(classlist, 1), name)]
             for key, value in classes:
@@ -1329,7 +1331,7 @@ def doc(thing, title='Python Library Documentation: %s', forceload=0):
     if type(thing) is type(''):
         try:
             object = locate(thing, forceload)
-        except ErrorDuringImport, value:
+        except ErrorDuringImport as value:
             print value
             return
         if not object:
@@ -1350,7 +1352,7 @@ def writedoc(key, forceload=0):
     """Write HTML documentation to a file in the current directory."""
     try:
         object = locate(key, forceload)
-    except ErrorDuringImport, value:
+    except ErrorDuringImport as value:
         print value
     else:
         if object:
@@ -1790,7 +1792,7 @@ def serve(port, callback=None, completer=None):
             if path and path != '.':
                 try:
                     obj = locate(path, forceload=1)
-                except ErrorDuringImport, value:
+                except ErrorDuringImport as value:
                     self.send_document(path, html.escape(str(value)))
                     return
                 if obj:
@@ -2081,7 +2083,7 @@ def cli():
                         writedoc(arg)
                 else:
                     doc(arg)
-            except ErrorDuringImport, value:
+            except ErrorDuringImport as value:
                 print value
 
     except (getopt.error, BadUsage):
