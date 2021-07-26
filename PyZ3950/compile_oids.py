@@ -5,8 +5,8 @@
 import sys
 from PyZ3950 import asn1
 
-inh = file("oids.txt")
-outh = file("oids.py", "w")
+inh = open("oids.txt")
+outh = open("oids.py", "w")
 outh.write('from PyZ3950 import asn1\n')
 # from ... to get same globals as others importing asn1
 outh.write('oids = {}\n')
