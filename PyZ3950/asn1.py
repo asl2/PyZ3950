@@ -257,31 +257,28 @@ class StructBase(object):
                                   ' ' + repr (it[1]) for it in i], '\n')
         s = s + ']\n'
         return s
-    def __cmp__ (self, other):
-        keys = list(self.__dict__.keys ())
-        keys.sort () # to ensure reproduciblity
+    def __eq__(self, other):
+        # keys is sorted to ensure reproducibility
+        keys = sorted(self.__dict__)
         for k in keys:
-            s = getattr (self, k, None)
-            o = getattr (other, k, None)
-            def is_seq (val):
+            s = getattr(self, k, None)
+            o = getattr(other, k, None)
+            def is_seq(val):
                 return (isinstance (val, type ((0,))) or
                         isinstance (val, type ([])))
             if is_seq (s) and is_seq (o):
                 if len (s) != len (o):
-                    return -1
+                    return False
                 for selt, oelt in zip (s, o):
-                    c = cmp (selt, oelt)
-                    if c != 0:
-                        return c
+                    if selt != oelt:
+                        return False
             else:
-                c = cmp (s, o)
-                if c != 0:
-                    return c
-        okeys = list(other.__dict__.keys ())
-        okeys.sort ()
+                if s != o:
+                    return False
+        okeys = sorted(other.__dict__)
         if okeys != keys:
-            return 1
-        return 0
+            return False
+        return True
     def set_allowed_attribs (self, l):
         self._allowed_attribs = {}
         for e in l:
