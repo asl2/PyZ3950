@@ -3,6 +3,7 @@ from io import StringIO
 
 from PyZ3950 import z3950, oids
 # We need "\"\""  to be one token
+from PyZ3950.asn1 import OidVal
 from PyZ3950.CQLParser import CQLshlex
 from PyZ3950.CQLUtils import ZCQLConfig
 from PyZ3950.zdefs import make_attr
@@ -266,7 +267,7 @@ class C2Parser:
                     attrSet = oidHash[self.currentToken]['ov']
                     self.fetch_token()
                 elif (self.currentToken[:8] == '1.2.840.'):
-                    attrSet = asn1.OidVal(list(map(int, self.currentToken.split('.'))))
+                    attrSet = OidVal(list(map(int, self.currentToken.split('.'))))
                     self.fetch_token()
                 else:
                     attrSet = None
