@@ -145,7 +145,7 @@ class _ErrHdlr:
     def err_diagrec (self, diagrec):
         (typ, data) = diagrec
         if typ == 'externallyDefined':
-            raise ClientNotImplErr ("Unknown external diagnostic" + str (data))
+            raise ClientNotImplError ("Unknown external diagnostic" + str (data))
         addinfo = data.addinfo [1] # don't care about v2 vs v3
         self.err (data.condition, addinfo, data.diagnosticSetId)
     
