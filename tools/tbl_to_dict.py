@@ -6,13 +6,17 @@ part of the distribution, so you shouldn't ever need to run this.
 """
 from __future__ import print_function
 
-import htmllib
 import formatter
 import sys
+try:
+    from html.parser import HTMLParser
+except ImportError:
+    from htmllib import HTMLParser
 
-class MyParser(htmllib.HTMLParser):
+
+class MyParser(HTMLParser):
     def __init__ (self, form):
-        htmllib.HTMLParser.__init__ (self, form)
+        HTMLParser.__init__ (self, form)
         self.strlst = []
         self.lst = []
     def flush (self):
@@ -43,7 +47,3 @@ if __name__ == '__main__':
     print("bib1_msg_dict = {")
     print(",\n".join (p.strlst))
     print("}")
-
-    
-    
-        
