@@ -1090,7 +1090,7 @@ class OCTSTRING_class (ConditionalConstr, ELTBASE):
             ctx.len_write_known (len (val))
             ctx.bytes_write (val)
     def encode_per (self, ctx, val):
-        val = handle_charset (ctx, val)
+        val = self.handle_charset (ctx, val)
         assert (not self.extensible)
         l = len (val)
         if self.lo != None and self.lo == self.hi:
