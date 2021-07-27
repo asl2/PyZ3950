@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """A Z39.50 interface to Amazon, using Twisted
 (http://www.twistedmatrix.com, I tested with 1.0.5) and Mark Pilgrim's
@@ -38,9 +38,9 @@ def parse_amazon_resp (data, callback, errback):
         callback (data.Details)
 
 def r_to_a_attr (attrs):
-    assert (len (attrs) == 1)
+    assert len (attrs) == 1
     attr = attrs [0]
-    assert (attr.attributeType == 1) # 'use' attribute
+    assert attr.attributeType == 1  # 'use' attribute
     typ, val = attr.attributeValue
     assert typ == 'numeric'
     return {1: 'Author',
@@ -51,12 +51,12 @@ def r_to_a_attr (attrs):
 
 def rpn_q_to_amazon (query):
     typ, rpn_query = query
-    assert (typ == 'type_1' or typ == 'type_2')
+    assert typ in ('type_1', 'type_2')
     def aux (q):
         # ignore attributeSet
         typ, val = q
         if typ == 'op':
-            assert (val [0] == 'attrTerm')
+            assert val [0] == 'attrTerm'
             val = val [1]
             amazon_attr = r_to_a_attr (val.attributes)
             return "%s: %s" % (amazon_attr, val.term[1]) # XXX ignore term type
@@ -65,7 +65,8 @@ def rpn_q_to_amazon (query):
             a2 = aux (val.rpn2)
             r_op = val.op [0]
             assert val.op [1] == None
-            if r_op == 'and_not': r.op = 'and not'
+            if r_op == 'and_not':
+                r_op = 'and not'
             return "(%s) %s (%s)" % (a1, r_op, a2)
 
     return aux (rpn_query.rpn)
@@ -218,15 +219,3 @@ if __name__ == '__main__':
         factory.protocol = Z3950Server
         reactor.listenTCP (2100, factory)
         reactor.run ()
-
-    
-
-
-
-
-
-
-
-
-
-
