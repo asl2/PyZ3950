@@ -128,6 +128,19 @@ import copy
 import math
 
 
+def cmp(x, y):
+    """
+    Replacement for built-in function cmp that was removed in Python 3
+
+    Compare the two objects x and y and return an integer according to
+    the outcome. The return value is negative if x < y, zero if x == y
+    and strictly positive if x > y.
+    
+    https://portingguide.readthedocs.io/en/latest/comparisons.html#the-cmp-function
+    """
+    return (x > y) - (x < y)
+
+
 # - elements should expose a list of possible tags, instead of just one tag,
 #    bringing CHOICE into line with other elements
 # - make test cases more comprehensive
@@ -1090,7 +1103,7 @@ class OCTSTRING_class (ConditionalConstr, ELTBASE):
             ctx.len_write_known (len (val))
             ctx.bytes_write (val)
     def encode_per (self, ctx, val):
-        val = handle_charset (ctx, val)
+        val = self.handle_charset (ctx, val)
         assert (not self.extensible)
         l = len (val)
         if self.lo != None and self.lo == self.hi:
