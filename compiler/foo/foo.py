@@ -214,7 +214,7 @@ class Node:
             return child.str_depth (depth)
         indent = " " * (4 * depth)
         if hasattr (child, '__getitem__'): #XXX
-            return ident + list(map (str, child)) + "\n"
+            return indent + list(map (str, child)) + "\n"
         else:
             return indent + str (child) + "\n"
     def str_depth (self, depth): # ugh
