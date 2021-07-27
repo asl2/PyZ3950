@@ -202,7 +202,14 @@ class Visitor:
         (ch_str, ext_str) = self.mk_seq_or_choice_str (node)
         self.output ("%sasn1.CHOICE ([%s])" % (self.spaces (), ch_str))
 # XXX should output extstr
-                     
+
+    def mk_tag_str(self, cls, tag_type, tag_num):
+        # if this appears in input asn.1, I think we need to output
+        # return str(tag_num) and ensure that asn1.CHOICE and asn1.SEQUENCE
+        # and everything that might possibly take a NamedType with an explict
+        # tag handles it OK.
+        raise NotImplementedError(cls, tag_type, tag_num)
+    
     def visitElementType (self, node):
         # we have elt_type, val= named_type, maybe default=, optional=
         # named_type node: either ident = or typ =
@@ -215,8 +222,8 @@ class Visitor:
         tagstr = 'None'
         identstr = nt.ident
         if hasattr (nt.typ, 'type') and nt.typ.type == 'tag': # ugh
-            tagstr = mk_tag_str (self,nt.typ.tag.cls, # XXX
-                                 nt.typ.tag.tag_typ,nt.typ.tag.num)
+            tagstr = self.mk_tag_str(nt.typ.tag.cls, # XXX
+                                     nt.typ.tag.tag_typ,nt.typ.tag.num)
             nt = nt.typ
         typstr = self.visit_saving (nt.typ)
         self.output ("('%s',%s,%s,%d)" % (identstr, tagstr,typstr, optflag))
