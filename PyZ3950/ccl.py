@@ -106,7 +106,7 @@ def t_QUOTEDVALUE(t):
     return t
 
 word_init = "[a-z]|[A-Z]|[0-9]|&|:"
-word_non_init = ",|\.|\'"
+word_non_init = r",|\.|\'"
 
 t_WORD = "(%s)(%s|%s)*" % (word_init, word_init, word_non_init)
 
