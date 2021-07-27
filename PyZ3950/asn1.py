@@ -128,19 +128,6 @@ import copy
 import math
 
 
-def cmp(x, y):
-    """
-    Replacement for built-in function cmp that was removed in Python 3
-
-    Compare the two objects x and y and return an integer according to
-    the outcome. The return value is negative if x < y, zero if x == y
-    and strictly positive if x > y.
-    
-    https://portingguide.readthedocs.io/en/latest/comparisons.html#the-cmp-function
-    """
-    return (x > y) - (x < y)
-
-
 # - elements should expose a list of possible tags, instead of just one tag,
 #    bringing CHOICE into line with other elements
 # - make test cases more comprehensive
@@ -858,10 +845,10 @@ class IMPLICIT(TAG):
     flags = 0
     def __repr__ (self):
         return "IMPLICIT: " + repr (self.tag) + " " + repr (self.typ)
-    def __cmp__ (self, other):
+    def __eq__ (self, other):
         if not isinstance (other, IMPLICIT):
-            return -1
-        return cmp (self.tag, other.tag)
+            return False
+        return self.tag == other.tag
     def start_cons (self, tag, cur_len, ctx):
         return self.typ.start_cons (tag, cur_len, ctx)
     def encode (self, ctx, val):
@@ -875,10 +862,10 @@ class EXPLICIT (TAG):
     flags = CONS_FLAG  # Explicit tag is always a constructed encoding
     def __repr__ (self):
         return "EXPLICIT: " + repr (self.tag) + " " + repr (self.typ)
-    def __cmp__ (self, other):
+    def __eq__ (self, other):
         if not isinstance (other, EXPLICIT):
-            return -1
-        return cmp (self.tag, other.tag)
+            return False
+        return self.tag == other.tag
 
     class ConsElt:
         def __init__ (self, typ):
@@ -932,13 +919,9 @@ class OidVal:
             s = s + ' %d' % i
         return s
     def __eq__(self, other):
-        if other is None:
+        if other is None or not hasattr(other, 'lst'):
             return False
         return self.lst == other.lst
-    def __cmp__ (self, other):
-        if not hasattr (other, 'lst'):
-            return -1
-        return cmp (self.lst, other.lst)
     def encode (self, lst):
         encoded = [40 * lst [0] + lst [1]]
         for val in lst [2:]:
@@ -1288,8 +1271,11 @@ class BitStringVal:
         return "Top: %s Bits %s Names %s" % (repr(self.top_ind),
                                              repr(self.bits),
                                              ",".join (names))
-    def __cmp__ (self, other):
-        return cmp ((self.top_ind, self.bits), (other.top_ind, other.bits))
+    def __eq__ (self, other):
+        if not isinstance(other, BitStringVal):
+            return False
+        # XXX should we also compare self.defn against other.defn?
+        return self.top_ind == other.top_ind and self.bits ==  other.bits
 
     def check_extend (self, bit):
         if bit > self.top_ind:
@@ -2043,4 +2029,3 @@ if __name__ == '__main__':
     print("bit offset", pwc.bit_offset)
     print(list(map (hex, pwc.get_data ())))
     run (1)
-
