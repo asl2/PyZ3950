@@ -267,7 +267,7 @@ class Server (Conn):
         close.diagnosticInformation = info
         self.send (('close', close))
 
-    def close (self, parm):
+    def close(self, parameter):
         self.done = 1
         self.do_close (0, 'Normal close')
 

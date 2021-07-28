@@ -269,8 +269,8 @@ class StructBase(object):
             if is_seq (s) and is_seq (o):
                 if len (s) != len (o):
                     return False
-                for selt, oelt in zip (s, o):
-                    if selt != oelt:
+                for self_element, other_element in zip (s, o):
+                    if self_element != other_element:
                         return False
             else:
                 if s != o:
@@ -1692,7 +1692,7 @@ def check_EXTERNAL_ASN (so_far):
         return
     # in theory, should provide support for indirect_reference
     # indicating encoding type, but callers can receive asn1.ANY
-    # decoded data, reencode it, and then redecode it with a proper
+    # decoded data, re-encode it, and then redecode it with a proper
     # spec as a workaround.  Let me know if you actually use
     # indirect_reference.
     if trace_external:
@@ -1761,7 +1761,7 @@ class BOOLEAN_class (ELTBASE):
         if mylen != 1: ctx.raise_error ("Bogus length for bool " +
                                         repr (mylen))
         # "not not" to canonicalize.  Really only needed for round-trip
-        # decode - reencode - redecode testing
+        # decode - re-encode - redecode testing
         return not not buf [0]
 
 

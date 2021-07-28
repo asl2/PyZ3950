@@ -50,7 +50,7 @@ which&nbsp;takes&nbsp;binary&nbsp;<a href="#MARC">MARC</a>&nbsp;data.</tt></p>
 <tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td>
 <td colspan=2><tt>Parses&nbsp;data&nbsp;into&nbsp;'fields'&nbsp;attribute,&nbsp;indexed&nbsp;by&nbsp;field&nbsp;number.<br>
 Each&nbsp;value&nbsp;is&nbsp;a&nbsp;list.&nbsp;&nbsp;For&nbsp;fixed&nbsp;fields,&nbsp;it's&nbsp;a&nbsp;list&nbsp;of&nbsp;the&nbsp;string&nbsp;data<br>
-(one&nbsp;string&nbsp;for&nbsp;each&nbsp;occurence&nbsp;of&nbsp;the&nbsp;field&nbsp;in&nbsp;the&nbsp;original&nbsp;data).&nbsp;&nbsp;For<br>
+(one&nbsp;string&nbsp;for&nbsp;each&nbsp;occurrence&nbsp;of&nbsp;the&nbsp;field&nbsp;in&nbsp;the&nbsp;original&nbsp;data).&nbsp;&nbsp;For<br>
 other&nbsp;fields,&nbsp;each&nbsp;list&nbsp;element&nbsp;is&nbsp;a&nbsp;tuple&nbsp;of&nbsp;(indicator&nbsp;1,&nbsp;indicator&nbsp;2,<br>
 subdata),&nbsp;where&nbsp;subdata&nbsp;is&nbsp;a&nbsp;list&nbsp;of&nbsp;tuples&nbsp;of&nbsp;(subfield&nbsp;indicator,<br>
 subfield&nbsp;data).&nbsp;&nbsp;Yes,&nbsp;this&nbsp;is&nbsp;kinda&nbsp;lame&nbsp;and&nbsp;I&nbsp;really&nbsp;should&nbsp;have<br>
@@ -75,7 +75,7 @@ when&nbsp;dealing&nbsp;with&nbsp;such&nbsp;servers.</tt></dd></dl>
 
 <dl><dt><a name="MARC-toMARCXML"><strong>toMARCXML</strong></a>(self)</dt><dd><tt>&nbsp;Convert&nbsp;record&nbsp;to&nbsp;MarcXML&nbsp;Schema</tt></dd></dl>
 
-<dl><dt><a name="MARC-toMODS"><strong>toMODS</strong></a>(self)</dt><dd><tt>&nbsp;Tranform&nbsp;<a href="#MARC">MARC</a>&nbsp;record&nbsp;into&nbsp;MODS&nbsp;according&nbsp;to&nbsp;CrossWalk</tt></dd></dl>
+<dl><dt><a name="MARC-toMODS"><strong>toMODS</strong></a>(self)</dt><dd><tt>&nbsp;Transform&nbsp;<a href="#MARC">MARC</a>&nbsp;record&nbsp;into&nbsp;MODS&nbsp;according&nbsp;to&nbsp;CrossWalk</tt></dd></dl>
 
 <dl><dt><a name="MARC-toOAIMARC"><strong>toOAIMARC</strong></a>(self)</dt><dd><tt>Convert&nbsp;record&nbsp;to&nbsp;OAI&nbsp;<a href="#MARC">MARC</a>&nbsp;XML&nbsp;Schema.<br>
 Note&nbsp;Well&nbsp;that&nbsp;OAI-MHP&nbsp;2.0&nbsp;recommends&nbsp;using&nbsp;MarcXML</tt></dd></dl>

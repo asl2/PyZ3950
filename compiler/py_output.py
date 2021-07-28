@@ -206,7 +206,7 @@ class Visitor:
     def mk_tag_str(self, cls, tag_type, tag_num):
         # if this appears in input asn.1, I think we need to output
         # return str(tag_num) and ensure that asn1.CHOICE and asn1.SEQUENCE
-        # and everything that might possibly take a NamedType with an explict
+        # and everything that might possibly take a NamedType with an explicit
         # tag handles it OK.
         raise NotImplementedError(cls, tag_type, tag_num)
     

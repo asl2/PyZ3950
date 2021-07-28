@@ -931,7 +931,7 @@ class CQLParser:
                     break
             if not nonanchor:
                 diag = Diagnostic32()
-                diag.details = "Only anchoring charater(s) in term: "  + self.currentToken
+                diag.details = "Only anchoring character(s) in term: "  + self.currentToken
                 raise diag
         elif errorOnEmptyTerm:
             diag = Diagnostic27()

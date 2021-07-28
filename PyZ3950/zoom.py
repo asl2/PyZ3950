@@ -549,7 +549,7 @@ class ResultSet(_AttrCheck, _ErrHdlr):
             return getattr (self._conn, key) # may raise AttributeError
         raise AttributeError (key)
     def _make_keywords (self):
-        """Set up dict of parms for present request"""
+        """Set up dict of parameters for present request"""
         kw = {}
         # need for translation here from preferredRecordSyntax to recsyn
         # is kinda pointless
