@@ -143,7 +143,7 @@ def parse_sub (field):
 class MARC:
     """Parses data into 'fields' attribute, indexed by field number.
     Each value is a list.  For fixed fields, it's a list of the string data
-    (one string for each occurence of the field in the original data).  For
+    (one string for each occurrence of the field in the original data).  For
     other fields, each list element is a tuple of (indicator 1, indicator 2,
     subdata), where subdata is a list of tuples of (subfield indicator,
     subfield data).  Yes, this is kinda lame and I really should have
@@ -624,7 +624,7 @@ class MARC:
 
 
     def toMODS(self):
-        """ Tranform MARC record into MODS according to CrossWalk """
+        """ Transform MARC record into MODS according to CrossWalk """
         xml = ["<mods>\n"]
 
         # --- TitleInfo Fields ---

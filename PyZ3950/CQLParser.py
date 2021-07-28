@@ -335,7 +335,7 @@ class Term:
                     break
             if not nonanchor:
                 diag = Diagnostic32()
-                diag.details = "Only anchoring charater(s) in term: "  + v
+                diag.details = "Only anchoring character(s) in term: "  + v
                 raise diag
 
             # Unescape quotes
