@@ -1,6 +1,6 @@
 #!/usr/local/bin/python2.3 -i
 
-from zoom import *
+from PyZ3950.zoom import *
 c = Connection('gondolin.hist.liv.ac.uk', 210)
 c.databaseName = 'l5r'
 #c = Connection('z3950.copac.ac.uk', 210)

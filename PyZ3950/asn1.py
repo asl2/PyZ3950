@@ -625,7 +625,7 @@ class WriteCtx (CtxBase):
         if isinstance (data, type ([])):
             self.buf.fromlist (data)
         elif isinstance (data, type (b'')):
-            self.buf.fromstring (data)
+            self.buf.frombytes (data)
         else:
             raise EncodingError("Bad type %s to bytes_write" % (
                 type(data)))
