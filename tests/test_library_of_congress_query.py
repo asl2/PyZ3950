@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 from __future__ import print_function, absolute_import
 from PyZ3950 import zoom
-from io import StringIO
 
 
-def get_results():
+def test_library_of_congress_query():
     conn = zoom.Connection ('z3950.loc.gov', 7090)
     conn.databaseName = 'VOYAGER'
     conn.preferredRecordSyntax = 'USMARC'
@@ -12,22 +11,6 @@ def get_results():
     query = zoom.Query ('CCL', 'ti="1066 and all that"')
 
     res = conn.search (query)
-    for r in res:
-        yield(r)
+    # ensure we got at least one record
+    assert len(res) >= 1
     conn.close ()
-
-
-def test_1():
-    results = list(get_results())
-    assert len(results) == 13
-
-    
-
-
-def main():
-    for r in get_results():
-        print(r)
-
-
-if __name__ == '__main__':
-    main()
