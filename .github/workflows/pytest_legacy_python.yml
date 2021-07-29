@@ -1,0 +1,14 @@
+name: pytest_legacy_python
+on: [pull_request, push]
+jobs:
+  pytest_legacy_python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '2.7'
+      - run: pip install ply pytest
+      - run: pip install -e .
+      - run: pytest . || true
+      - run: pytest --doctest-modules . || true
