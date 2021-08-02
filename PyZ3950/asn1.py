@@ -126,9 +126,6 @@ import array
 import string
 import copy
 import math
-import sys
-PY2 = sys.version_info.major == 2
-
 
 
 # - elements should expose a list of possible tags, instead of just one tag,
@@ -628,10 +625,10 @@ class WriteCtx (CtxBase):
         if isinstance (data, type ([])):
             self.buf.fromlist (data)
         elif isinstance (data, type (b'')):
-            if PY2:
-                self.buf.fromstring(data)
-            else:
+            try:
                 self.buf.frombytes(data)
+            except AttributeError:
+                self.buf.fromstring(data)
 
         else:
             raise EncodingError("Bad type %s to bytes_write" % (
