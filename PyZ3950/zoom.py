@@ -456,7 +456,7 @@ Supported query types:  CCL, S-CCL, CQL, S-CQL, PQF, C2, ZSQL, CQL-TREE
                raise QuerySyntaxError (str(err))
         elif typ == 'S-CCL': # server-side ccl
             self.typ = typ
-            self.query =  ('type-2', query)
+            self.query =  ('type_2', query)
         elif typ == 'S-CQL': # server-side cql
             self.typ = typ
             xq = asn1.EXTERNAL()
